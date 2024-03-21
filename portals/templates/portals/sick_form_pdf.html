@@ -1,0 +1,167 @@
+
+{% extends 'portals/base.html' %}
+
+{% load static %}
+
+{% block content %}
+{% include 'portals/sidebarVet.html' %}
+<main class="page-content">
+<div class="container-fluid">
+{% for form in forms %}
+<div class="container">
+    <div class="card">
+        <h2 class="text-center">Clinical Approach Form</h2>
+        <div class="card-header">      
+            <h3>DATE : {{form.vet_form.report_created_on}}</h3>
+        </div>
+
+        <div class="list-group">
+            <p>Vet Officer Name: {{form.vet_form.vet_username}} </p>
+            <p>Farmer Name {{ request.user }}</p>     
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Species affected </td>
+                    <td>{{ form.get_species_affected_display }}</td>
+                </tr>
+                <tr>
+                    <td>Number of Species affected </td>
+                    <td>{{ form.num_of_species_affected }}</td>
+                </tr>
+                <tr>
+                    <td>name of the animal/identification number </td>
+                    <td>{{ form.id_animal }}</td>
+                </tr>
+                <tr>
+                    <td>nature of the disease</td>
+                    <td>{{ form.get_disease_nature_display }}</td>
+                </tr>
+                <tr>
+                    <td>Clinical Signs</td>
+                    <td>{{ form.clinical_signs }}</td>
+                </tr>
+                <tr>
+                    <td>Disease Diagnosis</td>
+                    <td>{{ form.differential_diagnosis }}</td>
+                </tr>
+                <tr>
+                    <td>Differential Diagnosis</td>
+                    <td>{{ form.differential_diagnosis }}</td>
+                </tr>
+                <tr>
+                    <td>Final Diagnosis</td>
+                    <td>{{ form.final_diagnosis }}</td>
+                </tr>
+                <tr>
+                    <td>duration of the sickness </td>
+                    <td>{{ form.sickness_duration }}</td>
+                </tr>
+                <tr>
+                    <td>Sickness History </td>
+                    <td>{{ form.sickness_history }}</td>
+                </tr>
+                <tr>
+                    <td>Drug of Choice </td>
+                    <td>{{ form.drug_of_choice }}</td>
+                </tr>
+                <tr>
+                    <td>Treatment Duration </td>
+                    <td>{{ form.treatment_duration }}</td>
+                </tr>
+                <tr>
+                    <td>Start Dose Date </td>
+                    <td>{{ form.start_dose_date }}</td>
+                </tr>
+                <tr>
+                    <td>Prognosis </td>
+                    <td>{{ form.get_prognosis_display }}</td>
+                </tr>
+                <tr>
+                    <td>Were the pathological signs in harmony with the clinical signs and laboratory reports? </td>
+                    <td>{{ form.get_harmony_with_clinic_signs_and_lab_display }}</td>
+                </tr>
+                <tr>
+                    <td>If no, what could be the cause of the death </td>
+                    <td>{{ form.get_cause_of_death_if_in_no_harmony_display }}</td>
+                </tr>
+                <tr>
+                    <td>is the disease one of the zoonotic?</td>
+                    <td>{{ form.get_disease_one_of_the_zoonotic_display }}</td>
+                </tr>
+                <tr>
+                    <td>if yes, what advice did you give the owner and people who handled the carcass' </td>
+                    <td>{{ form.advice_given_if_zoonotic }}</td>
+                </tr>
+                <tr>
+                    <td>was there any relapse?</td>
+                    <td>{{ form.get_relapse_display }}</td>
+                </tr>
+                <tr>
+                    <td>if yes, what might be the cause </td>
+                    <td>{{ form.cause_if_relapse }}</td>
+                </tr>
+                <tr>
+                    <td>Comment </td>
+                    <td>{{ form.comment }}</td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th>Field</th>
+                    <th>Value</th>
+                </tr>
+            </tfoot>
+        </table>
+       
+    </div>
+</div>
+{% endfor %}
+ 
+<footer class="footer">
+    <div class=" container-fluid ">
+        <div class="copyright">
+          &copy; Copyright <strong><span>SoinVet</span></strong>. All Rights Reserved
+          <div class="credits">
+          Designed by <a>ishasir</a>
+        </div>
+      </div>
+    </footer><!-- End Footer -->
+<!--   Core JS Files   -->
+<script src="{% static 'portals/assets/js/core/jquery.min.js' %}"></script>
+<script src="{% static 'portals/assets/js/core/popper.min.js' %}"></script>
+<script src="{% static 'portals/assets/js/core/bootstrap.min.js' %}"></script>
+<script src="{% static 'portals/assets/js/plugins/perfect-scrollbar.jquery.min.js' %}"></script>
+<!--  Google Maps Plugin    -->
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_KEY_HERE"></script>
+<!-- Chart JS -->
+<script src="{% static 'portals/assets/js/plugins/chartjs.min.js' %}"></script>
+<!--  Notifications Plugin    -->
+<script src="{% static 'portals/assets/js/plugins/bootstrap-notify.js' %}"></script>
+<!-- Control Center for Now Ui Dashboard: parallax effects, scripts for the example pages etc -->
+<script src="{% static 'portals/assets/js/now-ui-dashboard.min.js' %}" type="text/javascript"></script><!-- Now Ui Dashboard DEMO methods, don't include it in your project! -->
+<script src="{% static 'portals/assets/js/main.js' %}"></script>
+<!-- page-wrapper -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+  crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+  crossorigin="anonymous"></script>
+
+<script>
+$(document).ready(function() {
+  // Javascript method's body can be found in assets/js/demos.js
+  demo.initDashboardPageCharts();
+
+});
+</script>
+</body>
+
+{% endblock %}

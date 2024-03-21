@@ -1,0 +1,153 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Vaccination Form </title>
+    <style type="text/css">
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+
+        .table {
+            width: 100%;
+            max-width: 100%;
+            margin-bottom: 5px;
+            background-color: #fff;
+        }
+
+        .table th,
+        .table td {
+            padding: 5px;
+            vertical-align: top;
+            border-top: 1px solid #000;
+            text-align: center;
+        }
+
+        .table thead th {
+            vertical-align: bottom;
+            border-bottom: 2px solid #000;
+        }
+
+        .table tbody + tbody {
+            border-top: 2px solid #000;
+        }
+
+        .table .table {
+            background-color: #fff;
+        }
+
+        .list-group {
+            display: block;
+            width: 100%;
+            list-style: none;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+        .list-group p {
+            width: 100%;
+            height: 20px;
+            line-height: 20px;
+            list-style: none;
+            font-size: 1.1em;
+        }
+
+    </style>
+</head>
+<body>
+
+{% for form in forms %} 
+<div class="container">
+    <div class="card">
+        <h2 class="text-center"> Vaccination pdf  </h2>
+        <div class="card-header">      
+            <h3>DATE : {{form.vet_form.report_created_on}}</h3>
+        </div>
+
+        <div class="list-group">
+            <p>Vet Officer Name: {{form.vet_form.vet_username}} </p>
+            <p>Farmer Name {{ request.user }}</p>     
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody> 
+                <tr>
+                    <td>Animal species targetted</td>
+                    <td>{{ form.species_targeted }}</td>
+                <tr>
+                    <td>If other specify</td>
+                    <td>{{ form.if_other_specify  }}</td>
+                </tr>   
+                <tr>
+                    <td>Number of animals vaccinated.</td>
+                    <td>{{ form.number_of_animals_vaccinated }}</td>
+                </tr> 
+                <tr>
+                    <td>Age of animal</td>
+                    <td>{{ form.age_of_animal }}</td>
+                </tr>
+                <tr>
+                    <td>Sex of the animal</td>
+                    <td>{{ form.get_sex_of_the_animal_display }}</td>
+                </tr>
+                <tr>
+                    <td>Breed of the animal</td>
+                    <td>{{ form.animal_breed }}</td>
+                </tr>
+                <tr>
+                    <td>Colour of the animal</td>
+                    <td>{{ form.animal_colour }}</td>
+                </tr>
+                <tr>
+                    <td>other description</td>
+                    <td>{{ form.other_description }}</td>
+                </tr>
+                <tr>
+                    <td>The disease target</td>
+                    <td>{{ form.targetted_disease }}</td>
+                </tr>
+                <tr>
+                    <td>Vaccine used</td>
+                    <td>{{ form.vaccines_used }}</td>
+                </tr>
+                <tr>
+                    <td>Date of vaccination</td>
+                    <td>{{ form.date_of_vaccination }}</td>
+                </tr>
+                <tr>
+                    <td>Next date of vaccination</td>
+                    <td>{{ form.next_date_of_vaccination  }}</td>
+                </tr>
+                <tr>
+                    <td>Name of the crush</td>
+                    <td>{{ form.name_of_the_crush }}</td>
+                </tr>
+                <tr>
+                    <td>Nature of the vaccination program</td>
+                    <td>{{ form.get_nature_of_the_vacination_program_display }}</td>
+                </tr>
+                <tr>
+                    <td>Comment</td>
+                    <td>{{ form.Comment }}</td>
+                </tr>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <th>Field</th>
+                <th>Value</th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+{% endfor %}
+</div>
+
+</body>
+</html>

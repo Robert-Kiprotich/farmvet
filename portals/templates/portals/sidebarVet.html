@@ -1,0 +1,197 @@
+{% load static %}
+
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<!------ Include the above in your HEAD tag ---------->
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+        crossorigin="anonymous">
+<link href="https://use.fontawesome.com/releases/v5.0.6/css/all.css" rel="stylesheet">
+ 
+
+
+<div class="page-wrapper chiller-theme ">
+  <a id="show-sidebar" class="btn btn-sm btn-dark" href="#">
+    <i class="fas fa-bars"></i>
+  </a>
+  <nav id="sidebar" class="sidebar-wrapper">
+    <div class="sidebar-content">
+      <div class="sidebar-brand">
+        <a href="{% url 'vet-portal' %}">Vet Dashboard</a>
+        <div id="close-sidebar">
+          <i class="fas fa-times"></i>
+        </div>
+      </div>
+      <div class="sidebar-header">
+        <div class="user-pic">
+          <img class="img-responsive img-rounded" src="{% static 'portals/assets/img/user.png' %}"
+            alt="User picture">
+        </div>
+        <div class="user-info">
+          <span class="user-name">
+            <strong>{{request.user}}</strong>
+          </span>
+          <span class="user-role">Vet</span>
+          <span class="user-status">
+            <i class="fa fa-circle"></i>
+            <span>Online</span>
+          </span>
+        </div>
+      </div>
+      <!-- sidebar-header  -->
+      <!-- sidebar-search  -->
+      <div class="sidebar-menu">
+        <ul>
+          <li class="header-menu">
+            <span>General</span>
+          </li>
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="fa fa-tachometer-alt"></i>
+              <span>My Forms</span>
+             
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a href="{% url 'sickformview' %}">ClinicalApproachForm</a>
+                
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'deadformview' %}">PostMortemApproachForm</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'surgicalformview' %}">SurgicalApproachForm</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'dewormingformview' %}">DewormingForm</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'vaccinationformview' %}">vaccination_form</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'artificialformview' %}">ArtificialInseminationForm</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'pregnancyformview' %}">PregnancyDiagnosisForm</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'consultationformview' %}">ConsultationForm</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'vetbillformview' %}">VeterinaryBillingForm</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'labformview' %}">LaboratoryForm</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'referralformview' %}">ReferralForm</a>
+                </li>
+               
+              </ul>
+            </div>
+          </li>
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="fa fa-shopping-cart"></i>
+              <span>MY Records</span>
+             
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a class="dropdown-item" href="{% url 'artificial-report' %}">AI Report</a>
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'deworming-report' %}">Deworming Report</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'sick-report' %}">Sickness Report</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'death-report' %}">Death Report</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'vaccination-report' %}">vaccination Report</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'pregnancy-report' %}">Pregnancy Report</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'farm-consultation' %}">Farm Consultation</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'veterinary-billing-report' %}">Billing</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'laboratory-report' %}">Lab Report</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'referral-report' %}">Referral Report</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'surgical-report' %}">surgical Report</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="far fa-gem"></i>
+              <span>Learning Resources</span>
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a href="#">Quick Links </a>
+                </li>
+                <li>
+                  <a href="#">PDF NOTES</a>
+                </li>
+                
+              </ul>
+            </div>
+          </li>
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="fa fa-chart-line"></i>
+              <span>My Clients</span>
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a href="#">Recent Clients</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+           <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="fa fa-chart-line"></i>
+              <span>Other</span>
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a href="#">VET LIST</a>
+                </li>
+                <li>
+                  <a href="#">Gallery</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+      
+      </div>
+      <!-- sidebar-menu  -->
+    </div>
+    <!-- sidebar-content  -->
+    <div class="sidebar-footer">
+    
+  </nav>
+  <!-- sidebar-wrapper  -->
+  
+

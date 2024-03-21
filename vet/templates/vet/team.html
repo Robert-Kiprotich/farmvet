@@ -1,0 +1,79 @@
+{% extends 'vet/base.html'  %}
+
+{% load static %}
+
+{% block content %}
+<!-- End Header -->
+
+  <main id="main">
+
+    <!-- ======= Breadcrumbs ======= -->
+    <section id="breadcrumbs" class="breadcrumbs">
+      <div class="container">
+
+        <ol>
+          <li><a href="index.html">Home</a></li>
+          <li>Team</li>
+        </ol>
+        <h2>Team</h2>
+
+      </div>
+    </section><!-- End Breadcrumbs -->
+
+    <!-- ======= Team Section ======= -->
+    <section id="team" class="team">
+      <div class="container">
+
+        <div class="row">
+          <div class="col-lg-4 col-md-6 d-flex align-items-stretch">
+            <div class="member">
+              <img src="{% static 'vet/assets/img/team/team-1.jpg' %}" alt="">
+              <h4>Dr.Kirui Richard</h4>
+              <span>Chief Executive Officer</span>
+              <p>
+                Invest in the health of your pet and livestock for a better smile.
+              </p>
+              <div class="social">
+                <a href=""><i class="icofont-twitter"></i></a>
+                <a href=""><i class="icofont-facebook"></i></a>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-md-6 d-flex align-items-stretch">
+            <div class="member">
+              <img src="{% static 'vet/assets/img/team/team-2.jpg' %}" alt="">
+              <h4>Sarah </h4>
+              <span>Shop and sales Manager</span>
+              <p>
+                we value the health of your pet and livestock,and thats why we provide the best solutions for your farm. 
+              </p>
+              <div class="social">
+                <a href=""><i class="icofont-twitter"></i></a>
+                <a href=""><i class="icofont-facebook"></i></a>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-md-6 d-flex align-items-stretch">
+            <div class="member">
+              <img src="{% static 'vet/assets/img/team/team-3.jpg' %}" alt="">
+              <h4>William </h4>
+              <span>Field Officer</span>
+              <p>
+                My happiness is interaction with farmers. the best part of being a field officer is meeting farmers who are real into farming.
+              </p>
+              <div class="social">
+                <a href=""><i class="icofont-twitter"></i></a>
+                <a href=""><i class="icofont-facebook"></i></a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section><!-- End Team Section -->
+
+  </main><!-- End #main -->
+  {% endblock content%}

@@ -1,0 +1,27 @@
+{% extends 'portals/base.html' %}
+
+{% load static %}
+
+{% load crispy_forms_tags %}
+
+{% block title %} SoinVet|Home {% endblock %}
+
+{% block content %}
+
+<!-- =============================================== -->
+    <!-- Left side column. contains the sidebar -->
+    {% include 'portals/sidebarFarmer.html' %}
+    <!-- =============================================== -->
+    <!-- Content Wrapper. Contains page content -->
+<!-- =============================================== -->
+                
+
+    <section class="content">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-lg-12">
+                <img src="{{img_obj.Attach_photos_of_your_animal.url}}" alt="" width="300" height="200">
+            </div>
+         </div>   
+    </section> 
+
+{% endblock content %}    

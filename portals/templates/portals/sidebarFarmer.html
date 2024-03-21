@@ -1,0 +1,251 @@
+{% load static %}
+
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<!------ Include the above in your HEAD tag ---------->
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+        crossorigin="anonymous">
+<link href="https://use.fontawesome.com/releases/v5.0.6/css/all.css" rel="stylesheet">
+ 
+<div class="page-wrapper chiller-theme ">
+  <a id="show-sidebar" class="btn btn-sm btn-dark" href="#">
+    <i class="fas fa-bars"></i>
+  </a>
+  <nav id="sidebar" class="sidebar-wrapper">
+    <div class="sidebar-content">
+      <div class="sidebar-brand">
+        <a href="{% url 'farmer-portal' %}">Farmer Dashboard</a>
+        <div id="close-sidebar">
+          <i class="fas fa-times"></i>
+        </div>
+      </div>
+      <div class="sidebar-header">
+        <div class="user-pic">
+          <img class="img-responsive img-rounded" src="{% static 'portals/assets/img/user.png' %}"
+            alt="User picture">
+        </div>
+        <div class="user-info">
+          <span class="user-name">
+            <strong>{{request.user}}</strong>
+          </span>
+          <span class="user-role">Farmer</span>
+          <span class="user-status">
+            <i class="fa fa-circle"></i>
+            <span>Online</span>
+          </span>
+        </div>
+      </div>
+      <!-- sidebar-header  -->
+      <!-- sidebar-search  -->
+      <div class="sidebar-menu">
+        <ul>
+          <li class="header-menu">
+            <span>General</span>
+          </li>
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="fa fa-tachometer-alt"></i>
+              <span>My Forms</span>
+             
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a href="{% url 'sickformview' %}">ClinicalApproachForm</a>
+                
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'calfformview' %}">Calf Registration Form</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'calfformview' %}">Register new animal</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'livestockformview' %}">Livestock Inventory Form</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'calfformview' %}">Culling</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'calfformview' %}">MILK DAILY COLLECTION(PER COW/ TOTAL COLLECTION PER DAY)</a>
+                </li>
+               
+     
+               
+              </ul>
+            </div>
+          </li>
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="fa fa-chart-line"></i>
+              <span>Vet List</span>
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a href="{% url 'vet-list' %}">All Vets</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="fa fa-shopping-cart"></i>
+              <span>Vet Records</span>
+             
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a class="dropdown-item" href="{% url 'sickformpdf' %}">ClinicalApproachFormPDF</a>
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'deadformpdf' %}">PostMortemApproachFormPDF</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'surgicalformpdf' %}">SurgicalApproachFormPDF</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'dewormingformpdf' %}">DewormingFormPDF</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'artificialformpdf' %}">ArtificialInseminationPDF</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'consultationformpdf' %}">FarmConsultationPDF</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'vaccinationformpdf' %}">VaccinationFormPDF</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'pregnancyformpdf' %}">PregnancyDiagnosisPDF</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'laboratory-report' %}">Lab Report</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'referralformpdf' %}">ReferralFormPDF</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'vetbillformview' %}">VeterinaryBillingForm</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="far fa-gem"></i>
+              <span>Learning Resources</span>
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a href="#">Quick Links </a>
+                </li>
+                <li>
+                  <a href="#">PDF NOTES</a>
+                </li>
+                
+              </ul>
+            </div>
+          </li>
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="fa fa-chart-line"></i>
+              <span>Vet Records</span>
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a href="#">Recent Clients</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+           
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="fa fa-chart-line"></i>
+              <span>Monitoring</span>
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a href="#">Heat Signs Monitoring</a>
+                </li>
+                <li>
+                  <a href="#">Pregnancy Monitoring</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="fa fa-chart-line"></i>
+              <span>Source Of Income</span>
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a href="#">Sales of stocks</a>
+                </li>
+                <li>
+                  <a href="#">Sales of milk</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="fa fa-chart-line"></i>
+              <span>Expenses</span>
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a href="#">All Expenses</a>
+                </li>
+               
+              </ul>
+            </div>
+          </li>
+
+      
+      </div>
+      <!-- sidebar-menu  -->
+    </div>
+    <!-- sidebar-content  -->
+    <div class="sidebar-footer">
+    
+  </nav>
+  <!-- sidebar-wrapper  -->
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

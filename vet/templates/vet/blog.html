@@ -1,0 +1,133 @@
+{% extends 'vet/base.html'  %}
+
+{% load static %}
+
+{% block content %}
+<!-- End Header -->
+
+    <!-- ======= Breadcrumbs ======= -->
+    <section id="breadcrumbs" class="breadcrumbs">
+      <div class="container">
+
+        <ol>
+          <li><a href="index.html">Home</a></li>
+          <li>Blog</li>
+        </ol>
+        <h2>Blog</h2>
+
+      </div>
+    </section><!-- End Breadcrumbs -->
+
+    <!-- ======= Blog Section ======= -->
+    <section id="blog" class="blog">
+      <div class="container">
+
+        <div class="row">
+
+          <div class="col-lg-8 entries">
+
+            <article class="entry">
+
+              <div class="entry-img">
+                <img src="assets/img/blog-1.jpg" alt="" class="img-fluid">
+              </div>
+
+              <h2 class="entry-title">
+                <a href="blog-single.html"> Dairy Testing Technologies for Agility and Innovation </a>
+              </h2>
+
+              <div class="entry-meta">
+                <ul>
+                  <li class="d-flex align-items-center"><i class="icofont-user"></i> <a href="blog-single.html">John </a></li>
+                  <li class="d-flex align-items-center"><i class="icofont-wall-clock"></i> <a href="blog-single.html"><time datetime="2020-01-01">  March 1, 2021</time></a></li>
+                  <li class="d-flex align-items-center"><i class="icofont-comment"></i> <a href="blog-single.html"> Comments</a></li>
+                </ul>
+              </div>
+
+              <div class="entry-content">
+                <p>
+                  Efficiency and high throughput are critical in dairy processing. Together with the dairy industry, KCC continues to innovate, bringing new solutions to the table. Rapid, reliable, user-friendly and compliant: the latest additions include a dedicated FTIR milk analyzer, upgraded in-line NIR sensor, new software and extended calibrations. 
+
+In this blog, we discover these comprehensive dairy testing technologies for compositional screening. We also meet the RVA for functionality testing, which elucidates the effects of processing and synergy on ingredient performance. How are some operations so agile? Come find out for yourself!
+
+Learning objectives:
+
+Connect PerkinElmer's solutions to where they fit into your process.
+Describe how the Lactoscope FTIR and Diode Array NIR instruments enable quality and compositional testing of dairy in the lab as well as online.
+Identify the uses of a Rapid Visco Analyzer (RVA) in dairy functionality testing, QC activities and in new product development.
+Compare each instrument’s benefits including efficiency (e.g. minimal sample preparation) and integrated software against conventional methods of analysis.
+                </p>
+              </div>
+
+            </article><!-- End blog entry -->
+            <div class="blog-pagination">
+              <ul class="justify-content-center">
+                <li class="disabled"><i class="icofont-rounded-left"></i></li>
+                <li><a href="#">1</a></li>
+                <li class="active"><a href="#">2</a></li>
+                <li><a href="#">3</a></li>
+                <li><a href="#"><i class="icofont-rounded-right"></i></a></li>
+              </ul>
+            </div>
+
+          </div><!-- End blog entries list -->
+
+          <div class="col-lg-4">
+
+            <div class="sidebar">
+
+              <h3 class="sidebar-title">Search</h3>
+              <div class="sidebar-item search-form">
+                <form action="">
+                  <input type="text">
+                  <button type="submit"><i class="icofont-search"></i></button>
+                </form>
+
+              </div><!-- End sidebar search formn-->
+
+              <h3 class="sidebar-title">Categories</h3>
+              <div class="sidebar-item categories">
+                <ul>
+                  <li><a href="#">Poultry production </a></li>
+                  <li><a href="#">Dairy production </a></li>
+                  <li><a href="#">Canine production </a></li>
+                </ul>
+
+              </div><!-- End sidebar categories-->
+
+              <h3 class="sidebar-title">Recent Posts</h3>
+              <div class="sidebar-item recent-posts">
+                <div class="post-item clearfix">
+                  <img src="assets/img/blog-recent-1.jpg" alt="">
+                  <h4><a href="blog-single.html">Carrot production and marketing.</a></h4>
+                  <time datetime="2020-01-01">Jan 1, 2020</time>
+                </div>
+
+                <div class="post-item clearfix">
+                  <img src="assets/img/blog-recent-5.jpg" alt="">
+                  <h4><a href="blog-single.html">Poultry keeping. </a></h4>
+                  <time datetime="2020-01-01">Jan 1, 2020</time>
+                </div>
+
+              </div><!-- End sidebar recent posts-->
+
+              <h3 class="sidebar-title">Tags</h3>
+              <div class="sidebar-item tags">
+                <ul>
+                  <li><a href="#">bee keeping</a></li>
+                  <li><a href="#">Livestock production</a></li>
+                </ul>
+
+              </div><!-- End sidebar tags-->
+
+            </div><!-- End sidebar -->
+
+          </div><!-- End blog sidebar -->
+
+        </div>
+
+      </div>
+    </section><!-- End Blog Section -->
+
+  </main><!-- End #main -->
+  {% endblock content%}

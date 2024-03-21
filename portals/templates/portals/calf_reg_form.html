@@ -1,0 +1,140 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>cal registration Form</title>
+    <style type="text/css">
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+
+        .table {
+            width: 100%;
+            max-width: 100%;
+            margin-bottom: 5px;
+            background-color: #fff;
+        }
+
+        .table th,
+        .table td {
+            padding: 5px;
+            vertical-align: top;
+            border-top: 1px solid #000;
+            text-align: center;
+        }
+
+        .table thead th {
+            vertical-align: bottom;
+            border-bottom: 2px solid #000;
+        }
+
+        .table tbody + tbody {
+            border-top: 2px solid #000;
+        }
+
+        .table .table {
+            background-color: #fff;
+        }
+
+        .list-group {
+            display: block;
+            width: 100%;
+            list-style: none;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .list-group p {
+            width: 100%;
+            height: 20px;
+            line-height: 20px;
+            list-style: none;
+            font-size: 1.1em;
+        }
+
+    </style>
+</head>
+<body>
+
+    
+{% for form in forms %}
+<div class="container">
+    <div class="card">
+        <h2 class="text-center">Calf Registration Form</h2>
+       
+        <div class="card-header">      
+            <h3>DATE : {{form.vet_form.report_created_on}}</h3>
+        </div>
+
+        <div class="list-group">
+            <p>Vet Officer Name: {{form.vet_form.vet_username}} </p>
+            <p>Farmer Name {{ request.user }}</p>     
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Date of birth </td>
+                    <td>{{ form.date_of_birth }}</td>
+                </tr>
+                <tr>
+                    <td>Sex of the calf </td>
+                    <td>{{ form.get_sex_of_the_calf_display }}</td>
+                </tr>
+                <tr>
+                    <td>Birth weight </td>
+                    <td>{{ form.birth_weight }}</td>
+                </tr>
+                <tr>
+                    <td>breed of the calf</td>
+                    <td>{{ form.breed_of_the_calf }}</td>
+                </tr>
+                <tr>
+                    <td>breed of the calf</td>
+                    <td>{{ form.breed_of_the_calf }}</td>
+                </tr>
+                <tr>
+                    <td>Colour of the breed</td>
+                    <td>{{ form.colour_of_the_breed }}</td>
+                </tr>
+                <tr>
+                    <td>Status of the calf</td>
+                    <td>{{ form.get_status_of_the_calf_display }}</td>
+                </tr>
+                <tr>
+                    <td>Breeching level of the calf</td>
+                    <td>{{ form.get_breeching_level_of_the_calf_display }}</td>
+                </tr>
+                <tr>
+                    <td>sire details </td>
+                    <td>{{ form.sire_details }}</td>
+                </tr>
+                <tr>
+                    <td>Expected date of weaning </td>
+                    <td>{{ form.expected_date_of_weaning }}</td>
+                </tr>
+                    <td>Comment </td>
+                    <td>{{ form.comment }}</td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th>Field</th>
+                    <th>Value</th>
+                </tr>
+            </tfoot>
+        </table>
+       
+    </div>
+</div>
+{% endfor %}
+</body>
+</html>

@@ -1,0 +1,101 @@
+{% extends 'vet/base.html'  %}
+
+{% load static %}
+
+{% block content %}
+
+  <main id="main">
+
+    <!-- ======= Breadcrumbs ======= -->
+    <section id="breadcrumbs" class="breadcrumbs">
+      <div class="container">
+
+        <ol>
+          <li><a href="{% url 'index' %}">Home</a></li>
+          <li>Services</li>
+        </ol>
+        <h2>Services</h2>
+
+      </div>
+    </section><!-- End Breadcrumbs -->
+
+    <!-- ======= Services Section ======= -->
+    <section id="services" class="services">
+      <div class="container">
+
+        <div class="section-title" data-aos="fade-up">
+          <h2>Our Services</h2>
+        </div>
+
+        <div class="row">
+          <div class="col-lg-4 col-md-6 d-flex align-items-stretch">
+            <div class="icon-box">
+              <div class="icon"><i class="bx bxl-dribbble"></i></div>
+              <h4><a href="{% url 'clinical-approach' %}">CLINICAL CASES</a></h4>
+              <p>A clinical veterinarian diagnoses and treats pets, animals, and livestock. Veterinarians also do research to improve the spectrum of knowledge on animal biology and animal science. Clinical veterinarians help animals with health problems, diseases, infections, illnesses, wounds, and fractures. Education. We value your farm.</p>
+            
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-6 d-flex align-items-stretch mt-4 mt-lg-0">
+            <div class="icon-box">
+              <div class="icon"><i class="bx bx-tachometer"></i></div>
+              <h4><a href="{% url 'deworming' %}">DEWORMING</a></h4>
+              <p>Deworming with one of several anthelmintics (wormers) approved for use in cattle is an effective preventive practice. Consult your veterinarian concerning strategic worming; timing the deworming to be the most cost effective. Fenbendazole (Panacur) is available as a stable suspension or granules.</p>
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-md-6 d-flex align-items-stretch mt-4">
+            <div class="icon-box">
+              <div class="icon"><i class="bx bx-world"></i></div>
+              <h4><a href="{% url 'vaccination' %}">VACCINATION</a></h4>
+              <p>Vaccines are preparations administered to prevent infection and/or reduce disease caused by parasites, microbes such as bacteria and viruses and other. Keep in tuch with us t know healt of your livestock.</p>
+
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-md-6 d-flex align-items-stretch mt-4">
+            <div class="icon-box">
+              <div class="icon"><i class="bx bx-slideshow"></i></div>
+              <h4><a href="{% url 'breeding_record' %}">ARTIFICIAL INSEMINATION</a></h4>
+              <p>Get our seervices right and keep your farm up-to-date. we value all your record.</p>
+        
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-6 d-flex align-items-stretch mt-4">
+            <div class="icon-box">
+              <div class="icon"><i class="bx bx-slideshow"></i></div>
+              <h4><a href="{% url 'breeding_record' %}">EXTENSION SERVICES</a></h4>
+              <p>Get our seervices right and keep your farm up-to-date. we value all your record.</p>
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-6 d-flex align-items-stretch mt-4">
+            <div class="icon-box">
+              <div class="icon"><i class="bx bx-slideshow"></i></div>
+              <h4><a href="{% url 'breeding_record' %}">POST MORTEM </a></h4>
+              <p>Get our seervices right and keep your farm up-to-date. we value all your record.</p>
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-6 d-flex align-items-stretch mt-4">
+            <div class="icon-box">
+              <div class="icon"><i class="bx bx-slideshow"></i></div>
+              <h4><a href="{% url 'breeding_record' %}">PREGNANCY DIAGNOSIS</a></h4>
+              <p>Get our seervices right and keep your farm up-to-date. we value all your record.</p>
+        
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-md-6 d-flex align-items-stretch mt-4">
+            <div class="icon-box">
+              <div class="icon"><i class="bx bx-world"></i></div>
+              <h4><a href="{% url 'consultation' %}">C0NSULTATION</a></h4>
+              <p>The added value of integrating crops and livestock has been understood
+and practiced by farmers for thousands of years. So, some might ask,
+what is new about this and if there is merit in FAO raising awareness, and
+indeed in promoting investment in research and development on integrated
+production of crops and livestock.We are just a call away
+            </div>
+      </div>
+    </section><!-- End Services Section -->
+  </main><!-- End #main -->
+
+{% endblock content%}
