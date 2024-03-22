@@ -1458,7 +1458,8 @@ def livestock_inventory_report(request):
    
     return render(request, 'portals/reports/inventory.html')
 
-
+def deployment_test():
+     print('deployment test')
 
 
 
