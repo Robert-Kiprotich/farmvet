@@ -19,7 +19,7 @@ jobs:
         server: ftp.soinvet.com
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        server-dir: /soinvetc   # Change this to your server directory
+        server-dir: /public_html   # Change this to your server directory
         local-dir: .  # Change this to the directory containing your code
         exclude: .gitignore, .git/
 
