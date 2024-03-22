@@ -16,12 +16,8 @@ jobs:
     - name: Set up FTP deployment
       uses: SamKirkland/FTP-Deploy-Action@4.0.0
       with:
-        server: ftp.soinvet.com
+        server: ${{secrets.FTP_SERVER}}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        server-dir: /public_html   # Change this to your server directory
-        local-dir: .  # Change this to the directory containing your code
-        exclude: .gitignore, .git/
-
     - name: Notify deployment status
       run: echo "Deployment to cPanel FTP completed successfully"
