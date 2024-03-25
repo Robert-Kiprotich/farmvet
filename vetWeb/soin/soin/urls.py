@@ -3,12 +3,14 @@ from django.urls import path, include
 from user import views as user_views
 from portals import views as portal_views
 
+
 from django.conf.urls.static import static
 from django.conf import settings
 
 from django.contrib.auth.decorators import login_required
 
 from django.contrib.auth import views as auth_views
+app_name = 'portals'
 
 urlpatterns = [
     path('', include('vet.urls')),
@@ -31,6 +33,7 @@ urlpatterns = [
 
     #users portals
     path('vet_portal/', portal_views.portal_vet, name='vet-portal'),
+    path('vet_list/', portal_views.vet_list, name='vet-list'),
     path('farmer_portal/', portal_views.portal_farmer, name='farmer-portal'),
     path('student_portal/', portal_views.portal_student, name='student-portal'),
     path('sickformview/',portal_views.sick_form_view,name='sickformview'),
@@ -74,7 +77,34 @@ urlpatterns = [
     path('editlabform/<int:pk>/',portal_views.edit_lab_form,name='lab-edit'),  
     path('referral',portal_views.referral_form,name='referral'),
     path('referralformview/',portal_views.referral_form_view,name='referralformview'),
-    path('editreferralform/<int:pk>/',portal_views.edit_referral_form,name='referral-edit'),  
+    path('editreferralform/<int:pk>/',portal_views.edit_referral_form,name='referral-edit'), 
+
+    #reports
+    path('artificial-report/', portal_views.artificial_report, name='artificial-report'), 
+    path('artificial-report-data/', portal_views.artificial_report_data, name='artificial_report_data'),
+    path('deworming-report/', portal_views.deworming_report, name='deworming-report'),
+    path('deworming-report-data/', portal_views.deworming_report_data, name='deworming_report_data'),
+    path('sick-report/', portal_views.sick_report, name='sick-report'),
+    path('sick-report-data/', portal_views.sick_report_data, name='sick_approach_data'),
+    path('death-report/',portal_views.death_report, name='death-report'),
+    path('death-report-data/',portal_views.death_report_data, name='death_report_data'),
+    path('vaccination-report/', portal_views.vaccination_report, name='vaccination-report'),
+    path('vaccination-report-data/', portal_views.vaccination_report_data, name='vaccination_report_data'),
+    path('pregnancy-report/', portal_views.pregnancy_diagnosis_report, name='pregnancy-report'),
+    path('pregnancy-report-data/', portal_views.pregnancy_diagnosis_report_data, name='pregnancy_diagnosis_report_data'),
+    path('farm-consultation/', portal_views.farm_consultation_report, name='farm-consultation'),
+    path('farm-consultation-data/', portal_views.farm_consultation_report_data, name='farm_consultation_data'),
+    path('veterinary-billing-report/', portal_views.veterinary_billing_report, name='veterinary-billing-report'),
+    path('veterinary-billing-report-data/', portal_views.veterinary_billing_report_data, name='veterinary_billing_report_data'),
+    path('laboratory-report/', portal_views.laboratory_report, name='laboratory-report'),
+    path('laboratory-report-data/', portal_views.laboratory_report_data, name='laboratory_report_data'),
+    path('referral-report/', portal_views.referral_report, name='referral-report'),
+    path('referral-report-data/', portal_views.referral_report_data, name='referral_report_data'),
+    path('livestock-inventory-report/', portal_views.livestock_inventory_report, name='livestock-inventory-report'),
+    path('livestock-inventory-report-data/', portal_views.livestock_inventory_report_data, name='livestock_inventory_report_data'),
+    path('surgical-report/', portal_views.surgical_report, name='surgical-report'),
+    path('surgical-report-data/', portal_views.surgical_report_data, name='surgical-report-data'),
+   
           
     
     #Farmer fetching forms pdf
@@ -100,5 +130,6 @@ urlpatterns = [
 
 ]
 
-if settings.DEBUG:
+if  not settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

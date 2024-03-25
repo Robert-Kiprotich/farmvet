@@ -3,15 +3,12 @@
  <section id="topbar" class="d-none d-lg-block">
     <div class="container d-flex">
       <div class="contact-info mr-auto">
-        <i class="icofont-envelope"></i><a href="mailto:contact@example.com">soinvet1@gmail.com</a>
+        <i class="icofont-envelope"></i><a href="mailto:services@soinvet.com">services@soinvet.com</a>
         <i class="icofont-phone"></i> +254727091292
       </div>
       <div class="social-links">
         <a href="#" class="twitter"><i class="icofont-twitter"></i></a>
         <a href="#" class="facebook"><i class="icofont-facebook"></i></a>
-        <a href="#" class="instagram"><i class="icofont-instagram"></i></a>
-        <a href="#" class="skype"><i class="icofont-skype"></i></a>
-        <a href="#" class="linkedin"><i class="icofont-linkedin"></i></i></a>
       </div>
     </div>
   </section>
@@ -22,9 +19,13 @@
 
       <div class="logo mr-auto">
         <h1 class="text-light"><a href="{% url 'index' %}"><span>SOIN VETERINARY</span></a></h1>
+        
         <!-- Uncomment below if you prefer to use an image logo -->
-        <!-- <a href="{% url 'index' %}"><img src="{% static 'vet/assets/img/logo.png' %}" alt="" class="img-fluid"></a>-->
-      </div>
+        <a href="{% url 'index' %}">
+            <img src="{% static 'vet/assets/img/llogo.jpg' %}" alt="Logo" >
+        </a>
+    </div>
+    
 
       <nav class="nav-menu d-none d-lg-block">
         <ul>
@@ -33,7 +34,6 @@
           <li class="drop-down"><a href="#">About</a>
             <ul>
               <li><a href="{% url 'about' %}">About Us</a></li>
-              <li><a href="{% url 'team' %}">Team</a></li>
               <li><a href="{% url 'events' %}">Events and Trainings</a></li>
             </ul>
           </li>

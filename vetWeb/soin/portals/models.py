@@ -147,7 +147,7 @@ class Vet_Forms(models.Model):
 
 class Sick_Approach_Form(models.Model):
 	vet_form = models.OneToOneField(Vet_Forms, on_delete=models.CASCADE, primary_key=True)
-	#farmer_username = models.CharField(max_length=100, choices=FARMERS, verbose_name='Farmer Username')
+	# farmer_username = models.CharField(max_length=100, choices=FARMERS, verbose_name='Farmer Username')
 	farmer = models.ForeignKey(Farmer, on_delete=models.CASCADE)
 	species_affected = models.CharField(max_length=20, choices=SPECIES_CHOICES, default='0', verbose_name='animal species affected',null=True, blank=True)
 	num_of_species_affected = models.PositiveIntegerField(verbose_name='number of species affected' ,null=True, blank=True)

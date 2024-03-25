@@ -7,9 +7,11 @@ from .models import *
 from django.views import View
 from .render import Render
 from django.utils import timezone
+from django.core.serializers import serialize
 
 from django.http import FileResponse
 from fpdf import FPDF
+from django.http import JsonResponse
 
 
 
@@ -33,6 +35,19 @@ def portal_vet(request):
         'count': no_vet_forms
     }
     return render(request, 'portals/dashboardVet.html', context)
+    
+    
+    
+    
+def vet_list(request):
+    vet_officers = Vet_Officer.objects.all()
+    no_vet_forms =Vet_Forms.objects.filter(vet_username=request.user).count()
+    context = {
+        'all_vets': vet_officers,
+        'count': no_vet_forms
+    }
+    return render(request, 'portals/vetList.html', context)
+    
 
 @user_passes_test(farmer_check, login_url='vet-login')
 def portal_farmer(request):
@@ -225,82 +240,109 @@ import json
 @user_passes_test(vet_check, login_url='vet-login')
 def sick_approach(request):
     if request.method == "POST":
-        print(type(request.POST))
         form = SickApproachForm(request.POST)
         if form.is_valid():
+            # Create a new Vet_Forms instance with vet_username and is_sick_approach_form
             vet_sick_form = Vet_Forms(vet_username=request.user, is_sick_approach_form=True)
             vet_sick_form.save()
-            form.save()
-            messages.success(request, 'Details  Successfully Saved')
-            return redirect('vet-portal')    
+
+            # Associate the Vet_Forms instance with the SickApproachForm instance
+            form_instance = form.save(commit=False)
+            form_instance.vet_form = vet_sick_form
+            form_instance.save()
+
+            messages.success(request, 'Details successfully saved')
+            return redirect('vet-portal')
 
     else:
         form = SickApproachForm()
 
     context = {
-        'form':form,
-        'name':'Clinical Approach Form'
-         }
-    return render(request, 'portals/forms.html', context) 
+        'form': form,
+        'name': 'Clinical Approach Form'
+    }
+
+    return render(request, 'portals/forms.html', context)
 
 @user_passes_test(vet_check, login_url='vet-login')
 def dead_approach(request):
     if request.method == "POST":
         form = DeathApproachForm(request.POST)
         if form.is_valid():
+            # Create a new Vet_Forms instance with vet_username and is_dead_approach_form
             vet_death_form = Vet_Forms(vet_username=request.user, is_dead_approach_form=True)
-            vet_death_form.save() 
-            form.save()
-            messages.success(request, 'Details  Successfully Saved')
-            return redirect('vet-portal')    
+            vet_death_form.save()
+
+            # Associate the Vet_Forms instance with the DeathApproachForm instance
+            form_instance = form.save(commit=False)
+            form_instance.vet_form = vet_death_form
+            form_instance.save()
+
+            messages.success(request, 'Details successfully saved')
+            return redirect('vet-portal')
 
     else:
         form = DeathApproachForm()
 
     context = {
-        'form':form,
-        'name':'Post Mortem Approach Form'
-         }
-    return render(request, 'portals/forms.html', context)   
+        'form': form,
+        'name': 'Post Mortem Approach Form'
+    }
+
+    return render(request, 'portals/forms.html', context) 
 
 @user_passes_test(vet_check, login_url='vet-login')
 def surgical_approach(request):
     if request.method == "POST":
         form = SurgicalApproachForm(request.POST)
         if form.is_valid():
+            # Create a new Vet_Forms instance with vet_username and is_surgical_approach_form
             vet_surgical_form = Vet_Forms(vet_username=request.user, is_surgical_approach_form=True)
-            vet_surgical_form.save() 
-            form.save()
-            messages.success(request, 'Details Successfully Saved')
-            return redirect('vet-portal')    
+            vet_surgical_form.save()
+
+            # Associate the Vet_Forms instance with the SurgicalApproachForm instance
+            form_instance = form.save(commit=False)
+            form_instance.vet_form = vet_surgical_form
+            form_instance.save()
+
+            messages.success(request, 'Details successfully saved')
+            return redirect('vet-portal')
 
     else:
         form = SurgicalApproachForm()
 
     context = {
-        'form':form,
-        'name':'Surgical Approach Form'
-         }
-    return render(request, 'portals/forms.html', context) 
+        'form': form,
+        'name': 'Surgical Approach Form'
+    }
+
+    return render(request, 'portals/forms.html', context)
 
 @user_passes_test(vet_check, login_url='vet-login')
 def deworming(request):
     if request.method == "POST":
         form = DewormingForm(request.POST)
         if form.is_valid():
+            # Create a new Vet_Forms instance with vet_username and is_deworming_form
             vet_deworming_form = Vet_Forms(vet_username=request.user, is_deworming_form=True)
-            vet_deworming_form.save() 
-            form.save()
-            messages.success(request, 'Details  Successfully Saved')
-            return redirect('vet-portal')    
+            vet_deworming_form.save()
+
+            # Associate the Vet_Forms instance with the DewormingForm instance
+            form_instance = form.save(commit=False)
+            form_instance.vet_form = vet_deworming_form
+            form_instance.save()
+
+            messages.success(request, 'Details successfully saved')
+            return redirect('vet-portal')
 
     else:
         form = DewormingForm()
 
     context = {
-        'form':form,
-        'name':'Deworming Form'
-         }
+        'form': form,
+        'name': 'Deworming Form'
+    }
+
     return render(request, 'portals/forms.html', context)
 
 @user_passes_test(vet_check, login_url='vet-login')    
@@ -308,19 +350,26 @@ def vaccination(request):
     if request.method == "POST":
         form = VaccinationForm(request.POST)
         if form.is_valid():
+            # Create a new Vet_Forms instance with vet_username and is_vaccination_form
             vet_vaccination_form = Vet_Forms(vet_username=request.user, is_vaccination_form=True)
-            vet_vaccination_form.save() 
-            form.save()
-            messages.success(request, 'Details  Successfully Saved')
-            return redirect('vet-portal')    
+            vet_vaccination_form.save()
+
+            # Associate the Vet_Forms instance with the VaccinationForm instance
+            form_instance = form.save(commit=False)
+            form_instance.vet_form = vet_vaccination_form
+            form_instance.save()
+
+            messages.success(request, 'Details successfully saved')
+            return redirect('vet-portal')
 
     else:
         form = VaccinationForm()
 
     context = {
-        'form':form,
-        'name':'Vaccination Form'
-         }
+        'form': form,
+        'name': 'Vaccination Form'
+    }
+
     return render(request, 'portals/forms.html', context)
 
 @user_passes_test(vet_check, login_url='vet-login')
@@ -332,42 +381,58 @@ def artificial_insemination(request):
     if request.method == "POST":
         form = ArtificialInseminationForm(request.POST)
         if form.is_valid():
+            # Create a new Vet_Forms instance with vet_username and is_artificial_insemination_form
             vet_ai_form = Vet_Forms(vet_username=request.user, is_artificial_insemination_form=True)
-            vet_ai_form.save() 
-            form.save()
-            messages.success(request, 'Details  Successfully Saved')
-            return redirect('vet-portal')    
+            vet_ai_form.save()
+
+            # Associate the Vet_Forms instance with the ArtificialInseminationForm instance
+            form_instance = form.save(commit=False)
+            form_instance.vet_form = vet_ai_form
+            form_instance.save()
+
+            messages.success(request, 'Details successfully saved')
+            return redirect('vet-portal')
 
     else:
         form = ArtificialInseminationForm()
 
     context = {
-        'form':form,
-        'name':'Artificial Insemination Form'
-         }
-    return render(request, 'portals/forms.html', context) 
+        'form': form,
+        'name': 'Artificial Insemination Form'
+    }
+
+    return render(request, 'portals/forms.html', context)
 
 @user_passes_test(farmer_check, login_url='vet-login')
+#@login_required  # Decorate your view with login_required to ensure the user is authenticated
 def calf_registration(request):
     if request.method == "POST":
         form = CalfRegistrationForm(request.POST)
         if form.is_valid():
+            # Create a new Vet_Forms instance
             vet_calf_form = Vet_Forms(is_calf_registration_form=True)
             vet_calf_form.save()
-            form = form.save(commit=False)
-            form.farmer_username = request.user
-            form.save()
-            messages.success(request, 'Details  Successfully Saved')
+
+            # Create a new Calf_Registration_Form instance
+            form_instance = form.save(commit=False)
+
+            # Extract the username from the user instance and assign it to farmer_username
+            form_instance.farmer_username = request.user.username  # Change this line
+
+            form_instance.vet_form = vet_calf_form
+            form_instance.save()
+
+            messages.success(request, 'Details successfully saved')
             return redirect('farmer-portal')    
 
     else:
         form = CalfRegistrationForm()
 
     context = {
-        'form':form,
-        'name':'Calf Registration Form'
-         }
-    return render(request, 'portals/fforms.html', context) 
+        'form': form,
+        'name': 'Calf Registration Form'
+    }
+    return render(request, 'portals/fforms.html', context)
 
 @user_passes_test(farmer_check, login_url='vet-login')
 def calf_form_view(request):
@@ -397,19 +462,25 @@ def livestock_inventory(request):
     if request.method == "POST":
         form = LivestockInventoryForm(request.POST)
         if form.is_valid():
+            # Create a new Vet_Forms instance
             vet_inventory_form = Vet_Forms(is_livestock_inventory_form=True)
-            vet_inventory_form.save() 
-            form.save()
-            messages.success(request, 'Details  Successfully Saved')
+            vet_inventory_form.save()
+
+            # Associate the Vet_Forms instance with the LivestockInventoryForm instance
+            form_instance = form.save(commit=False)
+            form_instance.vet_form = vet_inventory_form
+            form_instance.save()
+
+            messages.success(request, 'Details successfully saved')
             return redirect('farmer-portal')
 
     else:
         form = LivestockInventoryForm()
 
     context = {
-        'form':form,
-        'name':'Livestock Inventory Form',
-         }
+        'form': form,
+        'name': 'Livestock Inventory Form'
+    }
 
     return render(request, 'portals/forms.html', context)
 
@@ -441,19 +512,26 @@ def pregnancy_diagnosis(request):
     if request.method == "POST":
         form = PregnancyDiagnosisForm(request.POST)
         if form.is_valid():
+            # Create a new Vet_Forms instance with vet_username and is_pregnancy_diagnosis_form
             vet_preg_form = Vet_Forms(vet_username=request.user, is_pregnancy_diagnosis_form=True)
-            vet_preg_form.save() 
-            form.save()
-            messages.success(request, 'Details  Successfully Saved')
-            return redirect('vet-portal')    
+            vet_preg_form.save()
+
+            # Associate the Vet_Forms instance with the PregnancyDiagnosisForm instance
+            form_instance = form.save(commit=False)
+            form_instance.vet_form = vet_preg_form
+            form_instance.save()
+
+            messages.success(request, 'Details successfully saved')
+            return redirect('vet-portal')
 
     else:
         form = PregnancyDiagnosisForm()
 
     context = {
-        'form':form,
-        'name':'Pregnancy Diagnosis Form'
-         }
+        'form': form,
+        'name': 'Pregnancy Diagnosis Form'
+    }
+
     return render(request, 'portals/forms.html', context)
  
 
@@ -484,23 +562,27 @@ def consultation(request):
     if request.method == "POST":
         form = FarmConsultationForm(request.POST)
         if form.is_valid():
-            consultation_form = Vet_Forms(is_farm_consultation=True)
-            consultation_form.save() 
-            consul_form = Vet_Forms(vet_username=request.user, is_farm_consultation=True)
-            consul_form.save() 
-            form.save()
-            messages.success(request, 'Details  Successfully Saved')
-            return redirect('vet-portal')    
+            # Create a new Vet_Forms instance with is_farm_consultation set
+            consultation_form = Vet_Forms(vet_username=request.user, is_farm_consultation=True)
+            consultation_form.save()
+
+            # Associate the Vet_Forms instance with the FarmConsultationForm instance
+            form_instance = form.save(commit=False)
+            form_instance.vet_form = consultation_form
+            form_instance.save()
+
+            messages.success(request, 'Details successfully saved')
+            return redirect('vet-portal')
 
     else:
         form = FarmConsultationForm()
 
     context = {
-        'form':form,
-        'name':'Farm consultation form'
-         }
-    return render(request, 'portals/forms.html', context)
+        'form': form,
+        'name': 'Farm Consultation Form'
+    }
 
+    return render(request, 'portals/forms.html', context)
 
 
 @user_passes_test(vet_check, login_url='vet-login')
@@ -530,21 +612,26 @@ def vet_billing(request):
     if request.method == "POST":
         form = VeterinaryBillingForm(request.POST)
         if form.is_valid():
-            billing_form = Vet_Forms(is_vet_billing_form=True)
-            billing_form.save() 
-            bill_form = Vet_Forms(vet_username=request.user, is_vet_billing_form=True)
-            bill_form.save() 
-            form.save()
-            messages.success(request, 'Details  Successfully Saved')
-            return redirect('vet-portal')    
+            # Create a new Vet_Forms instance with is_vet_billing_form set
+            billing_form = Vet_Forms(vet_username=request.user, is_vet_billing_form=True)
+            billing_form.save()
+
+            # Associate the Vet_Forms instance with the VeterinaryBillingForm instance
+            form_instance = form.save(commit=False)
+            form_instance.vet_form = billing_form
+            form_instance.save()
+
+            messages.success(request, 'Details successfully saved')
+            return redirect('vet-portal')
 
     else:
         form = VeterinaryBillingForm()
 
     context = {
-        'form':form,
-        'name':'Vet Billing form'
-         }
+        'form': form,
+        'name': 'Vet Billing Form'
+    }
+
     return render(request, 'portals/forms.html', context)
 
 
@@ -575,21 +662,26 @@ def lab(request):
     if request.method == "POST":
         form = LaboratoryForm(request.POST)
         if form.is_valid():
-            labo_form = Vet_Forms(is_vet_billing_form=True)
-            labo_form.save() 
-            lab_form = Vet_Forms(vet_username=request.user, is_lab_form=True)
-            lab_form.save() 
-            form.save()
-            messages.success(request, 'Details  Successfully Saved')
-            return redirect('vet-portal')    
+            # Create a new Vet_Forms instance with is_lab_form set
+            labo_form = Vet_Forms(is_lab_form=True)
+            labo_form.save()
+
+            # Associate the Vet_Forms instance with the LaboratoryForm instance
+            form_instance = form.save(commit=False)
+            form_instance.vet_form = labo_form
+            form_instance.save()
+
+            messages.success(request, 'Details successfully saved')
+            return redirect('vet-portal')
 
     else:
         form = LaboratoryForm()
 
     context = {
-        'form':form,
-        'name':'Laboratory form'
-         }
+        'form': form,
+        'name': 'Laboratory Form'
+    }
+
     return render(request, 'portals/forms.html', context)
 
 
@@ -784,7 +876,7 @@ def dead_form_pdf(request):
         return FileResponse(open('postmortem_approach_report.pdf', 'rb'), as_attachment=False, content_type='application/pdf')
 
     else:
-        messages.warning(request, f'Post Mortem form for {request.user} not available')
+        messages.warning(request, f'Post Mortem form for {request.user} is  not available')
         return redirect('farmer-portal')
 
 
@@ -984,6 +1076,390 @@ def display_images(request):
         'img_obj': inventory
     }
     return render(request, 'portals/gallery.html', context)
+
+
+    #records
+def artificial_report(request):
+    
+    return render(request,'portals/reports/artificialinsemination.html')
+
+def artificial_report_data(request):
+    artificial_approach_forms = Artificial_Insemination_Form.objects.all()
+    data = []
+    for form in artificial_approach_forms:
+        data.append({
+            'farmer_username': form.farmer_username,
+            'Name_of_the_cow': form.Name_of_the_cow,
+            'sex_of_the_calf_born': form.sex_of_the_calf_born,
+            'date_of_birth': form.date_of_birth,
+            'nature_of_birth': form.nature_of_birth,
+            'number_of_repeat': form.number_of_repeat,
+            'abortion_rate': form.abortion_rate,
+            'reason_for_the_cause_of_abortion': form.reason_for_the_cause_of_abortion,
+            'time_of_heat_sign': form.time_of_heat_sign,
+            'date_of_insemination': form.date_of_insemination,
+            'time_of_insemination': form.time_of_insemination,
+            'nature_of_the_breeding': form.nature_of_the_breeding,
+            'sire_name': form.sire_name,
+            'sire_origin': form.sire_origin,
+            'bull_code': form.bull_code,
+            'breed_used': form.breed_used,
+            'source_of_semen': form.source_of_semen,
+            'date_of_repeat_checked': form.date_of_repeat_checked,
+            'date_of_pregnancy_diagnosis': form.date_of_pregnancy_diagnosis,
+            'expected_date_of_calving': form.expected_date_of_calving,
+            'comment': form.comment,
+        })
+
+    return JsonResponse({'data': data}, safe=False)
+
+def deworming_report(request):
+    
+    return render(request,'portals/reports/deworming.html')
+
+
+def deworming_report_data(request):
+    deworming_forms = Deworming_Form.objects.all() 
+
+    data = []
+    for form in deworming_forms:
+        data.append(
+        {
+            'farmer_username': form.farmer_username,
+            'species_targeted': form.species_targeted,
+            'number_of_adults': form.number_of_adults,
+            'number_of_young_ones': form.number_of_young_ones,
+            'body_condition_of_the_animal': form.body_condition_of_the_animal,
+            'date_of_deworming': form.date_of_deworming,
+            'drug_choices': form.drug_choices,
+            'target_parasites': form.target_parasites,
+            'withdrawal_period': form.withdrawal_period,
+            'side_effects': form.side_effects,
+            'next_date_deworming': form.next_date_deworming,
+            'comment': form.comment,
+        })
+      
+    
+
+    return JsonResponse({'data': data}, safe=False)
+
+
+
+def sick_report_data(request):
+    sick_reports = Sick_Approach_Form.objects.all() 
+
+    data = []
+    for report in sick_reports:
+        data.append(
+        {
+            'farmer_username': report.farmer.farmer_username,
+            'species_affected': report.species_affected,
+            'num_of_species_affected': report.num_of_species_affected,
+            'id_animal': report.id_animal,
+            'disease_nature': report.disease_nature,
+            'clinical_signs': report.clinical_signs,
+            'disease_diagnosis': report.disease_diagnosis,
+            'differential_diagnosis': report.differential_diagnosis,
+            'final_diagnosis': report.final_diagnosis,
+            'sickness_duration': report.sickness_duration,
+            'sickness_history': report.sickness_history,
+            'drug_of_choice': report.drug_of_choice,
+            'treatment_duration': report.treatment_duration,
+            'start_dose_date': report.start_dose_date,
+            'prognosis': report.prognosis,
+            'harmony_with_clinic_signs_and_lab': report.harmony_with_clinic_signs_and_lab,
+            'cause_of_death_if_in_no_harmony': report.cause_of_death_if_in_no_harmony,
+            'disease_one_of_the_zoonotic': report.disease_one_of_the_zoonotic,
+            'advice_given_if_zoonotic': report.advice_given_if_zoonotic,
+            'relapse': report.relapse,
+            'cause_if_relapse': report.cause_if_relapse,
+            'comment': report.comment,
+        })
+       
+    return JsonResponse({'data': data}, safe=False)
+def sick_report(request):
+    
+    return render(request, 'portals/reports/sickness.html')
+
+def death_report_data(request):
+    death_reports = Death_Approach_Form.objects.all()
+
+    data = []
+    for report in death_reports:
+        data.append(
+        {
+            'vet_form_id': report.vet_form_id,
+            'farmer_username': report.farmer_username,
+            'name_of_the_animal': report.name_of_the_animal,
+            'sex_of_the_animal': report.sex_of_the_animal,
+            'num_of_species_dead': report.num_of_species_dead,
+            'case_history': report.case_history,
+            'mortality_rate': report.mortality_rate,
+            'death_date': report.death_date,
+            'death_time': report.death_time,
+            'signs_of_cadever_on_the_ground': report.signs_of_cadever_on_the_ground,
+            'carcass_opened_for_the_pm': report.carcass_opened_for_the_pm,
+            'if_yes_pathological_signs': report.if_yes_pathological_signs,
+            'if_no_reason': report.if_no_reason,
+            'sample_sent_lab': report.sample_sent_lab,
+            'if_yes_lab_report': report.if_yes_lab_report,
+            'death_cause_notifiable': report.death_cause_notifiable,
+            'if_yes_message_to_relevant_body': report.if_yes_message_to_relevant_body,
+            'intervention_regards_to_death': report.intervention_regards_to_death,
+            'comment': report.comment,
+        })
+       
+
+    return JsonResponse({'data': data}, safe=False)
+
+def death_report(request):
+   
+    return render(request, 'portals/reports/death.html')
+
+def surgical_report(request):
+   
+    return render(request, 'portals/reports/surgery.html')
+
+def surgical_report_data(request):
+    surgical_reports = Surgical_Approach_Form.objects.all()
+
+    data = []
+    for report in surgical_reports:
+        data.append(
+        {
+            'vet_form_id': report.vet_form_id,
+            'farmer_username': report.farmer_username,
+            'species_operated_on': report.species_operated_on,
+            'if_other_specify_species': report.if_other_specify,
+            'sex_of_the_animal': report.sex_of_the_animal,
+            'name_of_the_animal': report.name_of_the_animal,
+            'operation_nature': report.operation_nature,
+            'if_other_specify_operation': report.if_other_specify,
+            'operation_date': report.operation_date,
+            'post_operation_management': report.post_operation_management,
+            'prognosis': report.prognosis,
+            'comment': report.comment,
+        })
+       
+
+    return JsonResponse({'data': data}, safe=False)
+def vaccination_report_data(request):
+    vaccination_reports = Vaccination_Form.objects.all()
+
+    data = []
+    for report in vaccination_reports:
+         data.append(
+        {
+            'vet_form_id': report.vet_form_id,
+            'farmer_username': report.farmer_username,
+            'species_targeted': report.species_targeted,
+            'if_other_specify_species': report.if_other_specify,
+            'number_of_animals_vaccinated': report.number_of_animals_vaccinated,
+            'age_of_animal': report.age_of_animal,
+            'sex_of_the_animal': report.sex_of_the_animal,
+            'animal_breed': report.animal_breed,
+            'animal_colour': report.animal_colour,
+            'other_description': report.other_description,
+            'targetted_disease': report.targetted_disease,
+            'vaccines_used': report.vaccines_used,
+            'date_of_vaccination': report.date_of_vaccination,
+            'next_date_of_vaccination': report.next_date_of_vaccination,
+            'name_of_the_crush': report.name_of_the_crush,
+            'nature_of_the_vaccination_program': report.nature_of_the_vacination_program,
+            'comment': report.comment,
+        })
+       
+
+    return JsonResponse({'data': data}, safe=False)
+
+    
+def vaccination_report(request):
+   
+    return render(request, 'portals/reports/vaccination.html')
+
+
+def pregnancy_diagnosis_report_data(request):
+    pregnancy_diagnosis_reports = Pregnancy_Diagnosis_Form.objects.all()
+
+    data = []
+    for report in pregnancy_diagnosis_reports:
+        data.append(
+            {
+                'vet_form_id': report.vet_form_id,
+                'farmer_username': report.farmer_username,
+                'cow_name': report.cow_name,
+                'cow_category': report.cow_category,
+                'date_of_insemination': report.date_of_insemination,
+                'date_of_pregnancy_diagnosis': report.date_of_pregnancy_diagnosis,
+                'result_of_diagnosis': report.result_of_diagnosis,
+                'if_positive': report.if_positive,
+                'if_result_is_negative_give_observation': report.if_result_is_negative_give_observation,
+                'next_date_of_pregnancy_diagnosis': report.next_date_of_pregnancy_diagnosis,
+                'expected_date_of_delivery': report.expected_date_of_delivery,
+                'comment': report.comment,
+            })
+      
+    
+
+    return JsonResponse({'data': data}, safe=False)
+
+def pregnancy_diagnosis_report(request):
+    
+    return render(request, 'portals/reports/pregnancydiagnosis.html')
+
+def farm_consultation_report_data(request):
+    farm_consultation_reports = Farm_Consultation.objects.all()
+
+    data = []
+    for report in farm_consultation_reports:
+         data.append(
+        {
+            'vet_form_id': report.vet_form_id,
+            'farmer_username': report.farmer_username,
+            'dairy_cows': report.dairy_cows,
+            'beef_production': report.beef_production,
+            'poultry': report.poultry,
+            'sheep': report.sheep,
+            'goat': report.goat,
+            'canine': report.canine,
+            'other': report.other,
+            'give_recommendation': report.give_recommendation,
+            'grazing': report.grazing,
+            'disease': report.disease,
+            'farm': report.farm,
+            'culling_selection': report.culling_selection,
+            'farm_manager': report.farm_manager,
+            'if_no': report.if_no,
+            'name_incharge': report.name_incharge,
+            'reg_number': report.reg_number,
+            'comment': report.comment,
+        })
+       
+    return JsonResponse({'data': data}, safe=False)
+
+def farm_consultation_report(request):
+   
+    return render(request, 'portals/reports/farmconsultation.html')
+
+def veterinary_billing_report_data(request):
+    veterinary_billing_forms = Veterinary_Billing_Form.objects.all()
+
+    data = []
+    for form in veterinary_billing_forms:
+         data.append(
+        {
+            'vet_form_id': form.vet_form_id,
+            'farmer_username': form.farmer_username,
+            'Mobile_number': form.Mobile_number,
+            'farmer_location': form.farmer_location,
+            'nature_of_problem': form.nature_of_problem,
+            'bill_paid': form.bill_paid,
+            'total_bill': form.total_bill,
+            'balance_due': form.balance_due,
+            'agreed_date': form.agreed_date,
+            'suggest_payment': form.suggest_payment,
+            'vet_name': form.vet_name,
+            'registration_number': form.registration_number,
+            'Mobile_number_vet': form.Mobile_number_vet,
+            'comment': form.comment,
+        })
+        
+    return JsonResponse({'data': data}, safe=False)
+
+def veterinary_billing_report(request):
+    
+    return render(request, 'portals/reports/veterinarybilling.html')
+
+def laboratory_report_data(request):
+    laboratory_forms = Laboratory_Form.objects.all()
+
+    data = []
+    for form in laboratory_forms:
+        data.append({
+            'vet_form_id': form.vet_form_id,
+            'farmer_username': form.farmer_username,
+            'Mobile_number': form.Mobile_number,
+            'category_ssp': form.category_ssp,
+            'sample': form.sample,
+            'name_animal': form.name_animal,
+            'date_of_submission': form.date_of_submission,
+            'idenfication': form.idenfication,
+            'storage': form.storage,
+            'transportation': form.transportation,
+            'expected_duration': form.expected_duration,
+            'sample_collected_sick_animal': form.sample_collected_sick_animal,
+            'sample_collected_dead': form.sample_collected_dead,
+            'if_yes_sick': form.if_yes_sick,
+            'findings': form.findings,
+            'vet_name': form.vet_name,
+            'registration_number_vet': form.registration_number_vet,
+            'Mobile_number_vet': form.Mobile_number_vet,
+            'laboratory_officer': form.laboratory_officer,
+            'registration_number_lab_officer': form.registration_number_lab_officer,
+            'Mobile_number_lab_officer': form.Mobile_number_lab_officer,
+            'comment': form.comment,
+        })
+
+    return JsonResponse({'data': data}, safe=False)
+
+def laboratory_report(request):
+   
+    return render(request, 'portals/reports/laboratory.html')
+def referral_report_data(request):
+    referral_forms = Referral_Form.objects.all()
+
+    data = []
+    for form in referral_forms:
+        data.append({
+            'vet_form_id': form.vet_form_id,
+            'farmer_username': form.farmer_username,
+            'Mobile_number': form.Mobile_number,
+            'case_referal': form.case_referal,
+            'previous_treated': form.previous_treated,
+            'state_prognosis': form.state_prognosis,
+            'referal_date': form.referal_date,
+            'suggest_vet': form.suggest_vet,
+            'if_yes_leave_phone_number': form.if_yes_leave_phone_number,
+            'registration_number_vet': form.registration_number_vet,
+            'comment': form.comment,
+        })
+
+    return JsonResponse({'data': data}, safe=False)
+
+def referral_report(request):
+  
+    return render(request, 'portals/reports/referral.html')
+
+def livestock_inventory_report_data(request):
+    livestock_forms = Livestock_Inventory_Form.objects.all()
+
+    data = []
+    for form in livestock_forms:
+        data.append({
+            'vet_form_id': form.vet_form_id,
+            'farmer_username': form.farmer_username,
+            'species_targeted': form.species_targeted,
+            'name_of_the_animal': form.name_of_the_animal,
+            'number_of_the_male_animals': form.number_of_the_male_animals,
+            'number_of_the_female_animals': form.number_of_the_female_animals,
+            'number_of_live_animals': form.number_of_live_animals,
+            'number_of_dead_animals': form.number_of_dead_animals,
+            'specify_the_cause_of_the_dead': form.specify_the_cause_of_the_dead,
+            'is_your_animals_insured': form.is_your_animals_insured,
+            'if_yes_give_insuring_company': form.if_yes_give_insuring_company,
+            'date_of_culling': form.date_of_culling,
+            'give_reason_for_culling': form.give_reason_for_culling,
+            'comment': form.comment,
+        })
+
+    return JsonResponse({'data': data}, safe=False)
+
+def livestock_inventory_report(request):
+   
+    return render(request, 'portals/reports/inventory.html')
+
+def deployment_test():
+     print('deployment test23')
 
 
 

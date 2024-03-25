@@ -16,7 +16,7 @@ services:
 
     restart: on-failure
 
-  postgres_soin_vet:
+  postgres_soin_vet:e
     container_name: postgres_soin_vet
     image: postgres:14.2
     restart: always
