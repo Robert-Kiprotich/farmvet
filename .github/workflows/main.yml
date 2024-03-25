@@ -1,4 +1,3 @@
-
 name: FTP Deployment
 
 on:
@@ -18,7 +17,7 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-         
+          # Optional: Set a deployment path within your server's root directory
           deploy_path: "home/soinvetc/farmvet/"
 
       - name: Notify deployment status
