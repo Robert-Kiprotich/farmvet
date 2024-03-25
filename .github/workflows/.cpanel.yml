@@ -1,6 +1,6 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/soinvetc/farmvet
+    - export DEPLOYPATH=/home/soinvetc/farmvet/vetWeb/soin
     - /bin/cp soin $DEPLOYPATH
     
