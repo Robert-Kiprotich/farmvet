@@ -2,7 +2,7 @@ name: FTP Deployment
 
 on:
   push:
-    branches: [ main ]  # Change "main" to your desired branch
+    branches:  main  
 
 jobs:
   deploy:
@@ -14,11 +14,13 @@ jobs:
       - name: Configure FTP deployment
         uses: SamKirkland/FTP-Deploy-Action@4.0.0
         with:
-          server: ${{ secrets.FTP_SERVER }}
+          
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          # Optional: Set a deployment path within your server's root directory
-          deploy_path: "home/soinvetc/farmvet/"
+          server: ${{ secrets.FTP_SERVER }}
+          port: ${{ secrets.FTP_PORT }}
+          
+          remote_path: 'home/soinvetc/farmvet/'
 
       - name: Notify deployment status
         run: echo "Deployment to cPanel FTP completed successfully"
