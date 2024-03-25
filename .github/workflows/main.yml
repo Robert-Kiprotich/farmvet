@@ -1,0 +1,4 @@
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/soinvetc/
+    - /bin/cp -R farmvet $DEPLOYPATH
