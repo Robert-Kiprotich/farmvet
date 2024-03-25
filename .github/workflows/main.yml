@@ -19,5 +19,6 @@ jobs:
         server: ${{secrets.FTP_SERVER}}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
+        deploy_path: "/home/soinvetc/farmvet"
     - name: Notify deployment status
       run: echo "Deployment to cPanel FTP completed successfully"
