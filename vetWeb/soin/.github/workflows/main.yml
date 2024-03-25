@@ -1,16 +1,25 @@
+
+name: FTP Deployment
+
+on:
+  push:
+    branches: [ main ]  # Change "main" to your desired branch
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-    - name: Deploy to FTP
-      uses: SamKirkland/FTP-Deploy-Action@3.1.1
-      with:
-        server: ${{ secrets.FTP_SERVER }}
-        username: ${{ secrets.FTP_USERNAME }}
-        password: ${{ secrets.FTP_PASSWORD }}
-        server-dir: /home/soinvetc/farmvet/
-        
+      - name: Configure FTP deployment
+        uses: SamKirkland/FTP-Deploy-Action@4.0.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+         
+          deploy_path: "home/soinvetc/farmvet/"
+
+      - name: Notify deployment status
+        run: echo "Deployment to cPanel FTP completed successfully"
