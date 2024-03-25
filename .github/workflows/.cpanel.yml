@@ -1,4 +1,12 @@
 ---
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main 
+      
 deployment:
   tasks:
     - export DEPLOYPATH=/home/soinvetc/farmvet/vetWeb/soin
