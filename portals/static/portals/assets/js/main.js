@@ -1,3 +1,7 @@
+function dateFormater(value, row) {
+  return moment(value).format('DD-MM-YYYY'); 
+}
+
 jQuery(function ($) {
 
     $(".sidebar-dropdown > a").click(function() {
@@ -201,3 +205,5 @@ var areaChartCanvas = $('#areaChart').get(0).getContext('2d')
       data: stackedBarChartData,
       options: stackedBarChartOptions
     })
+
+ 

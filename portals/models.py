@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.auth.models import User
 from user.models import *
 
 
@@ -19,6 +19,12 @@ DISEASE_CHOICES = (
 	('S','sub_acute')
 
 )
+
+BREEDING_LEVEL_CHOICES = [
+		('Purebred', 'Purebred'),
+		('Crossbred', 'Crossbred'),
+		('MixedBreed', 'MixedBreed'),
+	]
 
 DIAGNOSIS_CHOICES = (
 	('C','clinical_signs'),
@@ -59,8 +65,8 @@ VACCINATION_CHOICES=(
 )
 
 SEX_CHOICES = (
- 	('M','male'),
- 	('F','female')
+ 	('Male','Male'),
+ 	('Female','Female')
  )
 
 
@@ -329,7 +335,7 @@ class Livestock_Inventory_Form(models.Model):
 	
 
 	def __str__(self):
-		return f'Name of form: Livestock Inventory Approach Form'
+		return self.name + ' - ' + str(self.id)
 
 
 class Pregnancy_Diagnosis_Form(models.Model):
@@ -435,10 +441,638 @@ class Referral_Form(models.Model):
 	if_yes_leave_phone_number = models.CharField(max_length=100, null=True, blank=True,verbose_name='If yes,write phone number of the vet')
 	registration_number = models.CharField(max_length=15, verbose_name='Registration number of the vet')
 	comment = models.CharField(max_length=100, null=True, blank=True)
+	def __str__(self):
+		return f'Name of form: Referral Form'
+
+class Calf(models.Model):
+	
+	user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
+	name_given = models.CharField(max_length=100, default='')
+	birth_date = models.DateField()
+	breed = models.CharField(max_length=100, default='')
+	gender = models.CharField(max_length=10, choices=[('Male', 'Male'), ('Female', 'Female')], default='')
+	sire_details = models.CharField(max_length=100, default='')
+	color = models.CharField(max_length=100, default='')
+	birth_weight = models.FloatField()
+	medical_conditions = models.CharField(max_length=100, blank=True, default='')
+	registration_number = models.CharField(max_length=100, unique=True, default='')
+	registration_date = models.DateField(null=True, blank=True)
+	expected_weaning = models.DateField(null=True, blank=True)
+	breeding_level = models.CharField(max_length=100, default="Purebreed", choices=BREEDING_LEVEL_CHOICES)
+	comments = models.CharField(max_length=100, blank=True, default='')
+
+	def __str__(self):
+		return self.name +'-'+ str(self.id)
+
+class DeadAnimal(models.Model):
+	user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
+	name = models.CharField(max_length=30, default='')
+	farm_name = models.CharField(max_length=100, default='')
+	no_of_affected = models.FloatField(default=0)
+	gender = models.CharField(max_length=10, choices=[('Male', 'Male'), ('Female', 'Female')], default='')
+	breed = models.CharField(max_length=100, default='')
+	sickness_period = models.CharField(max_length=30, default='')
+	cause_of_death = models.CharField(max_length=30, default='')
+	death_date = models.DateField(null=True, blank=True)
+	death_time = models.TimeField(null=True, blank=True)
+	signs_before_death = models.CharField(max_length=200, null=True, blank=True, default='')
+	postmortem_by_vet = models.CharField(max_length=3, choices=[('Yes', 'Yes'), ('No', 'No')], default='')
+	safety_precaution = models.CharField(max_length=30, choices=[('Burying', 'Burying'), ('Cremation', 'Cremation')], default='')
+	comment = models.CharField(max_length=300, null=True, blank=True, verbose_name='comment', default='')
+
+	def __str__(self):
+		return self.name +'-'+ str(self.id)
+
+class Culling(models.Model):
+	CULLING_REASONS = [
+		('Disease', 'Disease'),
+		('Old age', 'Old age'),
+		('Poor performance', 'Poor performance'),
+		('Genetic defects', 'Genetic defects'),
+		('Other', 'Other'),
+	]
+	CULLING_METHOD = [
+		('Killing', 'Killing'),
+		('Selling', 'Selling'),
+	]
+
+	ANIMAL_TYPE=[
+		('Cow','Cow'),
+		('Sheep','Sheep'),
+		('Goat','Goat')
+	]
+	user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
+	name = models.CharField(max_length=100, default='')
+	age = models.CharField(max_length=100, default='')
+	gender = models.CharField(max_length=100, default='')
+	animal_type=models.CharField(max_length=100, choices=ANIMAL_TYPE, default='')
+	breed = models.CharField(max_length=100, default='')
+	culling_method = models.CharField(max_length=100, choices=CULLING_METHOD, default='')
+	no_of_culled = models.FloatField(default=0)
+	culling_reason = models.CharField(max_length=100, choices=CULLING_REASONS, default='')
+	reg_no = models.CharField(max_length=100, unique=True, default='')
+	culling_date = models.DateField()
+	culling_price = models.DecimalField(max_digits=10, decimal_places=2)
+	comment = models.TextField(blank=True, null=True, default='')
+
+	def __str__(self):
+		return self.name +'-'+ str(self.id)
+
+class Livestock(models.Model):
+	ANIMAL_TYPES = [
+		('Cow', 'Cow'),
+		('Goat', 'Goat'),
+		('Sheep', 'Sheep'),
+		('Pig', 'Pig'),
+		('Chicken', 'Chicken'),
+		# Add more types as needed
+	]
+	BREED_CHOICES = [
+		('Dog', [
+			('Labrador Retriever', 'Labrador Retriever'),
+			('German Shepherd', 'German Shepherd'),
+			('Golden Retriever', 'Golden Retriever'),
+			('Bulldog', 'Bulldog'),
+			('Beagle', 'Beagle'),
+			('Poodle', 'Poodle'),
+			('Boxer', 'Boxer'),
+			('Dachshund', 'Dachshund'),
+			('Yorkshire Terrier', 'Yorkshire Terrier'),
+			('Rottweiler', 'Rottweiler'),
+		]),
+		('Cat', [
+			('Siamese', 'Siamese'),
+			('Persian', 'Persian'),
+			('Maine Coon', 'Maine Coon'),
+			('Ragdoll', 'Ragdoll'),
+			('British Shorthair', 'British Shorthair'),
+			('Sphynx', 'Sphynx'),
+			('Bengal', 'Bengal'),
+			('Abyssinian', 'Abyssinian'),
+			('Scottish Fold', 'Scottish Fold'),
+			('Burmese', 'Burmese'),
+		]),
+		('Horse', [
+			('Thoroughbred', 'Thoroughbred'),
+			('Quarter Horse', 'Quarter Horse'),
+			('Arabian', 'Arabian'),
+			('Appaloosa', 'Appaloosa'),
+			('Paint Horse', 'Paint Horse'),
+			('Morgan', 'Morgan'),
+			('Tennessee Walking Horse', 'Tennessee Walking Horse'),
+			('Friesian', 'Friesian'),
+			('Pony of the Americas', 'Pony of the Americas'),
+			('Miniature Horse', 'Miniature Horse'),
+		]),
+		('Cattle', [
+			('Angus', 'Angus'),
+			('Hereford', 'Hereford'),
+			('Charolais', 'Charolais'),
+			('Simmental', 'Simmental'),
+			('Limousin', 'Limousin'),
+			('Texas Longhorn', 'Texas Longhorn'),
+			('Holstein', 'Holstein'),
+			('Jersey', 'Jersey'),
+			('Gelbvieh', 'Gelbvieh'),
+			('Brahman', 'Brahman'),
+		]),
+		('Sheep', [
+			('Merino', 'Merino'),
+			('Dorper', 'Dorper'),
+			('Suffolk', 'Suffolk'),
+			('Rambouillet', 'Rambouillet'),
+			('Hampshire', 'Hampshire'),
+			('Shropshire', 'Shropshire'),
+			('Dorset', 'Dorset'),
+			('Cotswold', 'Cotswold'),
+			('Lincoln', 'Lincoln'),
+			('Targhee', 'Targhee'),
+		]),
+		('Goat', [
+			('Boer', 'Boer'),
+			('Nubian', 'Nubian'),
+			('Saanen', 'Saanen'),
+			('Angora', 'Angora'),
+			('LaMancha', 'LaMancha'),
+			('Alpine', 'Alpine'),
+			('Toggenburg', 'Toggenburg'),
+			('Kiko', 'Kiko'),
+			('Spanish', 'Spanish'),
+			('Pygmy', 'Pygmy'),
+		]),
+	]
+	user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
+	animal_type = models.CharField(max_length=50, choices=ANIMAL_TYPES, default='')
+	breed_category = models.CharField(max_length=50, choices=BREED_CHOICES, default='')
+	date_added = models.DateField()
+	no_of_animals = models.FloatField(default=0)
+	no_of_males = models.FloatField(default=0)
+	no_of_females = models.FloatField(default=0)
+	no_of_adults = models.FloatField(default=0)
+	no_of_young = models.FloatField(default=0)
+	no_of_dead = models.FloatField(default=0)
+	reason_for_death = models.CharField(max_length=100, default='')
+	comment = models.TextField(blank=True, null=True, default='')
+
+	def __str__(self):
+		return self.name + ' - ' + str(self.id)
+
+class NewAnimal(models.Model):
+	SOURCE_CHOICES = [
+		('Market', 'Market'),
+		('Farmer', 'Farmer'),
+	]
+
+	BREEDING_LEVEL_CHOICES = [
+		('Purebred', 'Purebred'),
+		('Crossbred', 'Crossbred'),
+		('Mixed Breed', 'Mixed Breed'),
+	]
+
+	DEFECT_CHOICES = [
+		('Yes', 'Yes'),
+		('No', 'No'),
+	]
+
+	MEDICAL_HISTORY_CHOICES = [
+		('Yes', 'Yes'),
+		('No', 'No'),
+	]
+
+	ASSESSED_BY_VET_CHOICES = [
+		('Yes', 'Yes'),
+		('No', 'No'),
+	]
+
+	INSURED_CHOICES = [
+		('Yes', 'Yes'),
+		('No', 'No'),
+	]
+	user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
+	name = models.CharField(max_length=100, default='')
+	reg_no = models.CharField(max_length=100, default='')
+	source = models.CharField(max_length=50, choices=SOURCE_CHOICES, default='')
+	farmer_name = models.CharField(max_length=100, default='')
+	animal_type = models.CharField(max_length=100, default='')
+	breed = models.CharField(max_length=100, default='')
+	breeding_level = models.CharField(max_length=100, choices=BREEDING_LEVEL_CHOICES, default='')
+	defect = models.CharField(max_length=3, choices=DEFECT_CHOICES, default='')
+	defect_reason = models.TextField(default='')
+	animal_color = models.CharField(max_length=100, default='')
+	market_value = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	medical_history = models.CharField(max_length=3, choices=MEDICAL_HISTORY_CHOICES, default='')
+	assessed_by_vet = models.CharField(max_length=3, choices=ASSESSED_BY_VET_CHOICES, default='')
+	insured = models.CharField(max_length=3, choices=INSURED_CHOICES, default='')
+	insuring_company = models.CharField(max_length=100, default='')
+	date_added = models.DateField(null=True, blank=True)
+
+	def __str__(self):
+		return self.name + '-' + str(self.id)
 
 
+class AnimalSale(models.Model):
+		BREED_CHOICES = [
+		('Dog', [
+		('Labrador Retriever', 'Labrador Retriever'),
+		('German Shepherd', 'German Shepherd'),
+		('Golden Retriever', 'Golden Retriever'),
+		('Bulldog', 'Bulldog'),
+		('Beagle', 'Beagle'),
+		('Poodle', 'Poodle'),
+		('Boxer', 'Boxer'),
+		('Dachshund', 'Dachshund'),
+		('Yorkshire Terrier', 'Yorkshire Terrier'),
+		('Rottweiler', 'Rottweiler'),
+		]),
+		('Cat', [
+		('Siamese', 'Siamese'),
+		('Persian', 'Persian'),
+		('Maine Coon', 'Maine Coon'),
+		('Ragdoll', 'Ragdoll'),
+		('British Shorthair', 'British Shorthair'),
+		('Sphynx', 'Sphynx'),
+		('Bengal', 'Bengal'),
+		('Abyssinian', 'Abyssinian'),
+		('Scottish Fold', 'Scottish Fold'),
+		('Burmese', 'Burmese'),
+		]),
+		('Horse', [
+		('Thoroughbred', 'Thoroughbred'),
+		('Quarter Horse', 'Quarter Horse'),
+		('Arabian', 'Arabian'),
+		('Appaloosa', 'Appaloosa'),
+		('Paint Horse', 'Paint Horse'),
+		('Morgan', 'Morgan'),
+		('Tennessee Walking Horse', 'Tennessee Walking Horse'),
+		('Friesian', 'Friesian'),
+		('Pony of the Americas', 'Pony of the Americas'),
+		('Miniature Horse', 'Miniature Horse'),
+		]),
+		('Cattle', [
+		('Angus', 'Angus'),
+		('Hereford', 'Hereford'),
+		('Charolais', 'Charolais'),
+		('Simmental', 'Simmental'),
+		('Limousin', 'Limousin'),
+		('Texas Longhorn', 'Texas Longhorn'),
+		('Holstein', 'Holstein'),
+		('Jersey', 'Jersey'),
+		('Gelbvieh', 'Gelbvieh'),
+		('Brahman', 'Brahman'),
+		]),
+		('Sheep', [
+		('Merino', 'Merino'),
+		('Dorper', 'Dorper'),
+		('Suffolk', 'Suffolk'),
+		('Rambouillet', 'Rambouillet'),
+		('Hampshire', 'Hampshire'),
+		('Shropshire', 'Shropshire'),
+		('Dorset', 'Dorset'),
+		('Cotswold', 'Cotswold'),
+		('Lincoln', 'Lincoln'),
+		('Targhee', 'Targhee'),
+		]),
+		('Goat', [
+		('Boer', 'Boer'),
+		('Nubian', 'Nubian'),
+		('Saanen', 'Saanen'),
+		('Angora', 'Angora'),
+		('LaMancha', 'LaMancha'),
+		('Alpine', 'Alpine'),
+		('Toggenburg', 'Toggenburg'),
+		('Kiko', 'Kiko'),
+		('Spanish', 'Spanish'),
+		('Pygmy', 'Pygmy'),
+		]),
+		]
+		user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
+		number_sold = models.IntegerField()
+		name = models.CharField(max_length=100)
+		reg_no = models.CharField(max_length=100)
+		date_sold=models.DateField()
+		age = models.IntegerField()
+		breed = models.CharField(max_length=100,choices=BREED_CHOICES, default='')
+		sex = models.CharField(max_length=10,choices=SEX_CHOICES)
+		weight = models.DecimalField(max_digits=10, decimal_places=2)
+		selling_price = models.DecimalField(max_digits=10, decimal_places=2)
+		reason = models.TextField()
+		comment = models.TextField()
+
+		def __str__(self):
+			return self.name + ' - ' + str(self.id)
+
+
+
+class HeatSignMonitoring(models.Model):
+		STATUS_CHOICES = [
+		('Adult', 'Adult'),
+		('Heifer', 'Heifer'),
+		]
+		user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)		
+		name = models.CharField(max_length=100)
+		reg_no = models.CharField(max_length=20)
+		status = models.CharField(max_length=10, choices=STATUS_CHOICES)
+		date_of_heat_sign = models.DateField()
+		date_of_heat_monitoring= models.DateField()
+		exp_date_of_repeated_heat = models.DateField()
+		reason_skip_monitoring = models.TextField(blank=True, null=True)
+
+		def __str__(self):
+			return self.name + ' - ' + str(self.id)
+
+class PregnancyMonitoring(models.Model):
+	user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
+	name = models.CharField(max_length=100)
+	reg_no = models.CharField(max_length=50)
+	date_of_ai = models.DateField()
+	exp_heat_date = models.DateField()
+	first_preg_diag_date = models.DateField()
+	PD_STATUS_CHOICES = (
+		('positive', 'Positive'),
+		('negative', 'Negative'),
+	)
+	pd_status = models.CharField(max_length=20, choices=PD_STATUS_CHOICES)
+	approximate_preg_months = models.IntegerField()
+	vet_recommendation = models.TextField()
+	date_of_second_diag = models.DateField(null=True, blank=True)
+	FOETUS_STATUS_CHOICES = (
+		('progressive', 'Progressive'),
+		('non-progressive', 'Non-Progressive'),
+	)
+	foetus_status = models.CharField(max_length=20, choices=FOETUS_STATUS_CHOICES)
+	non_prog_reason=models.CharField(max_length=255,null=True, blank=True,default="")
+	action_to_take=models.CharField(max_length=255,null=True, blank=True,default="")
+	steaming_up_date=models.DateField(null=True, blank=True)
+	expected_dob=models.DateField(null=True, blank=True)
+	actual_date_of_delivery=models.DateField(null=True, blank=True)
+
+	def __str__(self):
+		return self.name + ' - ' + str(self.id)
+
+class GestationMonitoring(models.Model):
+    gestation_date = models.DateField()
+    repeat_date = models.DateField(blank=True, null=True)
+    expected_delivery_date = models.DateField(blank=True, null=True)
+
+
+class Feeds(models.Model):
+		FEED_TYPE_CHOICES = [
+			('Dairy Meal', 'Dairy Meal'),
+			('Wheat Bran', 'Wheat Bran'),
+			('Maize Chaff', 'Maize Chaff'),
+			('Sunflower', 'Sunflower'),
+		]
+		user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
+		date_of_purchase = models.DateField('Date of Purchase')
+		feed_type = models.CharField('Feed Type', max_length=15, choices=FEED_TYPE_CHOICES)
+		company = models.CharField('Company', max_length=255)
+		expiry_date = models.DateField('Expiry Date')
+		cost = models.DecimalField('Cost', max_digits=10, decimal_places=2)
+		comment = models.TextField('Comment', blank=True)
+
+		def __str__(self):
+			return self.date_of_purchase + ' - ' + str(self.id)
+class Minerals(models.Model):
+		MINERAL_TYPE_CHOICES = [
+			('Dairy Lick', 'Dairy Lick'),
+			('Stock Lick', 'Stock Lick'),
+			('Dry Cow', 'Dry Cow'),
+			('Joto', 'Joto'),
+			('Calves Mineral', 'Calves Mineral')
+		]
+		user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
+		date_of_purchase = models.DateField('Date of Purchase')
+		mineral_type = models.CharField('Feed Type', max_length=15, choices=MINERAL_TYPE_CHOICES)
+		quantity=models.CharField('Company', max_length=255)
+		company = models.CharField('Company', max_length=255)
+		expiry_date = models.DateField('Expiry Date')
+		cost = models.DecimalField('Cost', max_digits=10, decimal_places=2)
+		comment = models.TextField('Comment', blank=True)
+
+		def __str__(self):
+			return self.date_of_purchase + ' - ' + str(self.id)
+		
+class VeterinaryBills(models.Model):
+		user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
+		date_of_billing = models.DateField('Date of Billing')
+		bill_category = models.CharField('Bill Category', max_length=20)
+		amount = models.DecimalField('Amount', max_digits=10, decimal_places=2)
+		balance = models.DecimalField('Balance', max_digits=10, decimal_places=2)
+		billing_details=models.CharField('Company', max_length=255)
+		comment = models.TextField('Comment', blank=True)
+		def __str__(self):
+			return self.amount + ' - ' + str(self.id)
+		
+class Archaricides(models.Model):
+		user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
+		date_of_purchase = models.DateField('Date of Purchase')
+		chemical_name = models.CharField('Chemical Name', max_length=30)
+		quantity=models.CharField('Quantity', max_length=255)
+		company = models.CharField('Company', max_length=255)
+		application_rate = models.CharField('Rate', max_length=255)
+		expiry_date = models.DateField('Expiry Date')
+		times_used=models.CharField('Frequency', max_length=255)
+		cost = models.DecimalField('Cost', max_digits=10, decimal_places=2)
+		comment = models.TextField('Comment', blank=True)
+
+		def __str__(self):
+			return self.date_of_purchase + ' - ' + str(self.id)
+		
+class DairyEquipment(models.Model):
+		user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
+		name=models.CharField('Name', max_length=40)
+		date_of_purchase = models.DateField('Date of Purchase')
+		quantity=models.CharField('quantity', max_length=255)
+		equipment_type = models.CharField('Type', max_length=255)
+		company = models.CharField('Company', max_length=255)
+		cost = models.DecimalField('Cost', max_digits=10, decimal_places=2)
+		source=models.CharField('Source', max_length=255)
+		comment = models.TextField('Comment', blank=True)
+
+		def __str__(self):
+			return self.date_of_purchase + ' - ' + str(self.id)
+
+class DairyHygiene(models.Model):
+		user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
+		chemical_name=models.CharField('Chemical Name', max_length=255)
+		date_of_purchase = models.DateField('Date of Purchase')
+		item_purchased = models.CharField('Item', max_length=255)
+		company = models.CharField('Company', max_length=255)
+		quantity=models.CharField('quantity', max_length=255)
+		cost = models.DecimalField('Cost', max_digits=10, decimal_places=2)
+		expiry_date = models.DateField('Expiry Date')
+		comment = models.TextField('Comment', blank=True)
+
+		def __str__(self):
+			return self.date_of_purchase + ' - ' + str(self.id)
+		
+class Salaries(models.Model):
+	user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
+	category=models.CharField('Category', max_length=255)
+	name=models.CharField('Name', max_length=255)
+	identification=models.CharField('identification', max_length=255)
+	mode_of_payment=models.CharField('Mode', max_length=255)
+	amount=models.DecimalField('Amount', max_digits=10, decimal_places=2)
+	balance=models.DecimalField('Cost', max_digits=10, decimal_places=2)
+	payment_date= models.DateField('Payment Date')
+	payment_type=models.CharField('Type', max_length=255)
+	comment = models.TextField('Comment', blank=True)
 
 
 	def __str__(self):
-		return f'Name of form: Referral Form'
+			return self.name + ' - ' + str(self.id)
+	
+class LivestockInsurance(models.Model):
+	user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
+	number_insured=models.DecimalField('Number Insured', max_digits=10, decimal_places=2)
+	company=models.CharField('Company', max_length=255)
+	mode_of_payment=models.CharField('Mode Of payment', max_length=255)
+	payment_date= models.DateField('Payment Date')
+	total=models.DecimalField('Total', max_digits=10, decimal_places=2)
+	comment=models.TextField('Comment', blank=True)
+
+	def __str__(self):
+			return self.company + ' - ' + str(self.id)
+	
+class VeterinaryDrugs(models.Model):
+	DRUG_TYPE_CHOICES = [
+			('Antibiotics', 'Antibiotics '),
+			('Vaccines', 'Vaccines'),
+			('Hormones', 'Hormones'),
+			('Hormones', 'Hormones'),
+			
+		]
+	user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
+	name=models.CharField('Name', max_length=255)
+	category=models.CharField('Category', max_length=15,choices=DRUG_TYPE_CHOICES)
+	company=models.CharField('company', max_length=50)
+	expiry_date=models.DateField('Expiry Date')
+	strange_condition=models.CharField('Strange Condition', max_length=255)
+	vet_reg=models.CharField('Vet Registration', max_length=255)
+	cost=models.DecimalField('Number Insured', max_digits=10, decimal_places=2)
+	comment=models.TextField('Comment', blank=True)
+
+	def __str__(self):
+			return self.name + ' - ' + str(self.id)
+	
+class Employees(models.Model):
+	EMPLOYMENT_MODES = [
+	('Full-Time', 'Full-Time'),
+	('Part-Time', 'Part-Time'),
+	('Contract', 'Contract'),
+	('Internship', 'Internship'),
+	]
+
+	PAYMENT_METHODS = [
+	('Bank Transfer', 'Bank Transfer'),
+	('Cash', 'Cash'),
+	('Cheque', 'Cheque'),
+	('Mobile Banking', 'Mobile Banking'),
+	]
+	user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
+	employee_name = models.CharField(max_length=100)
+	id_no = models.CharField(max_length=20, unique=True)
+	phone_no = models.CharField(max_length=15)
+	country = models.CharField(max_length=50)
+	district = models.CharField(max_length=50)
+	village = models.CharField(max_length=50)
+	next_of_kin = models.CharField(max_length=100)
+	next_of_kin_phone_no = models.CharField(max_length=15)
+	area_of_residence = models.CharField(max_length=100)
+	chief_phone_no = models.CharField(max_length=15)
+	employee_position = models.CharField(max_length=50)
+	salary = models.DecimalField(max_digits=10, decimal_places=2)
+	payment_method = models.CharField(max_length=30, choices=PAYMENT_METHODS)
+	bank_account = models.CharField(max_length=30, blank=True, null=True)
+	mode_of_employment = models.CharField(max_length=20, choices=EMPLOYMENT_MODES)
+	contract_rewal_period = models.IntegerField(help_text='Contract renewal period in months')
+
+	def __str__(self):
+		return self.employee_name+ ' - ' + str(self.id)
+	
+
+class LactatingCow(models.Model):
+	LACTATION_STAGE_CHOICES = [
+		('early', 'Early'),
+		('mid', 'Mid'),
+		('late', 'Late'),
+	]
+
+	user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
+	cow_name = models.CharField(max_length=100)
+	reg_no = models.CharField(max_length=50, unique=True)
+	sire_details = models.CharField(max_length=100)
+	breed = models.CharField(max_length=50)
+	breeding_level = models.CharField(max_length=50,choices=BREEDING_LEVEL_CHOICES)
+	age = models.PositiveIntegerField(help_text="Age in years")
+	calving_down_date = models.DateField()
+	no_of_calves = models.PositiveIntegerField()
+	average_daily_milk = models.FloatField(help_text="Average daily milk production in liters")
+	lactation_stage = models.CharField(max_length=10, choices=LACTATION_STAGE_CHOICES)
+	expected_date_of_drying_off = models.DateField()
+
+	def __str__(self):
+		return f"{self.cow_name} ({self.reg_no})"
+
+class MilkRecord(models.Model):
+	TIME_OF_MILKING_CHOICES = [
+	('Morning', 'Morning'),
+	('Noon', 'Noon'),
+	('Evening', 'Evening'),
+	]
+	user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
+	cow_name = models.ForeignKey(LactatingCow, on_delete=models.CASCADE)
+	employee_name = models.ForeignKey(Employees, on_delete=models.CASCADE)
+	date = models.DateField()
+	time_of_milking = models.CharField(max_length=10, choices=TIME_OF_MILKING_CHOICES)
+	quantity = models.FloatField(help_text="Amount of milk in liters")
+
+	def __str__(self):
+		return f"{self.date} - {self.cow_name} - {self.time_of_milking}"
+class WeeklyMilkRecord(models.Model):
+	
+	cow_name = models.ForeignKey(LactatingCow, on_delete=models.CASCADE)
+	week_start_date = models.DateField()
+	total_quantity = models.FloatField(help_text="Total milk in liters for the week")
+	#user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+	def __str__(self):
+		return f"Week starting {self.week_start_date} - {self.cow_name}"
+
+class MonthlyMilkRecord(models.Model):
+	
+	cow_name = models.ForeignKey(LactatingCow, on_delete=models.CASCADE)
+	month = models.DateField()
+	total_quantity = models.FloatField(help_text="Total milk in liters for the month")
+	user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+	def __str__(self):
+		return f"Month of {self.month.strftime('%B %Y')} - {self.cow_name}"
+	
+
+class SalesOfMilk(models.Model):
+	MILK_SALES_TO = [
+	('Neighbour', 'Neighbour'),
+	('Hotel', 'Hotel'),
+	('Cooperative', 'Cooperative'),
+	]
+	user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
+	date_of_sales = models.DateField()
+	number_of_cows_milked = models.PositiveIntegerField()
+	total_kgs_milked = models.FloatField()
+	milk_sales_to = models.CharField(max_length=12,choices=MILK_SALES_TO)
+	buyer_contact = models.CharField(max_length=50)
+	price_per_kg = models.FloatField()
+	total_cash_received = models.FloatField()
+	balance = models.FloatField(blank=True,null=True)
+	comment = models.TextField(blank=True, null=True)
+
+	def __str__(self):
+		return f"Sales on {self.date_of_sales} to {self.milk_sales_to}"
+
+
+	
+
+
+	
 

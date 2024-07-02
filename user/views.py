@@ -11,7 +11,8 @@ from django.contrib.auth import get_user_model, logout
 
 from django.contrib.auth import login, authenticate
 from .models import User, Vet_Officer, Farmer, Student
-from django.contrib.auth.forms import AuthenticationForm   
+from django.contrib.auth.forms import AuthenticationForm
+from rest_framework.permissions import BasePermission   
 
 
 
@@ -144,7 +145,6 @@ def farmer_login(request):
 				    
 		else:
  			messages.error(request, 'invalid Credentials')
-    
 	return render(request, 'user/farmerlogin.html', {'form':form})
 
 # def student_login(request):

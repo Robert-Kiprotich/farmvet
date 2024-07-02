@@ -1,7 +1,10 @@
 from django.contrib import admin
 from django.urls import path, include
 from user import views as user_views
-from portals import views as portal_views
+from portals import views as portal_views  
+from portals.views import *
+from portals.monitoring import *
+
 
 
 from django.conf.urls.static import static
@@ -126,10 +129,173 @@ urlpatterns = [
     path('calfregformpdf/', login_required(portal_views.Calf_Registration_Form_Pdf.as_view()), name='calfregformpdf'),
     path('inventorypdf/', login_required(portal_views.Livestock_Form_Pdf.as_view()), name='inventoryformpdf'),
     path('referralpdf/', login_required(portal_views.referral_Form_Pdf.as_view()), name='referralformpdf'),
-    path('gallerypdf/', portal_views.display_images, name='display-images')
+    path('gallerypdf/', portal_views.display_images, name='display-images'),
+    ##calf
+    path('calf', portal_views.calf, name='calf'),
+    path('calves-list', CalfList.as_view(), name='calves-list'),
+    path('calves/create/',CalfCreate.as_view(), name='add_calf'),
+    path('calves/update/<int:pk>/',CalfUpdate.as_view(), name='edit_calf'),
+    path('calves/delete/<int:pk>/', CalfDelete.as_view(), name='remove_calf'),
 
-]
+# dead animal
+    path('dead_animal/', portal_views.dead_animal, name='dead_animal'),
+    path('dead-animal-list/', DeadAnimalList.as_view(), name='dead-animal-list'),
+    path('dead-animal/create/', DeadAnimalCreate.as_view(), name='add-dead-animal'),
+    path('dead-animal/update/<int:pk>/', DeadAnimalUpdate.as_view(), name='update_dead_animal'),
+    path('dead-animal/delete/<int:pk>/', DeadAnimalDelete.as_view(), name='delete_dead_animal'),
 
+# Culling
+    path('culling/', portal_views.culling, name='culling'),
+    path('culling-list/', CullingList.as_view(), name='culling-list'),
+    path('culling/create/',  CullingCreate.as_view(), name='create_culling'),
+    path('culling/update/<int:pk>/', CullingUpdate.as_view(), name='update_culling'),
+    path('culling/delete/<int:pk>/', CullingDelete.as_view(), name='delete_culling'),
+#  new animal
+    path('new_animal/', portal_views.new_animal, name='new_animal'),
+    path('new-animal-list/', NewAnimalList.as_view(), name='new-animal-list'),
+    path('new-animal/create/', NewAnimalCreate.as_view(), name='add-new-animal'),
+    path('new-animal/update/<int:pk>/',  NewAnimalUpdate.as_view(), name='edit-new-animal'),
+    path('new-animal/delete/<int:pk>/', NewAnimalDelete.as_view(), name='remove-new-animal'),
+
+# livestock inventory
+    path('livestock/', portal_views.livestock, name='livestock'),
+    path('livestock-list/',LivestockList.as_view(), name='livestock-list'),
+    path('livestock/create/', LivestockCreate.as_view(), name='add-livestock'),
+    path('livestock/update/<int:pk>/', LivestockUpdate.as_view(), name='edit-livestock'),
+    path('livestock/delete/<int:pk>/', LivestockDelete.as_view(), name='remove-livestock'),
+
+#sales of stock
+
+    path('animal_sales/', portal_views.animal_sales, name='animal_sales'),
+    path('animal-sales-list/', AnimalSaleList.as_view(), name='animal-sales-list'),
+    path('animal-sales/create/', AnimalSaleCreate.as_view(), name='add-animal-sale'),
+    path('animal-sales/update/<int:pk>/', AnimalSaleUpdate.as_view(), name='edit-animal-sale'),
+    path('animal-sales/delete/<int:pk>/', AnimalSaleDelete.as_view(), name='delete-animal-sale'),
+   
+    path('heat-sign-monitoring/', portal_views.heat_sign_monitoring, name='heat_sign_monitoring'),
+    path('heat-sign-monitoring-list/', HeatSignMonitoringList.as_view(), name='heat-sign-monitoring-list'),
+    path('heat-sign-monitoring/create/', HeatSignMonitoringCreate.as_view(), name='add-heat-sign-monitoring'),
+    path('heat-sign-monitoring/update/<int:pk>/', HeatSignMonitoringUpdate.as_view(), name='edit-heat-sign-monitoring'),
+    path('heat-sign-monitoring/delete/<int:pk>/', HeatSignMonitoringDelete.as_view(), name='remove-heat-signmonitoring'),
+
+    path('pregnancy-monitoring/', portal_views.pregnancy_monitoring, name='pregnancy_monitoring'),
+    path('pregnancy-monitoring-list/', PregnancyMonitoringList.as_view(), name='pregnancy-monitoring-list'),
+    path('pregnancy-monitoring/create/', PregnancyMonitoringCreate.as_view(), name='pregnancy-monitoring-create'),
+    # path('pregnancy-monitoring/<int:pk>/', PregnancyMonitoringDetail.as_view(), name='pregnancy-monitoring-detail'),
+    path('pregnancy-monitoring/update/<int:pk>/', PregnancyMonitoringUpdate.as_view(), name='pregnancy-monitoring-update'),
+    path('pregnancy-monitoring/delete/<int:pk>/', PregnancyMonitoringDelete.as_view(), name='pregnancy-monitoring-delete'),
+
+
+    #FEEDS
+    path('feeds/', portal_views.feeds, name='feeds'),
+    path('feeds-list/', FeedsList.as_view(), name='feeds-list'),
+    path('feeds/create/', FeedsCreate.as_view(), name='feeds-create'),
+    # path('pregnancy-monitoring/<int:pk>/', PregnancyMonitoringDetail.as_view(), name='pregnancy-monitoring-detail'),
+    path('feeds/update/<int:pk>/',FeedsUpdate.as_view(), name='feeds-update'),
+    path('feeds/delete/<int:pk>/', FeedsDelete.as_view(), name='feeds-delete'),
+
+    path('equipment/', portal_views.equipment, name='dairy_equipment'),
+    path('dairy-equipment/create/', DairyEquipmentCreate.as_view(), name='dairy_equipment_create'),
+    path('dairy-equipment-list/', DairyEquipmentList.as_view(), name='dairy-equipment-list'),
+    path('dairy-equipment/update/<int:pk>/', DairyEquipmentUpdate.as_view(), name='dairy_equipment_update'),
+    path('dairy-equipment/delete/<int:pk>/', DairyEquipmentDelete.as_view(), name='dairy_equipment_delete'),
+
+    # DairyHygiene URLs
+    path('hygiene/', portal_views.hygiene, name='hygiene'),
+    path('dairy-hygiene/create/', DairyHygieneCreate.as_view(), name='dairy_hygiene_create'),
+    path('dairy-hygiene-list/', DairyHygieneList.as_view(), name='dairy-hygiene-list'),
+    path('dairy-hygiene/update/<int:pk>/', DairyHygieneUpdate.as_view(), name='dairy_hygiene_update'),
+    path('dairy-hygiene/delete/<int:pk>/', DairyHygieneDelete.as_view(), name='dairy_hygiene_delete'),
+
+    # Salaries URLs
+    path('salaries/', portal_views.salaries, name='salaries'),
+    path('salaries/create/', SalariesCreate.as_view(), name='salaries_create'),
+    path('salaries-list/', SalariesList.as_view(), name='salaries-list'),
+    path('salaries/update/<int:pk>/', SalariesUpdate.as_view(), name='salaries_update'),
+    path('salaries/delete/<int:pk>/', SalariesDelete.as_view(), name='salaries_delete'),
+
+    # LivestockInsurance URLs
+    path('insurance/', portal_views.insurance, name='insurance'),
+    path('livestock-insurance/create/', LivestockInsuranceCreate.as_view(), name='livestock_insurance_create'),
+    path('livestock-insurance-list/', LivestockInsuranceList.as_view(), name='livestock-insurance-list'),
+    path('livestock-insurance/update/<int:pk>/', LivestockInsuranceUpdate.as_view(), name='livestock_insurance_update'),
+    path('livestock-insurance/delete/<int:pk>/', LivestockInsuranceDelete.as_view(), name='livestock_insurance_delete'),
+
+    # VeterinaryDrugs URLs
+    path('drugs/', portal_views.drugs, name='drugs'),
+    path('veterinary-drugs/create/', VeterinaryDrugsCreate.as_view(), name='veterinary_drugs_create'),
+    path('veterinary-drugs-list/', VeterinaryDrugsList.as_view(), name='veterinary-drugs-list'),
+    path('veterinary-drugs/update/<int:pk>/', VeterinaryDrugsUpdate.as_view(), name='veterinary_drugs_update'),
+    path('veterinary-drugs/delete/<int:pk>/', VeterinaryDrugsDelete.as_view(), name='veterinary_drugs_delete'),
+
+
+     # Archaricides URLs
+    path('archaricides/', portal_views.archaricides, name='archaricides'),
+    path('archaricides/create/', ArcharicidesCreate.as_view(), name='archaricides_create'),
+    path('archaricides-list/', ArcharicidesList.as_view(), name='archaricides-list'),
+    path('archaricides/update/<int:pk>/', ArcharicidesUpdate.as_view(), name='archaricides_update'),
+    path('archaricides/delete/<int:pk>/', ArcharicidesDelete.as_view(), name='archaricides_delete'),
+
+    path('minerals/', portal_views.minerals, name='minerals'),
+    path('minerals/create/', MineralsCreate.as_view(), name='minerals_create'),
+    path('minerals-list/', MineralsList.as_view(), name='minerals-list'),
+    path('minerals/update/<int:pk>/', MineralsUpdate.as_view(), name='minerals_update'),
+    path('minerals/delete/<int:pk>', MineralsDelete.as_view(), name='minerals_delete'),
+
+
+     # VeterinaryBills URLs
+    path('bills/', portal_views.vet_bills, name='bills'),
+    path('veterinary-bills/create/', VeterinaryBillsCreate.as_view(), name='veterinary_bills_create'),
+    path('veterinary-bills/', VeterinaryBillsList.as_view(), name='veterinary-bills-list'),
+    path('veterinary-bills/update/<int:pk>/', VeterinaryBillsUpdate.as_view(), name='veterinary_bills_update'),
+    path('veterinary-bills/delete/<int:pk>/', VeterinaryBillsDelete.as_view(), name='veterinary_bills_delete'),
+
+    path('add-gestation/', portal_views.add_gestation, name='add_gestation'),
+    path('gestation-detail/', portal_views.gestation_detail, name='gestation_detail'),
+    path('gestation/', portal_views.gestation, name='gestation'),
+
+    # pdf notes
+    path('notes/', portal_views.pdf_notes, name='notes'),
+
+
+     path('employees/', portal_views.employees, name='employees'),
+    path('employees/create/', EmployeesCreate.as_view(), name='employees_create'),
+    path('employees-list/', EmployeesList.as_view(), name='employees-list'),
+    path('employees/update/<int:pk>/', EmployeesUpdate.as_view(), name='employees_update'),
+    path('employees/delete/<int:pk>/', EmployeesDelete.as_view(), name='employees_delete'),
+
+    path('lactation/', portal_views.lactation, name='lactation'),
+    path('lactating-cows/create/', LactatingCowCreate.as_view(), name='lactatingcow-create'),
+    path('lactating-cows/', LactatingCowList.as_view(), name='lactatingcow-list'),
+    path('lactating-cows/update/<int:pk>/', LactatingCowUpdate.as_view(), name='lactatingcow-update'),
+    path('lactating-cows/delete/<int:pk>/', LactatingCowDelete.as_view(), name='lactatingcow-delete'),
+
+
+    path('milk-record/', portal_views.milk_record, name='milk-record'),
+    path('milk-records/create/', MilkRecordCreate.as_view(), name='milkrecord-create'),
+    path('milk-records/', MilkRecordList.as_view(), name='milkrecord-list'),
+    path('milk-records/update/<int:pk>/', MilkRecordUpdate.as_view(), name='milkrecord-update'),
+    path('milk-records/delete/<int:pk>/', MilkRecordDelete.as_view(), name='milkrecord-delete'),
+
+    path('weekly-record/', portal_views.weekly_record, name='weekly-record'),
+    path('weekly-milk-records/', WeeklyMilkRecordListView.as_view(), name='weekly-milk-record-list'),
+    path('monthly-record/', portal_views.monthly_record, name='monthly-record'),
+    path('monthly-milk-records/', MonthlyMilkRecordListView.as_view(), name='monthly-milk-record-list'),
+    path('weekly-milk-records/delete/<int:pk>/', WeeklyMilkRecordDelete.as_view(), name='weeklymilkrecord-update'),
+    path('monthly-milk-records/delete/<int:pk>/', MonthlyMilkRecordDelete.as_view(), name='monthlymilkrecord-delete'),
+
+    path('sales-of-milk/', portal_views.sales_of_milk, name='sales_of_milk'),
+    path('sales-of-milk/create/', SalesOfMilkCreate.as_view(), name='sales_of_milk_create'),
+    path('sales-of-milk/list/', SalesOfMilkList.as_view(), name='sales_of_milk_list'),
+    path('sales-of-milk/update/<int:pk>/', SalesOfMilkUpdate.as_view(), name='sales_of_milk_update'),
+    path('sales-of-milk/delete/<int:pk>/', SalesOfMilkDelete.as_view(), name='sales_of_milk_delete'),
+
+
+]   
+
+
+
+ 
 if  not settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

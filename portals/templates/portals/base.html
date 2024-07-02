@@ -12,46 +12,39 @@
    Soin Veterinary Services
   </title>
   <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
-  <!--     Fonts and icons     -->
-  <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"/>
-  <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700,200" rel="stylesheet" />
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.3/css/dataTables.min.css"/>
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+  <script src="{% static 'portals/assets/js/core/jquery.min.js' %}"></script>
   <!-- CSS Files -->
   <link href="{% static 'portals/assets/css/bootstrap.min.css' %}" rel="stylesheet" />
+  <link href="{% static 'portals/assets/css/calendar.css' %}" rel="stylesheet" />
   <link href="{% static 'portals/assets/css/style.css' %}" rel="stylesheet" />
+  <link href="{% static 'portals/assets/css/modal.css' %}" rel="stylesheet" />
   <link href="{% static 'portals/assets/css/now-ui-dashboard.css' %}" rel="stylesheet" />
   <link rel="stylesheet" href="fontawesome-free/css/all.min.css">
-  <!-- Ionicons -->
-  <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
-  <!-- Tempusdominus Bbootstrap 4 -->
-  <link rel="stylesheet" href="{% static 'portals/assets/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css' %}">
-  <!-- iCheck -->
-  <link rel="stylesheet" href="{% static 'portals/assets/icheck-bootstrap/icheck-bootstrap.min.css' %}">
-  <!-- JQVMap -->
-  <link rel="stylesheet" href="{% static 'portals/assets/jqvmap/jqvmap.min.css '%}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <!-- Theme style -->
   <link href="{% static 'portals/assets/css/adminlte.css' %}" rel="stylesheet" />
-  <!-- overlayScrollbars -->
-  <link href="{% static 'portals/assets/overlayScrollbars/css/OverlayScrollbars.min.css' %}" rel="stylesheet" />
-  <!-- Daterange picker -->
- 
-  <link rel="stylesheet" href="{% static 'portals/assets/daterangepicker/daterangepicker.css' %}">
-  <!-- summernote -->
-  <link rel="stylesheet" href="{% static 'portals/assets/summernote/summernote-bs4.css' %}">
-  <!-- Google Font: Source Sans Pro -->
-  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
   
 
-<script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.11.5/datatables.min.css"/>
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/searchpanes/2.5.1/css/searchPanes.dataTables.min.css"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-table@1.22.4/dist/bootstrap-table.min.css" rel="stylesheet">
+
 <!-- Include Bootstrap CSS here -->
 
 
   
 </head>
+<body style="font-family: Century Gothic, CenturyGothic, AppleGothic, sans-serif;">
+  <style>
+    body{
+    overflow-x: hidden; /* Hide horizontal scrollbar */
+    overflow-y: auto;
+     font-size: 16px; /* Allow vertical scrollbar */
+}
+  </style>
 
-<div class="mt-2 pt-1 d-flex justify-content-center">
+
+<div>
   {% if messages %}
       {% for message in messages %}
       <div id="alertMessage" class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
@@ -70,9 +63,12 @@
       {% endfor %}
   {% endif %}
 </div>
+
 {% block content %}
+
+
 
 {% endblock %}
 
-
+</body>
 </html>

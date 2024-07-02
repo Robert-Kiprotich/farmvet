@@ -4187,8 +4187,8 @@ Created using IcoMoon - icomoon.io
 }
 
 .panel-header {
-  height: 260px;
-  padding-top: 80px;
+  height: 300px;
+  padding-top: 15px;
   padding-bottom: 45px;
   background: #141E30;
   /* fallback for old browsers */
@@ -4218,7 +4218,7 @@ Created using IcoMoon - icomoon.io
 }
 
 .panel-header-lg {
-  height: 80px;
+  height: 40px;
 }
 
 .footer {

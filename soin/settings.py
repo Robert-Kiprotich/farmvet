@@ -25,7 +25,7 @@ INSTALLED_APPS = [
     'vet.apps.VetConfig',
     'user.apps.UserConfig',
     'portals.apps.PortalsConfig',
-
+    'rest_framework',
     # Third party packages
     'crispy_forms',
 
@@ -80,6 +80,20 @@ TEMPLATES = [
 WSGI_APPLICATION = 'soin.wsgi.application'
 
 
+
+REST_FRAMEWORK = {
+    # 'DATETIME_FORMAT': '%d-%m-%Y %H:%M:%S',
+    # 'DATE_FORMAT': '%d-%m-%Y',
+    'DEFAULT_PERMISSION_CLASSES': [
+    'portals.permissions.Is_Vet',
+   'portals.permissions.Is_Farmer',
+   'rest_framework.permissions.IsAuthenticated',
+],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 2,  # Set the default page size
+}
+
+
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
@@ -111,7 +125,7 @@ DATABASES = {
         'PORT': 5432,
     }
 }
-
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.postgresql',
