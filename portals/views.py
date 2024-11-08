@@ -11,13 +11,13 @@ from django.utils import timezone
 from django.core.serializers import serialize
 from django.http import FileResponse
 from fpdf import FPDF
+from django.db.models import Q
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
-from .models import Calf
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
-from .forms import CalfRegForm
+from django.views import View
 import json
 from .monitoring import *
 from io import BytesIO
@@ -28,10 +28,16 @@ from rest_framework.permissions import IsAuthenticated
 from .permissions import Is_Farmer,Is_Vet
 from rest_framework.response import Response
 from django.db.models import OuterRef, Subquery
+from datetime import timedelta,time
+from rest_framework.exceptions import ValidationError
+from django.core.exceptions import MultipleObjectsReturned
+import logging
+from django.db import transaction
+from rest_framework import generics,status
 
 
 
-
+logger = logging.getLogger(__name__)
 
 
 def vet_check(request):
@@ -39,35 +45,50 @@ def vet_check(request):
 
 def farmer_check(request):
     return request.is_farmer
+def official_check(request):
+    return request.is_official
 
-def student_check(request):
-    return request.is_student    
 
 
-@login_required
+@user_passes_test(vet_check, login_url='vet-login')
 def portal_vet(request):
     vet_officers = Vet_Officer.objects.all()
-    no_vet_forms =Vet_Forms.objects.filter(vet_username=request.user).count()
     context = {
         'all_vets': vet_officers,
-        'count': no_vet_forms
+       
     }
     return render(request, 'portals/dashboardVet.html', context)
-    
-    
-    
-    
-def vet_list(request):
-    vet_officers = Vet_Officer.objects.all()
-    no_vet_forms =Vet_Forms.objects.filter(vet_username=request.user).count()
+
+@user_passes_test(official_check, login_url='official-login')
+def portal_official(request):
+    officers = Official.objects.all()
     context = {
-        'all_vets': vet_officers,
-        'count': no_vet_forms
+        'all_officers': officers,
+       
     }
-    return render(request, 'portals/vetList.html', context)
+    return render(request, 'portals/dashboardOfficial.html', context)
+    
     
 
-@login_required
+@user_passes_test(farmer_check, login_url='farmer-login')   
+def vet_list(request):
+    vet_officers = Vet_Officer.objects.all()
+    context = {
+        'all_vets': vet_officers,  
+    }
+    return render(request, 'portals/vetList.html', context)
+
+
+@user_passes_test(vet_check, login_url='vet-login')
+def vet_list_vet(request):
+    vet_officers = Vet_Officer.objects.all()
+    context = {
+        'all_vets': vet_officers,  
+    }
+    return render(request, 'portals/vet_list_vet.html', context)
+    
+
+@user_passes_test(farmer_check, login_url='farmer-login')
 def portal_farmer(request):
     vet_officers = Vet_Officer.objects.all()
     context = {
@@ -75,1406 +96,338 @@ def portal_farmer(request):
     }
     return render(request, 'portals/dashboardFarmer.html', context)
 
-@user_passes_test(student_check, login_url='vet-login')
-def portal_student(request):
-    vet_officers = Vet_Officer.objects.all()
-    context = {
-        'all_vets': vet_officers
-    }
-    return render(request, 'portals/dashboardStudent.html', context)  
 
 
-@login_required
-def sick_form_view(request):
-    sick_approach_forms = Sick_Approach_Form.objects.filter(vet_form__vet_username=request.user)
-    context = {
-        'form_name': 'Clinical Approach Form',
-        'forms': sick_approach_forms
-    }    
-    return render(request, 'portals/formview.html', context)
- 
+def surgical_record(request):
+    return render(request, 'portals/reports/surgery.html', {})
+
+def surgical_view(request):
+    return render(request, 'portals/reports/surgeryview.html', {})
+
+class SurgicalRecordCreate(generics.CreateAPIView):
+    queryset = SurgicalRecord.objects.all()
+    serializer_class = SurgicalRecordSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class SurgicalRecordList(generics.ListAPIView):
+    serializer_class = SurgicalRecordSerializer
+    permission_classes = [Is_Vet | Is_Farmer]
+    pagination_class = CustomPagination
     
-@login_required
-def edit_sick_form(request, pk):
-	try:
-		sick_sel = Sick_Approach_Form.objects.get(pk = pk)
-	except Sick_Approach_Form.DoesNotExist:
-		return redirect('index')
-	sick_form = SickApproachForm(request.POST or None, instance = sick_sel)
-	if sick_form.is_valid():
-		sick_form.save()
-		return redirect('index')
-	return render(request, 'portals/editform.html', {'form':sick_form, 'form_name':'Clinical'})
-
-
- 
-@login_required
-def dead_form_view(request):
-    dead_approach_forms = Death_Approach_Form.objects.filter(vet_form__vet_username=request.user)
-    context = {
-        'form_name': 'Post Mortem Approach Form',
-        'forms': dead_approach_forms
-    }    
-    return render(request, 'portals/deadformview.html', context)
- 
-
-@login_required
-def edit_dead_form(request, pk):
-	try:
-		dead_sel = Death_Approach_Form.objects.get(pk = pk)
-	except Death_Approach_Form.DoesNotExist:
-		return redirect('index')
-	dead_form = DeathApproachForm(request.POST or None, instance = dead_sel)
-	if dead_form.is_valid():
-		dead_form.save()
-		return redirect('index')
-	return render(request, 'portals/editform.html', {'form':dead_form, 'form_name':'Post Mortem'})
-
- 
-@login_required
-def surgical_form_view(request):
-    surgical_approach_forms = Surgical_Approach_Form.objects.filter(vet_form__vet_username=request.user)
-    context = {
-        'form_name': 'surgical Approach Form',
-        'forms': surgical_approach_forms
-    }    
-    return render(request, 'portals/surgicalformview.html', context)
- 
-
-@login_required
-def edit_surgical_form(request, pk):
-	try:
-		surgical_sel = Surgical_Approach_Form.objects.get(pk = pk)
-	except Surgical_Approach_Form.DoesNotExist:
-		return redirect('index')
-	surgical_form = SurgicalApproachForm(request.POST or None, instance = surgical_sel)
-	if surgical_form.is_valid():
-		surgical_form.save()
-		return redirect('index')
-	return render(request, 'portals/editform.html', {'form':surgical_form, 'form_name':'Surgical'})
-
-@login_required
-def deworming_form_view(request):
-    deworming_approach_forms = Deworming_Form.objects.filter(vet_form__vet_username=request.user)
-    context = {
-        'form_name': 'Deworming Approach Form',
-        'forms': deworming_approach_forms
-    }    
-    return render(request, 'portals/dewormingformview.html', context)
- 
-
-@login_required
-def edit_deworming_form(request, pk):
-	try:
-		surgical_sel = Deworming_Form.objects.get(pk = pk)
-	except Deworming_Form.DoesNotExist:
-		return redirect('index')
-	deworming_form = DewormingForm(request.POST or None, instance = surgical_sel)
-	if deworming_form.is_valid():
-		deworming_form.save()
-		return redirect('index')
-	return render(request, 'portals/editform.html', {'form':deworming_form, 'form_name':'Deworming'})
-
-
-@login_required
-def vaccination_form_view(request):
-    vaccination_approach_forms = Vaccination_Form.objects.filter(vet_form__vet_username=request.user)
-    context = {
-        'form_name': 'Vaccination Form',
-        'forms': vaccination_approach_forms
-    }    
-    return render(request, 'portals/vaccinationformview.html', context)
- 
-
-@login_required
-def edit_vaccination_form(request, pk):
-	try:
-		surgical_sel = Vaccination_Form.objects.get(pk = pk)
-	except Vaccination_Form.DoesNotExist:
-		return redirect('index')
-	vaccination_form = VaccinationForm(request.POST or None, instance = surgical_sel)
-	if vaccination_form.is_valid():
-		vaccination_form.save()
-		return redirect('index')
-	return render(request, 'portals/editform.html', {'form':vaccination_form, 'form_name':'Vaccination'})
-
-
-
-@login_required
-def artificial_form_view(request):
-    artificial_approach_forms = Artificial_Insemination_Form.objects.filter(vet_form__vet_username=request.user)
-    context = {
-        'form_name': 'Artificial Form',
-        'forms': artificial_approach_forms
-    }    
-    return render(request, 'portals/artificialformview.html', context)
- 
-
-@login_required
-def edit_artificial_form(request, pk):
-	try:
-		surgical_sel = Artificial_Insemination_Form.objects.get(pk = pk)
-	except Artificial_Form.DoesNotExist:
-		return redirect('index')
-	Artificial_form = ArtificialInseminationForm(request.POST or None, instance = surgical_sel)
-	if Artificial_form.is_valid():
-		artificial_form.save()
-		return redirect('index')
-	return render(request, 'portals/editform.html', {'form':artificial_form, 'form_name':'artificial'})
-
-
-
-
-@login_required
-def pregnancy_form_view(request):
-    pregnancy_approach_forms = Pregnancy_Diagnosis_Form.objects.filter(vet_form__vet_username=request.user)
-    context = {
-        'form_name': 'Pregnancy diagnosis Form',
-        'forms': pregnancy_approach_forms
-    }    
-    return render(request, 'portals/pregnancyformview.html', context)
- 
-
-@login_required
-def edit_pregnancy_form(request, pk):
-	try:
-		surgical_sel = Pregnancy_Diagnosis_Form.objects.get(pk = pk)
-	except Pregnancy_Diagnosis_Form.DoesNotExist:
-		return redirect('index')
-	pregnancy_form = PregnancyDiagnosisForm(request.POST or None, instance = surgical_sel)
-	if pregnancy_form.is_valid():
-		pregnancy_form.save()
-		return redirect('index')
-	return render(request, 'portals/editform.html', {'form':Pregnancy_Diagnosis_Form, 'form_name':'pregnancy'})
-
-
-
-
-@login_required
-def clinical_approach(request):
-    return render(request, 'portals/clinical_approach.html') 
-
-import json
-@login_required
-def sick_approach(request):
-    if request.method == "POST":
-        form = SickApproachForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance with vet_username and is_sick_approach_form
-            vet_sick_form = Vet_Forms(vet_username=request.user, is_sick_approach_form=True)
-            vet_sick_form.save()
-
-            # Associate the Vet_Forms instance with the SickApproachForm instance
-            form_instance = form.save(commit=False)
-            form_instance.vet_form = vet_sick_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('vet-portal')
-
-    else:
-        form = SickApproachForm()
-
-    context = {
-        'form': form,
-        'name': 'Clinical Approach Form'
-    }
-
-    return render(request, 'portals/forms.html', context)
-
-@login_required
-def dead_approach(request):
-    if request.method == "POST":
-        form = DeathApproachForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance with vet_username and is_dead_approach_form
-            vet_death_form = Vet_Forms(vet_username=request.user, is_dead_approach_form=True)
-            vet_death_form.save()
-
-            # Associate the Vet_Forms instance with the DeathApproachForm instance
-            form_instance = form.save(commit=False)
-            form_instance.vet_form = vet_death_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('vet-portal')
-
-    else:
-        form = DeathApproachForm()
-
-    context = {
-        'form': form,
-        'name': 'Post Mortem Approach Form'
-    }
-
-    return render(request, 'portals/forms.html', context) 
-
-@login_required
-def surgical_approach(request):
-    if request.method == "POST":
-        form = SurgicalApproachForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance with vet_username and is_surgical_approach_form
-            vet_surgical_form = Vet_Forms(vet_username=request.user, is_surgical_approach_form=True)
-            vet_surgical_form.save()
-
-            # Associate the Vet_Forms instance with the SurgicalApproachForm instance
-            form_instance = form.save(commit=False)
-            form_instance.vet_form = vet_surgical_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('vet-portal')
-
-    else:
-        form = SurgicalApproachForm()
-
-    context = {
-        'form': form,
-        'name': 'Surgical Approach Form'
-    }
-
-    return render(request, 'portals/forms.html', context)
-
-@login_required
-def deworming(request):
-    if request.method == "POST":
-        form = DewormingForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance with vet_username and is_deworming_form
-            vet_deworming_form = Vet_Forms(vet_username=request.user, is_deworming_form=True)
-            vet_deworming_form.save()
-
-            # Associate the Vet_Forms instance with the DewormingForm instance
-            form_instance = form.save(commit=False)
-            form_instance.vet_form = vet_deworming_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('vet-portal')
-
-    else:
-        form = DewormingForm()
-
-    context = {
-        'form': form,
-        'name': 'Deworming Form'
-    }
-
-    return render(request, 'portals/forms.html', context)
-
-@login_required    
-def vaccination(request):
-    if request.method == "POST":
-        form = VaccinationForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance with vet_username and is_vaccination_form
-            vet_vaccination_form = Vet_Forms(vet_username=request.user, is_vaccination_form=True)
-            vet_vaccination_form.save()
-
-            # Associate the Vet_Forms instance with the VaccinationForm instance
-            form_instance = form.save(commit=False)
-            form_instance.vet_form = vet_vaccination_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('vet-portal')
-
-    else:
-        form = VaccinationForm()
-
-    context = {
-        'form': form,
-        'name': 'Vaccination Form'
-    }
-
-    return render(request, 'portals/forms.html', context)
-
-@login_required
-def breeding_record(request):
-    ...
-
-@login_required
-def artificial_insemination(request):
-    if request.method == "POST":
-        form = ArtificialInseminationForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance with vet_username and is_artificial_insemination_form
-            vet_ai_form = Vet_Forms(vet_username=request.user, is_artificial_insemination_form=True)
-            vet_ai_form.save()
-
-            # Associate the Vet_Forms instance with the ArtificialInseminationForm instance
-            form_instance = form.save(commit=False)
-            form_instance.vet_form = vet_ai_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('vet-portal')
-
-    else:
-        form = ArtificialInseminationForm()
-
-    context = {
-        'form': form,
-        'name': 'Artificial Insemination Form'
-    }
-
-    return render(request, 'portals/forms.html', context)
-
-@login_required
-#@login_required  # Decorate your view with login_required to ensure the user is authenticated
-def calf_registration(request):
-    if request.method == "POST":
-        form = CalfRegistrationForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance
-            vet_calf_form = Vet_Forms(is_calf_registration_form=True)
-            vet_calf_form.save()
-
-            # Create a new Calf_Registration_Form instance
-            form_instance = form.save(commit=False)
-
-            # Extract the username from the user instance and assign it to farmer_username
-            form_instance.farmer_username = request.user.username  # Change this line
-
-            form_instance.vet_form = vet_calf_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('farmer-portal')    
-
-    else:
-        form = CalfRegistrationForm()
-
-    context = {
-        'form': form,
-        'name': 'Calf Registration Form'
-    }
-    return render(request, 'portals/fforms.html', context)
-
-@login_required
-def calf_form_view(request):
-    calf_forms = Calf_Registration_Form.objects.filter(farmer_username=request.user)
-    context = {
-        'form_name': 'Calf Registration Form',
-        'forms': calf_forms
-    }    
-    return render(request, 'portals/fformview.html', context)
-
-
-@login_required
-def edit_calf_registration(request, pk):
-	try:
-		calf_sel = Calf_Registration_Form.objects.get(pk = pk)
-	except Calf_Registration_Form.DoesNotExist:
-		return redirect('index')
-	calf_form = CalfRegistrationForm(request.POST or None, instance = calf_sel)
-	if calf_form.is_valid():
-		calf_form.save()
-		return redirect('index')
-	return render(request, 'portals/editfform.html', {'form':calf_form, 'form_name':'Calf Registration'})
-
-
-@login_required
-def livestock_inventory(request):
-    if request.method == "POST":
-        form = LivestockInventoryForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance
-            vet_inventory_form = Vet_Forms(is_livestock_inventory_form=True)
-            vet_inventory_form.save()
-
-            # Associate the Vet_Forms instance with the LivestockInventoryForm instance
-            form_instance = form.save(commit=False)
-            form_instance.vet_form = vet_inventory_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('farmer-portal')
-
-    else:
-        form = LivestockInventoryForm()
-
-    context = {
-        'form': form,
-        'name': 'Livestock Inventory Form'
-    }
-
-    return render(request, 'portals/forms.html', context)
-
-@login_required
-def livestock_inventory_view(request):
-    livestock_forms = Livestock_Inventory_Form.objects.filter(farmer_username=request.user)
-    context = {
-        'form_name': 'Livestock Inventory Form',
-        'forms': livestock_forms
-    }    
-    return render(request, 'portals/livestockformview.html', context)
-
-
-@login_required
-def edit_livestock_inventory(request, pk):
-	try:
-		livestock_sel = Livestock_Inventory_Form.objects.get(pk = pk)
-	except Livestock_Inventory_Form.DoesNotExist:
-		return redirect('index')
-	livestock_form = LivestockInventoryForm(request.POST or None, instance = livestock_sel)
-	if livestock_form.is_valid():
-		livestock_form.save()
-		return redirect('index')
-	return render(request, 'portals/editfform.html', {'form':livestock_form, 'form_name':'Livestock Inventory Form'})
-
-
-@login_required
-def pregnancy_diagnosis(request):
-    if request.method == "POST":
-        form = PregnancyDiagnosisForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance with vet_username and is_pregnancy_diagnosis_form
-            vet_preg_form = Vet_Forms(vet_username=request.user, is_pregnancy_diagnosis_form=True)
-            vet_preg_form.save()
-
-            # Associate the Vet_Forms instance with the PregnancyDiagnosisForm instance
-            form_instance = form.save(commit=False)
-            form_instance.vet_form = vet_preg_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('vet-portal')
-
-    else:
-        form = PregnancyDiagnosisForm()
-
-    context = {
-        'form': form,
-        'name': 'Pregnancy Diagnosis Form'
-    }
-
-    return render(request, 'portals/forms.html', context)
- 
-
-@login_required
-def consultation_form_view(request):
-    consultation_forms = Farm_Consultation.objects.filter(vet_form__vet_username=request.user)
-    context = {
-        'form_name': 'Consultation Form',
-        'forms': consultation_forms
-    }    
-    return render(request, 'portals/consultationformview.html', context)
- 
-    
-@login_required
-def edit_consultation_form(request, pk):
-	try:
-		consul_sel = Farm_Consultation.objects.get(pk = pk)
-	except Farm_Consultation.DoesNotExist:
-		return redirect('index')
-	consultation_form = FarmConsultationForm(request.POST or None, instance = consul_sel)
-	if consultation_form.is_valid():
-		consultation_form.save()
-		return redirect('index')
-	return render(request, 'portals/editform.html', {'form':consultation_form, 'form_name':'Consultation'})
-
-@login_required
-def consultation(request):
-    if request.method == "POST":
-        form = FarmConsultationForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance with is_farm_consultation set
-            consultation_form = Vet_Forms(vet_username=request.user, is_farm_consultation=True)
-            consultation_form.save()
-
-            # Associate the Vet_Forms instance with the FarmConsultationForm instance
-            form_instance = form.save(commit=False)
-            form_instance.vet_form = consultation_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('vet-portal')
-
-    else:
-        form = FarmConsultationForm()
-
-    context = {
-        'form': form,
-        'name': 'Farm Consultation Form'
-    }
-
-    return render(request, 'portals/forms.html', context)
-
-
-@login_required
-def vet_billing_form_view(request):
-    bill_forms = Veterinary_Billing_Form.objects.filter(vet_form__vet_username=request.user)
-    context = {
-        'form_name': 'Vet Billing Form',
-        'forms': bill_forms
-    }    
-    return render(request, 'portals/vetbillformview.html', context)
- 
-    
-@login_required
-def edit_vet_billing_form(request, pk):
-	try:
-		bill_sel = Veterinary_Billing_Form.objects.get(pk = pk)
-	except Veterinary_Billing_Form.DoesNotExist:
-		return redirect('index')
-	billing_form = VeterinaryBillingForm(request.POST or None, instance = bill_sel)
-	if billing_form.is_valid():
-		billing_form.save()
-		return redirect('index')
-	return render(request, 'portals/editform.html', {'form':billing_form, 'form_name':'Vet Billing'})
-
-@login_required
-def vet_billing(request):
-    if request.method == "POST":
-        form = VeterinaryBillingForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance with is_vet_billing_form set
-            billing_form = Vet_Forms(vet_username=request.user, is_vet_billing_form=True)
-            billing_form.save()
-
-            # Associate the Vet_Forms instance with the VeterinaryBillingForm instance
-            form_instance = form.save(commit=False)
-            form_instance.vet_form = billing_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('vet-portal')
-
-    else:
-        form = VeterinaryBillingForm()
-
-    context = {
-        'form': form,
-        'name': 'Vet Billing Form'
-    }
-
-    return render(request, 'portals/forms.html', context)
-
-
-@login_required
-def lab_form_view(request):
-    lab_forms = Laboratory_Form.objects.filter(vet_form__vet_username=request.user)
-    context = {
-        'form_name': 'Laboratory Form',
-        'forms': lab_forms
-    }    
-    return render(request, 'portals/labformview.html', context)
- 
-    
-@login_required
-def edit_lab_form(request, pk):
-	try:
-		lab_sel = Laboratory_Form.objects.get(pk = pk)
-	except Laboratory_Form.DoesNotExist:
-		return redirect('index')
-	lab_form = LaboratoryForm(request.POST or None, instance = lab_sel)
-	if lab_form.is_valid():
-		lab_form.save()
-		return redirect('index')
-	return render(request, 'portals/editform.html', {'form':lab_form, 'form_name':'Laboratory'})
-
-@login_required
-def lab(request):
-    if request.method == "POST":
-        form = LaboratoryForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance with is_lab_form set
-            labo_form = Vet_Forms(is_lab_form=True)
-            labo_form.save()
-
-            # Associate the Vet_Forms instance with the LaboratoryForm instance
-            form_instance = form.save(commit=False)
-            form_instance.vet_form = labo_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('vet-portal')
-
-    else:
-        form = LaboratoryForm()
-
-    context = {
-        'form': form,
-        'name': 'Laboratory Form'
-    }
-
-    return render(request, 'portals/forms.html', context)
-
-
-
-@login_required
-def referral_form_view(request):
-    referral_forms = Referral_Form.objects.filter(vet_form__vet_username=request.user)
-    context = {
-        'form_name': 'Referral Form',
-        'forms': referral_forms
-    }    
-    return render(request, 'portals/referralformview.html', context)
-
-
-@login_required 
-def referral_form(request):
-    if request.method == "POST":
-        form = ReferalForm(request.POST)
-        if form.is_valid():
-            referral_form= Vet_Forms(vet_username=request.user, is_referral_form=True)
-            referral_form.save() 
-            form.save()
-            messages.success(request, 'Details  Successfully Saved')
-            return redirect('vet-portal')    
-
-    else:
-        form = ReferalForm()
-
-    context = {
-        'form':form,
-        'name':'Referral form'
-         }
-    return render(request, 'portals/forms.html', context)
-
-
-
-
-class referral_Form_Pdf(View):
-
-    def get(self, request):
-        try:
-            referral_forms = Referral_Form.objects.filter(farmer_username=request.user)
-        except:
-            messages.warning(self.request, f'referral form for {request.user} not available')
-            return redirect('farmer-portal')    
-        if referral_forms:
-            params = {
-                'today':timezone.now,
-                'forms': referral_forms,
-                'request': request          
-            }
-            return Render.render('portals/referral_pdf_form.html', params)
-        else:
-            messages.warning(self.request, f'No referral form available for {self.request.user}')
-            return redirect('index')    
-
-
-class Referral_Form_Pdf_Vet(View):
-
-    def get(self, request):
-        try:
-            referral_forms = Referral_Form.objects.filter(vet_form__vet_username=self.request.user)
-        except:
-            messages.warning(self.request, f'referral form for {request.user} not available')
-            return redirect('vet-portal')    
-        if referral_forms:
-            params = {
-                'today':timezone.now,
-                'forms': referral_forms,
-                'request': request
-            }
-            return Render.render('portals/referral_pdf_form.html', params)
-        else:
-            messages.warning(self.request, f'No referral form available for {self.request.user}')
-            return redirect('index') 
-
-
-@login_required
-def edit_referral_form(request, pk):
-	try:
-		referral_sel = Referral_Form.objects.get(pk = pk)
-	except Referral_Form.DoesNotExist:
-		return redirect('index')
-	referral_form = ReferalForm(request.POST or None, instance = referral_sel)
-	if referral_form.is_valid():
-		referral_form.save()
-		return redirect('index')
-	return render(request, 'portals/editform.html', {'form':referral_form, 'form_name':'referral'})
-
-def sick_form_pdf(request):
-    farmer = Farmer.objects.get(user=request.user)
-    sick_forms = Sick_Approach_Form.objects.filter(farmer=farmer)
-    if sick_forms:
-        pdf = FPDF('P', 'mm', 'A4')
-        for form in sick_forms:
-            print(form)
-            pdf.add_page()
-            pdf.set_font('courier', 'B', 16)
-            pdf.cell(40, 10, 'Clinical Approach Form',0,1)
-            #pdf.cell(40, 10, f'{form.vet_form.report_created_on}', 0, 1)
-            pdf.cell(40, 10, '',0,1)
-            pdf.set_font('courier', '', 12)
-            pdf.cell(200, 8, f"{'Field'.ljust(30)} {'Value'.rjust(30)}", 0, 1)
-            pdf.line(10, 30, 200, 30)
-            pdf.line(10, 38, 200, 38)
-
-            pdf.cell(200, 8, f"{'Species affected'.ljust(30)} {form.species_affected.rjust(30)}", 0, 1)
-            pdf.cell(200, 8, f"{'Number of Species affected'.ljust(30)} {str(form.num_of_species_affected).rjust(30)}", 0, 1)
-            pdf.cell(200, 8, f"{'Identification number'.ljust(30)} {form.id_animal.rjust(30)}", 0, 1)
-            pdf.cell(200, 8, f"{'nature of the disease'.ljust(30)} {form.disease_nature.rjust(30)}", 0, 1)
-            pdf.cell(200, 8, f"{'Clinical Signs'.ljust(30)} {form.clinical_signs.rjust(30)}", 0, 1)
-            pdf.cell(200, 8, f"{'Disease Diagnosis'.ljust(30)} {form.disease_diagnosis.rjust(30)}", 0, 1)
-            pdf.cell(200, 8, f"{'Differential Diagnosis'.ljust(30)} {form.differential_diagnosis.rjust(30)}", 0, 1)
-            pdf.cell(200, 8, f"{'Final Diagnosis'.ljust(30)} {form.final_diagnosis.rjust(30)}", 0, 1)
-            pdf.cell(200, 8, f"{'Duration of the sickness '.ljust(30)} {form.sickness_duration.rjust(30)}", 0, 1)
-            # more cells here ...
-
-
-        pdf.output('clinical_approach_report.pdf', 'F')
-        return FileResponse(open('clinical_approach_report.pdf', 'rb'), as_attachment=False, content_type='application/pdf')
-
-    else:
-        messages.warning(request, f'No referral form available for {request.user}')
-        return redirect('farmer-portal') 
-class Sick_Form_Pdf(View):
-
-    def get(self, request):
-        try:
-            sick_forms = Sick_Approach_Form.objects.filter(farmer_username=request.user)
-        except:
-            messages.warning(self.request, f'Sick approach form for {request.user} not available')
-            return redirect('farmer-portal')    
-        if sick_forms:
-            params = {
-                'today':timezone.now,
-                'forms': sick_forms,
-                'request': request          
-            }
-            return Render.render('portals/sick_form_pdf.html', params)
-        else:
-            messages.warning(self.request, f'No Sick form available for {self.request.user}')
-            return redirect('index')    
-
-
-class Sick_Form_Pdf_Vet(View):
-
-    def get(self, request):
-        try:
-            sick_forms = Sick_Approach_Form.objects.filter(vet_form__vet_username=self.request.user)
-        except:
-            messages.warning(self.request, f'Sick approach form for {request.user} not available')
-            return redirect('vet-portal')    
-        if sick_forms:
-            params = {
-                'today':timezone.now,
-                'forms': sick_forms,
-                'request': request
-            }
-            return Render.render('portals/sick_form_pdf.html', params)
-        else:
-            messages.warning(self.request, f'No Sick form available for {self.request.user}')
-            return redirect('index') 
-
-
-
-def dead_form_pdf(request):
-    dead_forms = Death_Approach_Form.objects.filter(farmer_username=request.user)
-    if dead_forms:
-        pdf = FPDF('P', 'mm', 'A4')
-        for form in dead_forms:
-            pdf.add_page()
-            pdf.set_font('courier', 'B', 16)
-            pdf.cell(40, 10, 'Post Mortem Approach Form',0,1)
-            pdf.cell(40, 10, '',0,1)
-            pdf.set_font('courier', '', 12)
-            pdf.cell(200, 8, f"{'Field'.ljust(30)} {'Value'.rjust(30)}", 0, 1)
-            pdf.line(10, 30, 200, 30)
-            pdf.line(10, 38, 200, 38)
-
-            pdf.cell(200, 8, f"{'Name or identification number'.ljust(30)} {form.name_of_the_animal.rjust(30)}", 0, 1)
-            pdf.cell(200, 8, f"{'Sex of the animal'.ljust(30)} {str(form.sex_of_the_animal).rjust(30)}", 0, 1)
-            pdf.cell(200, 8, f"{'Number of animals dead'.ljust(30)} {str(form.num_of_species_dead).rjust(30)}", 0, 1)
-            pdf.cell(200, 8, f"{'When was the case reported'.ljust(30)} {form.case_history.rjust(30)}", 0, 1)
-            # more cells here ...
-            
-
-
-        pdf.output('postmortem_approach_report.pdf', 'F')
-        return FileResponse(open('postmortem_approach_report.pdf', 'rb'), as_attachment=False, content_type='application/pdf')
-
-    else:
-        messages.warning(request, f'Post Mortem form for {request.user} is  not available')
-        return redirect('farmer-portal')
-
-
-
-
-class Dead_Form_Pdf(View):
-
-    def get(self, request):
-        try:
-            dead_forms = Death_Approach_Form.objects.filter(farmer_username=request.user)
-        except: 
-            messages.warning(self.request, f'Sick approach form for {request.user} not available')
-            return redirect('farmer-portal')
-        if dead_forms:
-            params = {
-                'today':timezone.now,
-                'forms': dead_forms,
-                'request': request
-            }
-            return Render.render('portals/dead_form_pdf.html',params)
-        else:
-            messages.warning(self.request,f'No dead form available for {self.request.user}')
-            return redirect('index')
-
-
-class Dead_Form_Pdf_Vet(View):
-
-    def get(self, request):
-        try:
-            dead_forms = DeathApproachForm.objects.filter(vet_form__vet_username=self.request.user)
-        except:
-            messages.warning(self.request, f'Death approach form for {request.user} not available')
-            return redirect('vet-portal')    
-        if dead_forms:
-            params = {
-                'today':timezone.now,
-                'forms': dead_forms,
-                'request': request
-            }
-            return Render.render('portals/dead_form_pdf.html', params)
-        else:
-            messages.warning(self.request, f'No Sick form available for {self.request.user}')
-            return redirect('index') 
-
-
-class Surgical_Form_Pdf(View):
-
-    def get(self, request):
-        try:
-            surgical_forms = Surgical_Approach_Form.objects.filter(farmer_username=request.user)
-        except:
-            messages.warning(self.request, f'Sick approach form for {request.user} not available')
-            return redirect('farmer-portal')
-        if surgical_forms:
-            params = {
-                'today':timezone.now,
-                'forms': surgical_forms,
-                'request': request
-            }
-            return Render.render('portals/surgical_form_pdf.html',params)
-        else:
-            messages.warning(self.request,f'No surgical form available for {self.request.user}')
-            return redirect('index')
-
-
-class Deworming_Form_Pdf(View):
-
-    def get(self, request):
-        try:
-            deworming_forms = Deworming_Form.objects.filter(farmer_username=request.user)
-        except:
-            messages.warning(self.request, f'Sick approach form for {request.user} not available')
-            return redirect('farmer-portal')
-        if deworming_forms:
-            params = {
-                'today':timezone.now,
-                'forms': deworming_forms,
-                'request': request
-            }
-            return Render.render('portals/deworming_form_pdf.html', params)
-        else:
-            messages.warning(self.request, f'No deworming form available for {self.request.user}')
-            return redirect('index')    
-
-
-class Vaccination_Form_Pdf(View):
-
-    def get(self, request):
-        try:
-            vaccination_forms = Vaccination_Form.objects.filter(farmer_username=request.user)
-        except:
-            messages.warning(self.request, f'Sick approach form for {request.user} not available')
-            return redirect('farmer-portal')
-        if vaccination_forms:
-            params = {
-                'today':timezone.now,
-                'forms': vaccination_forms,
-                'request': request
-            }
-            return Render.render('portals/vaccination_pdf_form.html', params)
-        else:
-            messages.warning(self.request, f'No vaccination form available for {self.request.user}')
-            return redirect('index') 
-
-
-class Artificial_Insemination_Form_Pdf(View):
-
-    def get(self, request):
-        try:
-            Artificial_forms = Artificial_Insemination_Form.objects.filter(farmer_username=request.user)
-        except:
-            messages.warning(self.request, f'Sick approach form for {request.user} not available')
-            return redirect('farmer-portal')
-        if Artificial_forms:
-            params = {
-                'today':timezone.now,
-                'forms': Artificial_forms,
-                'request': request
-            }
-            return Render.render('portals/artificial_form_pdf.html', params)
-        else:
-            messages.warning(self.request, f'No artificial form available for {self.request.user}')
-            return redirect('index') 
-
-
-
-class Farm_Consultation_Form_Pdf(View):
-
-    def get(self, request):
-        try:
-            consultation_forms = Farm_Consultation.objects.filter(farmer_username=request.user)
-        except:
-            messages.warning(self.request, f'Sick approach form for {request.user} not available')
-            return redirect('farmer-portal')
-        if consultation_forms:
-            params = {
-                'today':timezone.now,
-                'forms': consultation_forms,
-                'request': request
-            }
-            return Render.render('portals/consultation_form.html', params)
-        else:
-            messages.warning(self.request, f'No consultation form available for {self.request.user}')
-            return redirect('index') 
-
-
-class Pregnancy_Diagnosis_Form_Pdf(View):
-
-    def get(self, request):
-        diagnosis_forms = Pregnancy_Diagnosis_Form.objects.filter(farmer_username=request.user)
-        if diagnosis_forms:
-            params = {
-                'today':timezone.now,
-                'forms': diagnosis_forms,
-                'request': request
-            }
-            return Render.render('portals/diagnosis_form.html', params)
-        else:
-            messages.warning(self.request, f'No pregnancy form available for {self.request.user}')
-            return redirect('index') 
-
-class Calf_Registration_Form_Pdf(View):
-
-    def get(self, request):
-        calf_reg_forms = Calf_Registration_Form.objects.filter(farmer_username=request.user)
-        if calf_reg_forms:
-            params = {
-                'today':timezone.now,
-                'forms': calf_reg_forms,
-                'request': request
-            }
-            return Render.render('portals/calf_reg_form.html', params)
-        else:
-            messages.warning(self.request, f'No Calf registration form available for {self.request.user}')
-            return redirect('index') 
-
-class Livestock_Form_Pdf(View):
-
-    def get(self, request):
-        livestock_forms = Livestock_Inventory_Form.objects.filter(farmer_username=request.user)
-        if livestock_forms:
-            params = {
-                'today':timezone.now,
-                'forms': livestock_forms,
-                'request': request
-            }
-            return Render.render('portals/livestock_form.html', params)
-        else:
-            messages.warning(self.request, f'No Livestock form available for {self.request.user}')
-            return redirect('index') 
-
-
-
-def display_images(request):
-    inventory = Livestock_Inventory_Form.objects.get(farmer_username=request.user)
-    context = {
-        'img_obj': inventory
-    }
-    return render(request, 'portals/gallery.html', context)
-
-
-    #records
-def artificial_report(request):
-    
-    return render(request,'portals/reports/artificialinsemination.html')
-
-def artificial_report_data(request):
-    artificial_approach_forms = Artificial_Insemination_Form.objects.all()
-    data = []
-    for form in artificial_approach_forms:
-        data.append({
-            'farmer_username': form.farmer_username,
-            'Name_of_the_cow': form.Name_of_the_cow,
-            'sex_of_the_calf_born': form.sex_of_the_calf_born,
-            'date_of_birth': form.date_of_birth,
-            'nature_of_birth': form.nature_of_birth,
-            'number_of_repeat': form.number_of_repeat,
-            'abortion_rate': form.abortion_rate,
-            'reason_for_the_cause_of_abortion': form.reason_for_the_cause_of_abortion,
-            'time_of_heat_sign': form.time_of_heat_sign,
-            'date_of_insemination': form.date_of_insemination,
-            'time_of_insemination': form.time_of_insemination,
-            'nature_of_the_breeding': form.nature_of_the_breeding,
-            'sire_name': form.sire_name,
-            'sire_origin': form.sire_origin,
-            'bull_code': form.bull_code,
-            'breed_used': form.breed_used,
-            'source_of_semen': form.source_of_semen,
-            'date_of_repeat_checked': form.date_of_repeat_checked,
-            'date_of_pregnancy_diagnosis': form.date_of_pregnancy_diagnosis,
-            'expected_date_of_calving': form.expected_date_of_calving,
-            'comment': form.comment,
-        })
-
-    return JsonResponse({'data': data}, safe=False)
-
-def deworming_report(request):
-    
-    return render(request,'portals/reports/deworming.html')
-
-
-def deworming_report_data(request):
-    deworming_forms = Deworming_Form.objects.all() 
-
-    data = []
-    for form in deworming_forms:
-        data.append(
-        {
-            'farmer_username': form.farmer_username,
-            'species_targeted': form.species_targeted,
-            'number_of_adults': form.number_of_adults,
-            'number_of_young_ones': form.number_of_young_ones,
-            'body_condition_of_the_animal': form.body_condition_of_the_animal,
-            'date_of_deworming': form.date_of_deworming,
-            'drug_choices': form.drug_choices,
-            'target_parasites': form.target_parasites,
-            'withdrawal_period': form.withdrawal_period,
-            'side_effects': form.side_effects,
-            'next_date_deworming': form.next_date_deworming,
-            'comment': form.comment,
-        })
-      
-    
-
-    return JsonResponse({'data': data}, safe=False)
-
-
-
-def sick_report_data(request):
-    sick_reports = Sick_Approach_Form.objects.all() 
-
-    data = []
-    for report in sick_reports:
-        data.append(
-        {
-            'farmer_username': report.farmer.farmer_username,
-            'species_affected': report.species_affected,
-            'num_of_species_affected': report.num_of_species_affected,
-            'id_animal': report.id_animal,
-            'disease_nature': report.disease_nature,
-            'clinical_signs': report.clinical_signs,
-            'disease_diagnosis': report.disease_diagnosis,
-            'differential_diagnosis': report.differential_diagnosis,
-            'final_diagnosis': report.final_diagnosis,
-            'sickness_duration': report.sickness_duration,
-            'sickness_history': report.sickness_history,
-            'drug_of_choice': report.drug_of_choice,
-            'treatment_duration': report.treatment_duration,
-            'start_dose_date': report.start_dose_date,
-            'prognosis': report.prognosis,
-            'harmony_with_clinic_signs_and_lab': report.harmony_with_clinic_signs_and_lab,
-            'cause_of_death_if_in_no_harmony': report.cause_of_death_if_in_no_harmony,
-            'disease_one_of_the_zoonotic': report.disease_one_of_the_zoonotic,
-            'advice_given_if_zoonotic': report.advice_given_if_zoonotic,
-            'relapse': report.relapse,
-            'cause_if_relapse': report.cause_if_relapse,
-            'comment': report.comment,
-        })
-       
-    return JsonResponse({'data': data}, safe=False)
-def sick_report(request):
-    
-    return render(request, 'portals/reports/sickness.html')
-
-def death_report_data(request):
-    death_reports = Death_Approach_Form.objects.all()
-
-    data = []
-    for report in death_reports:
-        data.append(
-        {
-            'vet_form_id': report.vet_form_id,
-            'farmer_username': report.farmer_username,
-            'name_of_the_animal': report.name_of_the_animal,
-            'sex_of_the_animal': report.sex_of_the_animal,
-            'num_of_species_dead': report.num_of_species_dead,
-            'case_history': report.case_history,
-            'mortality_rate': report.mortality_rate,
-            'death_date': report.death_date,
-            'death_time': report.death_time,
-            'signs_of_cadever_on_the_ground': report.signs_of_cadever_on_the_ground,
-            'carcass_opened_for_the_pm': report.carcass_opened_for_the_pm,
-            'if_yes_pathological_signs': report.if_yes_pathological_signs,
-            'if_no_reason': report.if_no_reason,
-            'sample_sent_lab': report.sample_sent_lab,
-            'if_yes_lab_report': report.if_yes_lab_report,
-            'death_cause_notifiable': report.death_cause_notifiable,
-            'if_yes_message_to_relevant_body': report.if_yes_message_to_relevant_body,
-            'intervention_regards_to_death': report.intervention_regards_to_death,
-            'comment': report.comment,
-        })
-       
-
-    return JsonResponse({'data': data}, safe=False)
-
-def death_report(request):
-   
-    return render(request, 'portals/reports/death.html')
-
-def surgical_report(request):
-   
-    return render(request, 'portals/reports/surgery.html')
-
-def surgical_report_data(request):
-    surgical_reports = Surgical_Approach_Form.objects.all()
-
-    data = []
-    for report in surgical_reports:
-        data.append(
-        {
-            'vet_form_id': report.vet_form_id,
-            'farmer_username': report.farmer_username,
-            'species_operated_on': report.species_operated_on,
-            'if_other_specify_species': report.if_other_specify,
-            'sex_of_the_animal': report.sex_of_the_animal,
-            'name_of_the_animal': report.name_of_the_animal,
-            'operation_nature': report.operation_nature,
-            'if_other_specify_operation': report.if_other_specify,
-            'operation_date': report.operation_date,
-            'post_operation_management': report.post_operation_management,
-            'prognosis': report.prognosis,
-            'comment': report.comment,
-        })
-       
-
-    return JsonResponse({'data': data}, safe=False)
-def vaccination_report_data(request):
-    vaccination_reports = Vaccination_Form.objects.all()
-
-    data = []
-    for report in vaccination_reports:
-         data.append(
-        {
-            'vet_form_id': report.vet_form_id,
-            'farmer_username': report.farmer_username,
-            'species_targeted': report.species_targeted,
-            'if_other_specify_species': report.if_other_specify,
-            'number_of_animals_vaccinated': report.number_of_animals_vaccinated,
-            'age_of_animal': report.age_of_animal,
-            'sex_of_the_animal': report.sex_of_the_animal,
-            'animal_breed': report.animal_breed,
-            'animal_colour': report.animal_colour,
-            'other_description': report.other_description,
-            'targetted_disease': report.targetted_disease,
-            'vaccines_used': report.vaccines_used,
-            'date_of_vaccination': report.date_of_vaccination,
-            'next_date_of_vaccination': report.next_date_of_vaccination,
-            'name_of_the_crush': report.name_of_the_crush,
-            'nature_of_the_vaccination_program': report.nature_of_the_vacination_program,
-            'comment': report.comment,
-        })
-       
-
-    return JsonResponse({'data': data}, safe=False)
-
-    
-def vaccination_report(request):
-   
-    return render(request, 'portals/reports/vaccination.html')
-
-
-def pregnancy_diagnosis_report_data(request):
-    pregnancy_diagnosis_reports = Pregnancy_Diagnosis_Form.objects.all()
-
-    data = []
-    for report in pregnancy_diagnosis_reports:
-        data.append(
-            {
-                'vet_form_id': report.vet_form_id,
-                'farmer_username': report.farmer_username,
-                'cow_name': report.cow_name,
-                'cow_category': report.cow_category,
-                'date_of_insemination': report.date_of_insemination,
-                'date_of_pregnancy_diagnosis': report.date_of_pregnancy_diagnosis,
-                'result_of_diagnosis': report.result_of_diagnosis,
-                'if_positive': report.if_positive,
-                'if_result_is_negative_give_observation': report.if_result_is_negative_give_observation,
-                'next_date_of_pregnancy_diagnosis': report.next_date_of_pregnancy_diagnosis,
-                'expected_date_of_delivery': report.expected_date_of_delivery,
-                'comment': report.comment,
-            })
-      
-    
-
-    return JsonResponse({'data': data}, safe=False)
-
-def pregnancy_diagnosis_report(request):
-    
-    return render(request, 'portals/reports/pregnancydiagnosis.html')
-
-def farm_consultation_report_data(request):
-    farm_consultation_reports = Farm_Consultation.objects.all()
-
-    data = []
-    for report in farm_consultation_reports:
-         data.append(
-        {
-            'vet_form_id': report.vet_form_id,
-            'farmer_username': report.farmer_username,
-            'dairy_cows': report.dairy_cows,
-            'beef_production': report.beef_production,
-            'poultry': report.poultry,
-            'sheep': report.sheep,
-            'goat': report.goat,
-            'canine': report.canine,
-            'other': report.other,
-            'give_recommendation': report.give_recommendation,
-            'grazing': report.grazing,
-            'disease': report.disease,
-            'farm': report.farm,
-            'culling_selection': report.culling_selection,
-            'farm_manager': report.farm_manager,
-            'if_no': report.if_no,
-            'name_incharge': report.name_incharge,
-            'reg_number': report.reg_number,
-            'comment': report.comment,
-        })
-       
-    return JsonResponse({'data': data}, safe=False)
-
-def farm_consultation_report(request):
-   
-    return render(request, 'portals/reports/farmconsultation.html')
-
-def veterinary_billing_report_data(request):
-    veterinary_billing_forms = Veterinary_Billing_Form.objects.all()
-
-    data = []
-    for form in veterinary_billing_forms:
-         data.append(
-        {
-            'vet_form_id': form.vet_form_id,
-            'farmer_username': form.farmer_username,
-            'Mobile_number': form.Mobile_number,
-            'farmer_location': form.farmer_location,
-            'nature_of_problem': form.nature_of_problem,
-            'bill_paid': form.bill_paid,
-            'total_bill': form.total_bill,
-            'balance_due': form.balance_due,
-            'agreed_date': form.agreed_date,
-            'suggest_payment': form.suggest_payment,
-            'vet_name': form.vet_name,
-            'registration_number': form.registration_number,
-            'Mobile_number_vet': form.Mobile_number_vet,
-            'comment': form.comment,
-        })
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+           
+            return SurgicalRecord.objects.filter(user=user)
         
-    return JsonResponse({'data': data}, safe=False)
+        elif user.is_farmer:
+            
+            return SurgicalRecord.objects.filter(assigned_to=user)
 
-def veterinary_billing_report(request):
+        return SurgicalRecord.objects.none()
+
     
-    return render(request, 'portals/reports/veterinarybilling.html')
+class SurgicalRecordUpdate(generics.UpdateAPIView):
+    queryset = SurgicalRecord.objects.all()
+    serializer_class = SurgicalRecordSerializer
+    permission_classes = [Is_Vet]
 
-def laboratory_report_data(request):
-    laboratory_forms = Laboratory_Form.objects.all()
+class SurgicalRecordDelete(generics.DestroyAPIView):
+    queryset = SurgicalRecord.objects.all()
+    serializer_class = SurgicalRecordSerializer
+    permission_classes = [Is_Vet]
 
-    data = []
-    for form in laboratory_forms:
-        data.append({
-            'vet_form_id': form.vet_form_id,
-            'farmer_username': form.farmer_username,
-            'Mobile_number': form.Mobile_number,
-            'category_ssp': form.category_ssp,
-            'sample': form.sample,
-            'name_animal': form.name_animal,
-            'date_of_submission': form.date_of_submission,
-            'idenfication': form.idenfication,
-            'storage': form.storage,
-            'transportation': form.transportation,
-            'expected_duration': form.expected_duration,
-            'sample_collected_sick_animal': form.sample_collected_sick_animal,
-            'sample_collected_dead': form.sample_collected_dead,
-            'if_yes_sick': form.if_yes_sick,
-            'findings': form.findings,
-            'vet_name': form.vet_name,
-            'registration_number_vet': form.registration_number_vet,
-            'Mobile_number_vet': form.Mobile_number_vet,
-            'laboratory_officer': form.laboratory_officer,
-            'registration_number_lab_officer': form.registration_number_lab_officer,
-            'Mobile_number_lab_officer': form.Mobile_number_lab_officer,
-            'comment': form.comment,
-        })
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
 
-    return JsonResponse({'data': data}, safe=False)
+def vetbilling(request):
+    return render(request, 'portals/reports/veterinarybilling.html', {})
+def vetbilling_view(request):
+    return render(request, 'portals/reports/vetbillsview.html', {})
 
-def laboratory_report(request):
-   
-    return render(request, 'portals/reports/laboratory.html')
-def referral_report_data(request):
-    referral_forms = Referral_Form.objects.all()
+class VeterinaryBillingCreate(generics.CreateAPIView):
+    queryset = VeterinaryBilling.objects.all()
+    serializer_class = VeterinaryBillingSerializer
+    permission_classes = [Is_Vet]
 
-    data = []
-    for form in referral_forms:
-        data.append({
-            'vet_form_id': form.vet_form_id,
-            'farmer_username': form.farmer_username,
-            'Mobile_number': form.Mobile_number,
-            'case_referal': form.case_referal,
-            'previous_treated': form.previous_treated,
-            'state_prognosis': form.state_prognosis,
-            'referal_date': form.referal_date,
-            'suggest_vet': form.suggest_vet,
-            'if_yes_leave_phone_number': form.if_yes_leave_phone_number,
-            'registration_number_vet': form.registration_number_vet,
-            'comment': form.comment,
-        })
+    def perform_create(self, serializer):
+        # Add any custom behavior here if needed
+        serializer.save(user=self.request.user)
 
-    return JsonResponse({'data': data}, safe=False)
+class VeterinaryBillingList(generics.ListAPIView):
+    serializer_class = VeterinaryBillingSerializer
+    permission_classes = [Is_Vet|Is_Farmer]
+    pagination_class = CustomPagination  # Assuming you have a custom pagination class
 
-def referral_report(request):
-  
-    return render(request, 'portals/reports/referral.html')
+    def get_queryset(self):
+        user = self.request.user
 
-def livestock_inventory_report_data(request):
-    livestock_forms = Livestock_Inventory_Form.objects.all()
+        if user.is_vet_officer:
+           
+            return VeterinaryBilling.objects.filter(user=user)
+        
+        elif user.is_farmer:
+            
+            return VeterinaryBilling.objects.filter(assigned_to=user)
 
-    data = []
-    for form in livestock_forms:
-        data.append({
-            'vet_form_id': form.vet_form_id,
-            'farmer_username': form.farmer_username,
-            'species_targeted': form.species_targeted,
-            'name_of_the_animal': form.name_of_the_animal,
-            'number_of_the_male_animals': form.number_of_the_male_animals,
-            'number_of_the_female_animals': form.number_of_the_female_animals,
-            'number_of_live_animals': form.number_of_live_animals,
-            'number_of_dead_animals': form.number_of_dead_animals,
-            'specify_the_cause_of_the_dead': form.specify_the_cause_of_the_dead,
-            'is_your_animals_insured': form.is_your_animals_insured,
-            'if_yes_give_insuring_company': form.if_yes_give_insuring_company,
-            'date_of_culling': form.date_of_culling,
-            'give_reason_for_culling': form.give_reason_for_culling,
-            'comment': form.comment,
-        })
+        return VeterinaryBilling.objects.none()
+class VeterinaryBillingUpdate(generics.UpdateAPIView):
+    queryset = VeterinaryBilling.objects.all()
+    serializer_class = VeterinaryBillingSerializer
+    permission_classes = [Is_Vet]
 
-    return JsonResponse({'data': data}, safe=False)
+class VeterinaryBillingDelete(generics.DestroyAPIView):
+    queryset = VeterinaryBilling.objects.all()
+    serializer_class = VeterinaryBillingSerializer
+    permission_classes = [Is_Vet]
 
-def livestock_inventory_report(request):
-   
-    return render(request, 'portals/reports/inventory.html')
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+# Deworming Views
+def deworming(request):
+    return render(request, 'portals/reports/deworming.html', {})
+def deworming_view(request):
+    return render(request, 'portals/reports/dewormingview.html', {})
+class DewormingCreate(generics.CreateAPIView):
+    queryset = Deworming.objects.all()
+    serializer_class = DewormingSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class DewormingList(generics.ListAPIView):
+    serializer_class = DewormingSerializer
+    permission_classes = [Is_Vet|Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+            user = self.request.user
+
+            if user.is_vet_officer:
+            
+                return Deworming.objects.filter(user=user)
+            
+            elif user.is_farmer:
+                
+                return Deworming.objects.filter(assigned_to=user)
+
+            return Deworming.objects.none()
+class DewormingUpdate(generics.UpdateAPIView):
+    queryset = Deworming.objects.all()
+    serializer_class = DewormingSerializer
+    permission_classes = [Is_Vet]
+
+class DewormingDelete(generics.DestroyAPIView):
+    queryset = Deworming.objects.all()
+    serializer_class = DewormingSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+# ArtificialInsemination Views
+def artificial(request):
+    return render(request, 'portals/reports/artificialinsemination.html', {})
+def artificial_view(request):
+    return render(request, 'portals/reports/artificial-inseminationview.html', {})
+
+class ArtificialInseminationCreate(generics.CreateAPIView):
+    queryset = ArtificialInsemination.objects.all()
+    serializer_class = ArtificialInseminationSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+            #reg_no = self.request.data.get('reg_no')
+            #bull_reg_no=self.request.data.get('bull_reg_no')
+            user = self.request.user
+
+           
+           # if ArtificialInsemination.objects.filter(Q(user=user) & (Q(reg_no=reg_no))).exists():
+               # raise ValidationError(f"Record with Registration '{reg_no}' or Bull Registration  already exists!")
+
+            serializer.save(user=user)
+
+class ArtificialInseminationList(generics.ListAPIView):
+    serializer_class = ArtificialInseminationSerializer
+    permission_classes = [Is_Vet|Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return ArtificialInsemination.objects.filter(user=user).order_by('-farm_name')
+        
+        elif user.is_farmer:
+            return ArtificialInsemination.objects.filter(assigned_to=user).order_by('-farm_name')
+
+        return ArtificialInsemination.objects.none()
+    
+class ArtificialInseminationUpdate(generics.UpdateAPIView):
+    queryset = ArtificialInsemination.objects.all()
+    serializer_class = ArtificialInseminationSerializer
+    permission_classes = [Is_Vet]
+
+class ArtificialInseminationDelete(generics.DestroyAPIView):
+    queryset = ArtificialInsemination.objects.all()
+    serializer_class = ArtificialInseminationSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+# PregnancyDiagnosis Views
+def pregdiagnosis(request):
+    return render(request, 'portals/reports/pregnancydiag.html', {})
+def pregdiagnosis_view(request):
+    return render(request, 'portals/reports/pregdiagview.html', {})
+
+
+class PregnancyDiagnosisCreate(generics.CreateAPIView):
+    queryset = PregnancyDiagnosis.objects.all()
+    serializer_class = PregnancyDiagnosisSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class PregnancyDiagnosisList(generics.ListAPIView):
+    serializer_class = PregnancyDiagnosisSerializer
+    permission_classes = [Is_Vet|Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+           
+            return PregnancyDiagnosis.objects.filter(user=user)
+        
+        elif user.is_farmer:
+            
+            return PregnancyDiagnosis.objects.filter(assigned_to=user)
+
+        return PregnancyDiagnosis.objects.none()
+    
+class PregnancyDiagnosisUpdate(generics.UpdateAPIView):
+    queryset = PregnancyDiagnosis.objects.all()
+    serializer_class = PregnancyDiagnosisSerializer
+    permission_classes = [Is_Vet]
+
+class PregnancyDiagnosisDelete(generics.DestroyAPIView):
+    queryset = PregnancyDiagnosis.objects.all()
+    serializer_class = PregnancyDiagnosisSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+# FarmConsultation Views
+def consultation(request):
+    return render(request, 'portals/reports/farmconsultation.html', {})
+
+def consultation_view(request):
+    return render(request, 'portals/reports/farmconsultationview.html', {})
+
+class FarmConsultationCreate(generics.CreateAPIView):
+    queryset = FarmConsultation.objects.all()
+    serializer_class = FarmConsultationSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class FarmConsultationList(generics.ListAPIView):
+    serializer_class = FarmConsultationSerializer
+    permission_classes = [Is_Vet|Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+           
+            return FarmConsultation.objects.filter(user=user)
+        
+        elif user.is_farmer:
+            
+            return FarmConsultation.objects.filter(assigned_to=user)
+
+        return FarmConsultation.objects.none()
+    
+class FarmConsultationUpdate(generics.UpdateAPIView):
+    queryset = FarmConsultation.objects.all()
+    serializer_class = FarmConsultationSerializer
+    permission_classes = [Is_Vet]
+
+class FarmConsultationDelete(generics.DestroyAPIView):
+    queryset = FarmConsultation.objects.all()
+    serializer_class = FarmConsultationSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+# Referral Views
+@user_passes_test(vet_check, login_url='vet-login')
+def referral(request):
+    return render(request, 'portals/reports/referral.html', {})
+def referral_view(request):
+    return render(request, 'portals/reports/referralview.html', {})
+class ReferralCreate(generics.CreateAPIView):
+    queryset = Referral.objects.all()
+    serializer_class = ReferralSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class ReferralList(generics.ListAPIView):
+    serializer_class = ReferralSerializer
+    permission_classes = [Is_Vet|Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+           
+            return Referral.objects.filter(user=user)
+        
+        elif user.is_farmer:
+            
+            return Referral.objects.filter(assigned_to=user)
+
+        return Referral.objects.none()
+class ReferralUpdate(generics.UpdateAPIView):
+    queryset = Referral.objects.all()
+    serializer_class = ReferralSerializer
+    permission_classes = [Is_Vet]
+
+class ReferralDelete(generics.DestroyAPIView):
+    queryset = Referral.objects.all()
+    serializer_class = ReferralSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
 
 
 # Define views
+@user_passes_test(farmer_check, login_url='farmer-login')
 def calf(request):
     return render(request, 'portals/farmer/calf.html', {})
 
@@ -1484,7 +437,14 @@ class CalfCreate(generics.CreateAPIView):
     permission_classes = [Is_Farmer]  
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+            registration_number = self.request.data.get('registration_number')
+            user = self.request.user
+
+            # Check if the employee exists
+            if Calf.objects.filter(user=user, registration_number=registration_number).exists():
+                raise ValidationError(f"Calf with Registration '{registration_number}' already exists!")
+
+            serializer.save(user=user)
 
 class CalfList(generics.ListAPIView):
     serializer_class = CalfSerializer
@@ -1493,7 +453,7 @@ class CalfList(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        #print(user)
+        ###print(user)
         return Calf.objects.filter(user=self.request.user).order_by('-id')
     
 
@@ -1512,9 +472,7 @@ class CalfDelete(generics.DestroyAPIView):
         if self.request.user == instance.user:
             instance.delete()
 
-
-# dead animal
-@login_required
+@user_passes_test(farmer_check, login_url='farmer-login')
 def dead_animal(request):
     return render(request, 'portals/farmer/dead.html', {})
 
@@ -1533,7 +491,7 @@ class DeadAnimalList(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        #print(user)
+        ###print(user)
         return DeadAnimal.objects.filter(user=self.request.user).order_by('-id')
     
 
@@ -1553,7 +511,7 @@ class DeadAnimalDelete(generics.DestroyAPIView):
             instance.delete()
 
 ###Culling
-@login_required
+@user_passes_test(farmer_check, login_url='farmer-login')
 def culling(request):
     return render(request, 'portals/farmer/culling.html', {})
 
@@ -1572,7 +530,7 @@ class CullingList(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        #print(user)
+        ###print(user)
         return Culling.objects.filter(user=self.request.user).order_by('-id')
     
 
@@ -1592,7 +550,7 @@ class CullingDelete(generics.DestroyAPIView):
             instance.delete()
 
 # livestock inventory
-@login_required
+@user_passes_test(farmer_check, login_url='farmer-login')
 def livestock(request):
     return render(request, 'portals/farmer/livestock.html', {})
 class LivestockCreate(generics.CreateAPIView):
@@ -1610,7 +568,7 @@ class LivestockList(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        #print(user)
+        ###print(user)
         return Livestock.objects.filter(user=self.request.user).order_by('-id')
     
 
@@ -1630,7 +588,7 @@ class LivestockDelete(generics.DestroyAPIView):
             instance.delete()
 
 ##new animal
-@login_required
+@user_passes_test(farmer_check, login_url='farmer-login')
 def new_animal(request):
     return render(request, 'portals/farmer/new.html', {})
 class NewAnimalCreate(generics.CreateAPIView):
@@ -1639,8 +597,14 @@ class NewAnimalCreate(generics.CreateAPIView):
     permission_classes = [Is_Farmer]  
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+            reg_no = self.request.data.get('reg_no')
+            user = self.request.user
 
+            # Check if the employee exists
+            if NewAnimal.objects.filter(user=user, reg_no=reg_no).exists():
+                raise ValidationError(f"Animal With with Registration '{reg_no}' already exists!")
+
+            serializer.save(user=user)
 class NewAnimalList(generics.ListAPIView):
     serializer_class = NewAnimalSerializer
     permission_classes = [Is_Farmer]
@@ -1648,7 +612,7 @@ class NewAnimalList(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        #print(user)
+        ###print(user)
         return NewAnimal.objects.filter(user=self.request.user).order_by('-id')
     
 
@@ -1668,7 +632,7 @@ class NewAnimalDelete(generics.DestroyAPIView):
             instance.delete()
 
 ##############################
-@login_required
+@user_passes_test(farmer_check, login_url='farmer-login')
 def animal_sales(request):
     return render(request, 'portals/farmer/sales.html', {})
 
@@ -1687,7 +651,7 @@ class AnimalSaleList(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        #print(user)
+        ###print(user)
         return AnimalSale.objects.filter(user=self.request.user).order_by('-id')
     
 
@@ -1706,7 +670,7 @@ class AnimalSaleDelete(generics.DestroyAPIView):
         if self.request.user == instance.user:
             instance.delete()
 
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def minerals(request):
     return render(request, 'portals/farmer/minerals.html', {})
 class MineralsCreate(generics.CreateAPIView):
@@ -1739,7 +703,7 @@ class MineralsDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()  
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def vet_bills(request):
     return render(request, 'portals/farmer/bills.html', {})
 class VeterinaryBillsCreate(generics.CreateAPIView):
@@ -1772,6 +736,7 @@ class VeterinaryBillsDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()
+@user_passes_test(farmer_check, login_url='farmer-login')
 def archaricides(request):
     return render(request, 'portals/farmer/archaricides.html', {})
 
@@ -1805,7 +770,7 @@ class ArcharicidesDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def equipment(request):
     return render(request, 'portals/farmer/equipment.html', {})
 class DairyEquipmentCreate(generics.CreateAPIView):
@@ -1838,7 +803,7 @@ class DairyEquipmentDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def hygiene(request):
     return render(request, 'portals/farmer/hygiene.html', {})
 class DairyHygieneCreate(generics.CreateAPIView):
@@ -1865,6 +830,7 @@ class DairyHygieneUpdate(generics.UpdateAPIView):
 
 class DairyHygieneDelete(generics.DestroyAPIView):
     queryset = DairyHygiene.objects.all()
+    ##print(queryset)
     serializer_class = DairyHygieneSerializer
     permission_classes = [Is_Farmer]
 
@@ -1872,25 +838,34 @@ class DairyHygieneDelete(generics.DestroyAPIView):
         if self.request.user == instance.user:
             instance.delete()
 
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def salaries(request):
     return render(request, 'portals/farmer/salaries.html', {})
 class SalariesCreate(generics.CreateAPIView):
     queryset = Salaries.objects.all()
+    #print(queryset)
     serializer_class = SalariesSerializer
     permission_classes = [Is_Farmer]  
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+            identification = self.request.data.get('identification')
+            user = self.request.user
+
+            # Check if the employee exists
+            if Salaries.objects.filter(user=user, identification=identification).exists():
+                raise ValidationError(f"Employee with ID '{identification}' already exists!")
+
+            serializer.save(user=user)
 
 class SalariesList(generics.ListAPIView):
     serializer_class = SalariesSerializer
     permission_classes = [Is_Farmer]
-    pagination_class = CustomPagination  # If you have a custom pagination class
+    pagination_class = CustomPagination
+    
 
     def get_queryset(self):
         user = self.request.user
-        return LivestockInsurance.objects.filter(user=user).order_by('-id')
+        return Salaries.objects.filter(user=user).order_by('-id')
 
 class SalariesUpdate(generics.UpdateAPIView):
     queryset = Salaries.objects.all()
@@ -1905,7 +880,7 @@ class SalariesDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def insurance(request):
     return render(request, 'portals/farmer/insurance.html', {})
 class LivestockInsuranceCreate(generics.CreateAPIView):
@@ -1938,7 +913,7 @@ class LivestockInsuranceDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def drugs(request):
     return render(request, 'portals/farmer/drugs.html', {})
 class VeterinaryDrugsCreate(generics.CreateAPIView):
@@ -1975,17 +950,24 @@ class VeterinaryDrugsDelete(generics.DestroyAPIView):
 def pdf_notes(request):
     return render(request, 'portals/farmer/pdfnotes.html', {})
 
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def employees(request):
     return render(request, 'portals/farmer/employment.html', {})
 
 class EmployeesCreate(generics.CreateAPIView):
     queryset = Employees.objects.all()
     serializer_class = EmployeesSerializer
-    permission_classes = [Is_Farmer]  # Replace with your custom permission class if needed
+    permission_classes = [Is_Farmer]  
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+            id_no = self.request.data.get('id_no')
+            user = self.request.user
+
+            # Check if the employee exists
+            if Employees.objects.filter(user=user, id_no=id_no).exists():
+                raise ValidationError(f"Employee with ID '{id_no}' already exists!")
+
+            serializer.save(user=user)
 
 class EmployeesList(generics.ListAPIView):
     serializer_class = EmployeesSerializer
@@ -1994,8 +976,12 @@ class EmployeesList(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        return Employees.objects.filter(user=user).order_by('-id')
-
+        params = dict()
+        if self.request.GET.get('id_no',False):
+            
+            params['id_no'] = self.request.GET.get('id_no')
+            print(params)
+        return Employees.objects.filter(user=user,**params).order_by('-id')
 class EmployeesUpdate(generics.UpdateAPIView):
     queryset = Employees.objects.all()
     serializer_class = EmployeesSerializer
@@ -2009,7 +995,7 @@ class EmployeesDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def lactation(request):
     return render(request, 'portals/farmer/lactation.html', {})
 
@@ -2019,7 +1005,14 @@ class LactatingCowCreate(generics.CreateAPIView):
     permission_classes = [Is_Farmer]
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+            cow_name = self.request.data.get('cow_name')
+            #print()
+            user = self.request.user
+
+            if LactatingCow.objects.filter(user=user, cow_name=cow_name).exists():
+                raise ValidationError(f"Cow with Name '{cow_name}' already exists!")
+
+            serializer.save(user=user)
 
 class LactatingCowList(generics.ListAPIView):
     serializer_class = LactatingCowSerializer
@@ -2031,7 +1024,6 @@ class LactatingCowList(generics.ListAPIView):
         params = dict()
         if self.request.GET.get('cow_name',False):
             params['cow_name'] = self.request.GET.get('cow_name')
-
         return LactatingCow.objects.filter(user=user,**params).order_by('-id')
 
 class LactatingCowUpdate(generics.UpdateAPIView):
@@ -2047,7 +1039,7 @@ class LactatingCowDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def milk_record(request):
     return render(request, 'portals/farmer/milk_records.html', {})
 
@@ -2057,47 +1049,9 @@ class MilkRecordCreate(generics.CreateAPIView):
     permission_classes = [Is_Farmer]
 
     def perform_create(self, serializer):
-        # Set the employee to the first employee in the database and user to the request user
-        employee = Employees.objects.first()
-        serializer.save(employee_name=employee, user=self.request.user)
-        
-        # Get the date of the milk record
-        milk_record_date = serializer.instance.date
-        
-        # Calculate the start of the week (Monday)
-        week_start_date = milk_record_date - timedelta(days=milk_record_date.weekday())
-        
-        # Calculate the start of the month
-        month_start_date = milk_record_date.replace(day=1)
-        
-        # Update or create weekly record
-        weekly_record, created = WeeklyMilkRecord.objects.get_or_create(
-            cow_name=serializer.instance.cow_name,
-            week_start_date=week_start_date,
-            defaults={'total_quantity': 0.0}
-        )
-        # Calculate total quantity for the week and update the record
-        total_weekly_quantity = MilkRecord.objects.filter(
-            cow_name=serializer.instance.cow_name,
-            date__range=[week_start_date, week_start_date + timedelta(days=6)]
-        ).aggregate(Sum('quantity'))['quantity__sum'] or 0.0
-        weekly_record.total_quantity = total_weekly_quantity
-        weekly_record.save()
-        
-        # Update or create monthly record
-        monthly_record, created = MonthlyMilkRecord.objects.get_or_create(
-            cow_name=serializer.instance.cow_name,
-            month=month_start_date,
-            defaults={'total_quantity': 0.0}
-        )
-        # Calculate total quantity for the month and update the record
-        total_monthly_quantity = MilkRecord.objects.filter(
-            cow_name=serializer.instance.cow_name,
-            date__year=milk_record_date.year,
-            date__month=milk_record_date.month
-        ).aggregate(Sum('quantity'))['quantity__sum'] or 0.0
-        monthly_record.total_quantity = total_monthly_quantity
-        monthly_record.save()
+        serializer.save(user=self.request.user)
+
+
 
 class MilkRecordList(generics.ListAPIView):
     serializer_class = MilkRecordSerializer
@@ -2122,6 +1076,38 @@ class MilkRecordDelete(generics.DestroyAPIView):
         if self.request.user == instance.user:
             instance.delete()
 
+@user_passes_test(farmer_check, login_url='farmer-login')
+def daily_record(request):
+    return render(request, 'portals/farmer/daily_milk.html', {})
+
+class DailyMilkRecordList(generics.ListAPIView):
+    serializer_class = DailyMilkRecordSerializer
+    permission_classes = [ Is_Farmer]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # Get the latest id for each cow_name for the authenticated user
+        subquery = DailyMilkRecord.objects.filter(
+            user=user,
+            cow_name=OuterRef('cow_name')
+        ).order_by('-id').values('id')[:1]
+
+        latest_records = DailyMilkRecord.objects.filter(
+            id__in=Subquery(subquery)
+        ).order_by('-date')
+
+        return latest_records
+    
+class DailyMilkRecordDelete(generics.DestroyAPIView):
+    queryset = MilkRecord.objects.all()
+    serializer_class = DailyMilkRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+@user_passes_test(farmer_check, login_url='farmer-login')
 def weekly_record(request):
     return render(request, 'portals/farmer/weekly_records.html', {})
 class WeeklyMilkRecordListView(generics.ListAPIView):
@@ -2146,7 +1132,7 @@ class WeeklyMilkRecordDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def monthly_record(request):
     return render(request, 'portals/farmer/monthly_records.html', {})
 class MonthlyMilkRecordListView(generics.ListAPIView):
@@ -2166,7 +1152,7 @@ class MonthlyMilkRecordDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def sales_of_milk(request):
     return render(request, 'portals/farmer/milk_sales.html', {})
 
@@ -2200,3 +1186,761 @@ class SalesOfMilkDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()
+
+def lab_record(request):
+    return render(request, 'portals/reports/laboratory.html', {})
+
+def lab_record_view(request):
+    return render(request, 'portals/reports/laboratoryview.html', {})
+class LaboratoryRecordCreate(generics.CreateAPIView):
+    queryset = LaboratoryRecord.objects.all()
+    serializer_class = LaboratoryRecordSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class LaboratoryRecordList(generics.ListAPIView):
+    serializer_class = LaboratoryRecordSerializer
+    permission_classes = [Is_Vet|Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+           
+            return LaboratoryRecord.objects.filter(user=user)
+        
+        elif user.is_farmer:
+            
+            return LaboratoryRecord.objects.filter(assigned_to=user)
+
+        return LaboratoryRecord.objects.none()
+    
+class LaboratoryRecordUpdate(generics.UpdateAPIView):
+    queryset = LaboratoryRecord.objects.all()
+    serializer_class = LaboratoryRecordSerializer
+    permission_classes = [Is_Vet]
+
+class LaboratoryRecordDelete(generics.DestroyAPIView):
+    queryset = LaboratoryRecord.objects.all()
+    serializer_class = LaboratoryRecordSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+
+def incidence_record(request):
+    return render(request, 'portals/reports/incidence.html', {})
+    
+def incidence_view(request):
+    return render(request, 'portals/reports/incidenceview.html', {})
+    
+class LivestockIncidentCreate(generics.CreateAPIView):
+    queryset = LivestockIncident.objects.all()
+    serializer_class = LivestockIncidentSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class LivestockIncidentList(generics.ListAPIView):
+    serializer_class = LivestockIncidentSerializer
+    permission_classes = [Is_Vet|Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+           
+            return LivestockIncident.objects.filter(user=user)
+        
+        elif user.is_farmer:
+            
+            return LivestockIncident.objects.filter(assigned_to=user)
+
+        return LivestockIncident.objects.none()
+class LivestockIncidentUpdate(generics.UpdateAPIView):
+    queryset = LivestockIncident.objects.all()
+    serializer_class = LivestockIncidentSerializer
+    permission_classes = [Is_Vet]
+
+class LivestockIncidentDelete(generics.DestroyAPIView):
+    queryset = LivestockIncident.objects.all()
+    serializer_class = LivestockIncidentSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+def sample_collection(request):
+    return render(request, 'portals/reports/collection.html', {})
+def sample_collection_view(request):
+    return render(request, 'portals/reports/collectionview.html', {})
+class SampleCollectionCreate(generics.CreateAPIView):
+    queryset = SampleCollection.objects.all()
+    serializer_class = SampleCollectionSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class SampleCollectionList(generics.ListAPIView):
+    serializer_class = SampleCollectionSerializer
+    permission_classes = [Is_Vet|Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+           
+            return SampleCollection.objects.filter(user=user)
+        
+        elif user.is_farmer:
+            
+            return SampleCollection.objects.filter(assigned_to=user)
+
+        return SampleCollection.objects.none()
+    
+class SampleCollectionUpdate(generics.UpdateAPIView):
+    queryset = SampleCollection.objects.all()
+    serializer_class = SampleCollectionSerializer
+    permission_classes = [Is_Vet]
+
+class SampleCollectionDelete(generics.DestroyAPIView):
+    queryset = SampleCollection.objects.all()
+    serializer_class = SampleCollectionSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+def sample_processing(request):
+    return render(request, 'portals/reports/processing.html', {})
+def sample_processing_view(request):
+    return render(request, 'portals/reports/processingview.html', {})
+class SampleProcessingCreate(generics.CreateAPIView):
+    queryset = SampleProcessing.objects.all()
+    serializer_class = SampleProcessingSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class SampleProcessingList(generics.ListAPIView):
+    serializer_class = SampleProcessingSerializer
+    permission_classes = [Is_Vet|Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+           
+            return SampleProcessing.objects.filter(user=user)
+        
+        elif user.is_farmer:
+            
+            return SampleProcessing.objects.filter(assigned_to=user)
+
+        return SampleProcessing.objects.none()
+    
+class SampleProcessingUpdate(generics.UpdateAPIView):
+    queryset = SampleProcessing.objects.all()
+    serializer_class = SampleProcessingSerializer
+    permission_classes = [Is_Vet]
+
+class SampleProcessingDelete(generics.DestroyAPIView):
+    queryset = SampleProcessing.objects.all()
+    serializer_class = SampleProcessingSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+
+def post_mortem(request):
+    return render(request, 'portals/reports/postmortem.html', {})
+def post_mortem_view(request):
+    return render(request, 'portals/reports/postmortemview.html', {})
+class PostMortemRecordCreate(generics.CreateAPIView):
+    queryset = PostMortemRecord.objects.all()
+    serializer_class = PostMortemRecordSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class PostMortemRecordList(generics.ListAPIView):
+    serializer_class = PostMortemRecordSerializer
+    permission_classes = [Is_Vet|Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+           
+            return PostMortemRecord.objects.filter(user=user)
+        
+        elif user.is_farmer:
+            
+            return PostMortemRecord.objects.filter(assigned_to=user)
+
+        return PostMortemRecord.objects.none()
+    
+class PostMortemRecordgUpdate(generics.UpdateAPIView):
+    queryset = PostMortemRecord.objects.all()
+    serializer_class = PostMortemRecordSerializer
+    permission_classes = [Is_Vet]
+
+class PostMortemRecordDelete(generics.DestroyAPIView):
+    queryset = PostMortemRecord.objects.all()
+    serializer_class = PostMortemRecordSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+
+def vaccination(request):
+    return render(request, 'portals/reports/vaccination.html', {})
+def vaccination_view(request):
+    return render(request, 'portals/reports/vaccinationview.html', {})
+class VaccinationRecordCreate(generics.CreateAPIView):
+    queryset = VaccinationRecord.objects.all()
+    serializer_class = VaccinationRecordSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class VaccinationRecordList(generics.ListAPIView):
+    serializer_class = VaccinationRecordSerializer
+    permission_classes = [Is_Vet|Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+           
+            return VaccinationRecord.objects.filter(user=user)
+        
+        elif user.is_farmer:
+            
+            return VaccinationRecord.objects.filter(assigned_to=user)
+
+        return VaccinationRecord.objects.none()
+    
+class VaccinationRecordUpdate(generics.UpdateAPIView):
+    queryset = VaccinationRecord.objects.all()
+    serializer_class = VaccinationRecordSerializer
+    permission_classes = [Is_Vet]
+
+class VaccinationRecordDelete(generics.DestroyAPIView):
+    queryset = VaccinationRecord.objects.all()
+    serializer_class = VaccinationRecordSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+            
+            
+            
+def clinical(request):
+    return render(request, 'portals/reports/clinical.html', {})
+def clinical_view(request):
+    return render(request, 'portals/reports/clinicalview.html', {})
+class ClinicalRecordCreate(generics.CreateAPIView):
+    queryset = ClinicalRecord.objects.all()
+    serializer_class = ClinicalRecordSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class ClinicalRecordList(generics.ListAPIView):
+    serializer_class = ClinicalRecordSerializer
+    permission_classes = [Is_Vet | Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+        
+        if user.is_vet_officer:
+            # Vet officers can view records they have created
+            return ClinicalRecord.objects.filter(user=user)
+
+        elif user.is_farmer:
+            # Farmers can view records assigned to them
+            return ClinicalRecord.objects.filter(assigned_to=user)
+
+        return ClinicalRecord.objects.none()
+
+
+class ClinicalRecordUpdate(generics.UpdateAPIView):
+    queryset = ClinicalRecord.objects.all()
+    serializer_class = ClinicalRecordSerializer
+    permission_classes = [Is_Vet]
+
+    
+
+class ClinicalRecordDelete(generics.DestroyAPIView):
+    queryset = ClinicalRecord.objects.all()
+    serializer_class = ClinicalRecordSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+
+#############Shop############################
+
+def shop(request):
+    return render(request, 'portals/shop/myshop.html', {})
+
+def client(request):
+    return render(request, 'portals/reports/clients.html', {})
+
+class ClientCreate(generics.CreateAPIView):
+    queryset = Client.objects.all()
+    serializer_class = ClientSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class ClientList(generics.ListAPIView):
+    serializer_class = ClientSerializer
+    permission_classes = [Is_Vet]
+    pagination_class = CustomPagination
+    
+    def get_queryset(self):
+        user = self.request.user
+        ###print(user)
+        return Client.objects.filter(user=self.request.user).order_by('-id')
+
+    
+
+
+class ClientUpdate(generics.UpdateAPIView):
+    queryset = Client.objects.all()
+    serializer_class = ClientSerializer
+    permission_classes = [Is_Vet]
+
+
+class ClientDelete(generics.DestroyAPIView):
+    queryset = Client.objects.all()
+    serializer_class = ClientSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+            
+def diary(request):
+    return render(request, 'portals/reports/diary.html', {})
+
+# Class-based view for creating a Diary record
+class DiaryCreate(generics.CreateAPIView):
+    queryset = Diary.objects.all()
+    serializer_class = DiarySerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class DiaryList(generics.ListAPIView):
+    serializer_class = DiarySerializer
+    permission_classes = [Is_Vet ]
+    pagination_class = CustomPagination
+    def get_queryset(self):
+        user = self.request.user
+        ###print(user)
+        return Diary.objects.filter(user=self.request.user).order_by('-id')
+
+    
+
+
+class DiaryUpdate(generics.UpdateAPIView):
+    queryset = Diary.objects.all()
+    serializer_class = DiarySerializer
+    permission_classes = [Is_Vet]
+
+
+class DiaryDelete(generics.DestroyAPIView):
+    queryset = Diary.objects.all()
+    serializer_class = DiarySerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+def disease_report(request):
+    return render(request, 'portals/reports/disease_report.html', {})
+
+def disease_report_view(request):
+    return render(request, 'portals/reports/disease_report_view.html', {})
+
+class DiseaseReportCreate(generics.CreateAPIView):
+    queryset = DiseaseReport.objects.all()
+    serializer_class = DiseaseReportSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class DiseaseReportList(generics.ListAPIView):
+    serializer_class = DiseaseReportSerializer
+    permission_classes = [Is_Vet | Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return DiseaseReport.objects.filter(user=user)
+        
+        elif user.is_farmer:
+            return DiseaseReport.objects.filter(assigned_to=user)
+
+        return DiseaseReport.objects.none()
+
+class DiseaseReportUpdate(generics.UpdateAPIView):
+    queryset = DiseaseReport.objects.all()
+    serializer_class = DiseaseReportSerializer
+    permission_classes = [Is_Vet]
+
+class DiseaseReportDelete(generics.DestroyAPIView):
+    queryset = DiseaseReport.objects.all()
+    serializer_class = DiseaseReportSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+def resources(request):
+    return render(request, 'portals/reports/resources.html', {})
+
+def slaughterhouse(request):
+    return render(request, 'portals/reports/slaughter.html', {})
+
+# def slaughterhouse(request):
+#     return render(request, 'portals/reports/slaughter_view.html', {})
+
+class SlaughterhouseCreate(generics.CreateAPIView):
+    queryset = Slaughterhouse.objects.all()
+    serializer_class = SlaughterhouseSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+class SlaughterhouseList(generics.ListAPIView):
+    serializer_class = SlaughterhouseSerializer
+    permission_classes = [Is_Vet | Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return Slaughterhouse.objects.all()
+        
+        elif user.is_farmer:
+            return Slaughterhouse.objects.none()
+
+        return Slaughterhouse.objects.none()
+
+class SlaughterhouseUpdate(generics.UpdateAPIView):
+    queryset = Slaughterhouse.objects.all()
+    serializer_class = SlaughterhouseSerializer
+    permission_classes = [Is_Vet]
+
+class SlaughterhouseDelete(generics.DestroyAPIView):
+    queryset = Slaughterhouse.objects.all()
+    serializer_class = SlaughterhouseSerializer
+    permission_classes = [Is_Vet]
+
+
+# Employee Views
+def employee(request):
+    return render(request, 'portals/reports/employee.html', {})
+# def employee_view(request):
+#     return render(request, 'portals/reports/employee_view.html', {})
+class EmployeeCreate(generics.CreateAPIView):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+class EmployeeList(generics.ListAPIView):
+    serializer_class = EmployeeSerializer
+    permission_classes = [Is_Vet]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return Employee.objects.all()
+
+class EmployeeUpdate(generics.UpdateAPIView):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+    permission_classes = [Is_Vet]
+
+class EmployeeDelete(generics.DestroyAPIView):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+    permission_classes = [Is_Vet]
+
+
+# Butcher Views
+def butcher(request):
+    return render(request, 'portals/reports/butcher.html', {})
+
+# def butcher_view(request):
+#     return render(request, 'portals/reports/butcher_view.html', {})
+class ButcherCreate(generics.CreateAPIView):
+    queryset = Butcher.objects.all()
+    serializer_class = ButcherSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+class ButcherList(generics.ListAPIView):
+    serializer_class = ButcherSerializer
+    permission_classes = [Is_Vet | Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return Butcher.objects.all()
+        
+        elif user.is_farmer:
+            return Butcher.objects.none()
+
+        return Butcher.objects.none()
+
+class ButcherUpdate(generics.UpdateAPIView):
+    queryset = Butcher.objects.all()
+    serializer_class = ButcherSerializer
+    permission_classes = [Is_Vet]
+
+class ButcherDelete(generics.DestroyAPIView):
+    queryset = Butcher.objects.all()
+    serializer_class = ButcherSerializer
+    permission_classes = [Is_Vet]
+
+
+# Invoice Views
+def invoice(request):
+    return render(request, 'portals/reports/invoice.html', {})
+
+def invoice_view(request):
+    return render(request, 'portals/reports/invoiceview.html', {})
+class InvoiceCreate(generics.CreateAPIView):
+    queryset = Invoice.objects.all()
+    serializer_class = InvoiceSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+class InvoiceList(generics.ListAPIView):
+    serializer_class = InvoiceSerializer
+    permission_classes = [Is_Vet | Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            
+            return Invoice.objects.filter()
+        
+        elif user.is_farmer:
+            
+            return Invoice.objects.filter(assigned_to=user)
+
+        return Invoice.objects.none()
+
+class InvoiceUpdate(generics.UpdateAPIView):
+    queryset = Invoice.objects.all()
+    serializer_class = InvoiceSerializer
+    permission_classes = [Is_Vet]
+
+class InvoiceDelete(generics.DestroyAPIView):
+    queryset = Invoice.objects.all()
+    serializer_class = InvoiceSerializer
+    permission_classes = [Is_Vet]
+    
+    
+    
+def quiz(request):
+    return render(request, 'portals/reports/quiz.html', {})
+class QuestionListView(generics.ListAPIView):
+    queryset = Question.objects.all()
+    serializer_class = QuestionSerializer
+    permission_classes = [Is_Vet]
+    pagination_class=None
+
+class SubmitAnswerView(generics.CreateAPIView):
+    serializer_class = UserAnswerSerializer
+    permission_classes = [Is_Vet]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            user_answer = serializer.save()
+            is_correct = user_answer.choice.is_correct
+            return Response({'is_correct': is_correct}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+def tutorial(request):
+    return render(request, 'portals/reports/cpd.html', {})
+def lesson(request):
+    return render(request, 'portals/reports/lessons.html', {})
+    
+class TutorialCreate(generics.CreateAPIView):
+    queryset = Tutorial.objects.all()
+    serializer_class = TutorialSerializer
+    permission_classes = [Is_Vet]
+
+class TutorialList(generics.ListAPIView):
+    serializer_class = TutorialSerializer
+    permission_classes = [Is_Vet]
+    
+    def get_queryset(self):
+        return Tutorial.objects.all().order_by('-created_at')
+
+class TutorialUpdate(generics.UpdateAPIView):
+    queryset = Tutorial.objects.all()
+    serializer_class = TutorialSerializer
+    permission_classes = [Is_Vet]
+
+class TutorialDelete(generics.DestroyAPIView):
+    queryset = Tutorial.objects.all()
+    serializer_class = TutorialSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        instance.delete()
+
+class SectionCreate(generics.CreateAPIView):
+    queryset = Section.objects.all()
+    serializer_class = SectionSerializer
+    permission_classes = [Is_Vet]
+
+# class SectionList(generics.ListAPIView):
+#     serializer_class = SectionSerializer
+#     permission_classes = [Is_Vet]
+
+#     def get_queryset(self):
+#         lesson_id = self.kwargs['lesson_id']
+#         return Section.objects.filter(lesson_id=lesson_id).order_by('-id')
+
+class SectionList(View):
+    permission_classes = [Is_Vet]
+    pagination_class=None
+
+    def get(self, request, lesson_id):
+        sections = Section.objects.filter(lesson_id=lesson_id).order_by('-id')
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            serializer = SectionSerializer(sections, many=True)
+            return Response(serializer.data)
+        context = {
+            'sections': sections,
+            'lesson_id': lesson_id  
+        }
+        return render(request, 'portals/reports/lessons.html', context)
+    
+    
+class CommentCreateView(generics.CreateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        section_id = self.kwargs.get('section_id')
+        section = Section.objects.get(id=section_id)
+        serializer.save(author=self.request.user, section=section)
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        section_id = self.kwargs.get('section_id')
+        if response.status_code == status.HTTP_201_CREATED:
+            return redirect('comment-list', section_id=section_id)
+        return response
+        
+class CommentListView(View):
+    permission_classes = [Is_Vet]
+
+    def get(self, request, section_id):
+        comments = Comment.objects.filter(section__id=section_id).order_by('-created_at')
+        section = Section.objects.get(id=section_id)
+        
+        context = {
+            'comments': comments,
+            'section_id': section_id,
+        }
+        return render(request, 'portals/reports/comments.html',context)
+    
+    
+class QuestionCreateView(generics.CreateAPIView):
+    queryset = Question.objects.all()
+    serializer_class = QuestionsSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        section_id = self.kwargs['section_id']
+        section = get_object_or_404(Section, id=section_id)
+        serializer.save(section=section)
+    
+class QuestionDetailView(generics.RetrieveAPIView):
+    queryset = Question.objects.all()
+    serializer_class = QuestionsSerializer
+    permission_classes = [IsAuthenticated]
+    
+class SectionQuestionListView(generics.ListAPIView):
+    serializer_class = QuestionsSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        section_id = self.kwargs['section_id']
+        return Question.objects.filter(section_id=section_id)
+    
+class UserAnswerCreate(generics.CreateAPIView):
+    queryset = UserAnswer.objects.all()
+    serializer_class = UserAnswerSerializer
+
+    def perform_create(self, serializer):
+        user_id = self.request.data.get('user_id')
+        section_id = self.request.data.get('section_id')
+        answers = self.request.data.get('answers')
+
+        for answer in answers:
+            question_id, choice_id = answer.split('-')
+            serializer.save(user_id=user_id, question_id=question_id, choice_id=choice_id)

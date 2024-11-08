@@ -70,7 +70,7 @@
     </div>
    
    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#insuranceAddModal">
-     Add 
+    Add Record
     </button>
      <!-- form modal -->
      <div class="modal fade" id="insuranceAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -91,6 +91,22 @@
                     <input type="number" id="number_insured" name="number_insured" class="form-control editable-field" step="0.01" max="99999999.99">
                     <div class="invalid-feedback">Please provide a valid number insured.</div>
                 </div>
+              <div class="mb-3">
+                <label for="breed" class="form-label">Breed</label>
+                <input type="text" id="breed" name="breed" class="form-control editable-field" step="0.01" max="99999999.99">
+                <div class="invalid-feedback">Please provide a valid number insured.</div>
+            </div>
+            <div class="mb-3">
+              <label for="animal_species" class="form-label">Species</label>
+              <select id="animal_species" name="animal_species" class="form-control editable-field">
+                  <option value="" disabled selected>Select species</option>
+                  <option value="cattle">Cattle</option>
+                  <option value="cat">Cat</option>
+                  <option value="horse">Horse</option>
+                  <option value="dog">Dog</option>
+              </select>
+              <div class="invalid-feedback">Please select a valid species.</div>
+          </div>
                 <div class="mb-3">
                     <label for="company" class="form-label">Company</label>
                     <input type="text" id="company" name="company" class="form-control editable-field" maxlength="255">
@@ -102,7 +118,7 @@
                     <div class="invalid-feedback">Please provide a valid mode of payment.</div>
                 </div>
                 <div class="mb-3">
-                    <label for="payment_date" class="form-label">Payment Date</label>
+                    <label for="payment_date" class="form-label">Date Of Insurance</label>
                     <input type="date" id="payment_date" name="payment_date" class="form-control editable-field">
                     <div class="invalid-feedback">Please provide a valid payment date.</div>
                 </div>
@@ -150,6 +166,22 @@
                     <div class="invalid-feedback">Please provide a valid number insured.</div>
                 </div>
                 <div class="mb-3">
+                  <label for="breed" class="form-label">Breed</label>
+                  <input type="text" id="breed" name="breed" class="form-control editable-field" step="0.01" max="99999999.99">
+                  <div class="invalid-feedback">Please provide a valid number insured.</div>
+              </div>
+              <div class="mb-3">
+                <label for="animal_species" class="form-label">Species</label>
+                <select id="animal_species" name="animal_species" class="form-control editable-field">
+                    <option value="" disabled selected>Select species</option>
+                    <option value="cattle">Cattle</option>
+                    <option value="cat">Cat</option>
+                    <option value="horse">Horse</option>
+                    <option value="dog">Dog</option>
+                </select>
+                <div class="invalid-feedback">Please select a valid species.</div>
+            </div>
+                <div class="mb-3">
                     <label for="company" class="form-label">Company</label>
                     <input type="text" id="company" name="company" class="form-control editable-field" maxlength="255">
                     <div class="invalid-feedback">Please provide a valid company.</div>
@@ -160,7 +192,7 @@
                     <div class="invalid-feedback">Please provide a valid mode of payment.</div>
                 </div>
                 <div class="mb-3">
-                    <label for="payment_date" class="form-label">Payment Date</label>
+                    <label for="payment_date" class="form-label">Date Of Insurance</label>
                     <input type="date" id="payment_date" name="payment_date" class="form-control editable-field">
                     <div class="invalid-feedback">Please provide a valid payment date.</div>
                 </div>
@@ -190,15 +222,9 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <div class="modal-header">
-            <h4 class="col-9 modal-title text-center">Farm Records</h4>
-            <button type="button"  id="closeModalBtn">
-              <i class="fa fa-times" aria-hidden="true"></i>
-            </button>
-          </div>
-          <div class="modal-header">
-            <h5 class="col-12 modal-title text-center " >Animal Insurance  Records</h5> 
-          </div>
+         
+           <h2 class="text-center">Farm Records</h2>
+       <h3 class="text-center">Animal Insurance Records </h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -209,28 +235,7 @@
       </div><!-- /.modal-dialog -->
     </div><!-- /. Display  modal -->
 <!-- sucess Modal -->
-<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-confirm">
-      <div class="modal-content">
-          <div class="modal-header">
-              <div class="icon-box">
-                  <i class="material-icons">&#xE876;</i>
-              </div>
-              <h4 class="modal-title">Details Submitted successfully</h4>
-          </div>
-          <div class="modal-body">
-              <div class="spinner-border text-success" role="status">
-                  <span class="sr-only">Loading...</span>
-              </div>
-              <p class="text-center">Saving....</p>
-          </div>
-          <div class="modal-footer">
-              <button class="btn btn-success btn-block" data-dismiss="modal">OK</button>
-          </div>
-      </div>
-  </div>
-</div>
-<!-- sucess Modal End -->
+
 
 
     
@@ -380,12 +385,12 @@ $('#insuranceAddForm').submit(function(e) {
            
             success: function(data) {
               $('#insuranceAddModal').modal('hide');
-              $('#successModal').modal('show');
+              $('#statusSuccessModal').modal('show');
                 //console.log(data.message);
                 // Redirect after 3 seconds
                 setTimeout(function() {
                   window.location.reload(); // Redirect to the home page
-                }, 3000); 
+                }, 1000); 
                 // Handle success response
                 console.log('Form submitted successfully');
                 console.log(data);   
@@ -480,7 +485,7 @@ $('#insuranceAddForm').submit(function(e) {
       
 })
 .then(data=>{
-  $('#successModal').modal('show');
+  $('#statusSuccessModal').modal('show');
 
 })
 .catch(error => console.error('Error:', error));
@@ -563,6 +568,18 @@ $('#insuranceAddForm').submit(function(e) {
   align: 'center'
 },
 {
+  field: 'breed',
+  title: 'Breed',
+  sortable: true,
+  align: 'center'
+},
+{
+  field: 'animal_species',
+  title: 'Animal Species',
+  sortable: true,
+  align: 'center'
+},
+{
   field: 'company',
   title: 'Company',
   sortable: true,
@@ -576,7 +593,7 @@ $('#insuranceAddForm').submit(function(e) {
 },
 {
   field: 'payment_date',
-  title: 'Payment Date',
+  title: 'Date Of Insurance',
   sortable: true,
   align: 'center',
   formatter: function (value, row) {
@@ -654,7 +671,7 @@ $('#insuranceAddForm').submit(function(e) {
                 };
               
                 document.getElementById("modal-footer").style.display = "none";
-                document.getElementById("closeModalBtn").style.display = "none";
+                //document.getElementById("closeModalBtn").style.display = "none";
 
                 html2pdf().from(invoice).set(opt).save().then(() => {
                     
@@ -685,7 +702,7 @@ $('#insuranceAddForm').submit(function(e) {
   <script src="{% static 'portals/assets/js/core/bootstrap.min.js' %}"></script>
  
   <script src="{% static 'portals/assets/js/main.js' %}"></script>
-  
+  <script src="{% static 'portals/assets/js/scripts.js' %}"></script>
   
 </div>
 <!-- /.row (main row) -->
@@ -697,7 +714,7 @@ $('#insuranceAddForm').submit(function(e) {
             <div class="copyright">
               &copy; Copyright <strong><span>SoinVet</span></strong>. All Rights Reserved
               <div class="credits">
-              Designed by <a>ishasir</a>
+              
             </div>
           </div>
         </footer><!-- End Footer -->

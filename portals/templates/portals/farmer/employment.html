@@ -70,7 +70,7 @@
     </div>
    
    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#employAddModal">
-     Add 
+    Add Record
     </button>
      <!-- form modal -->
      <div class="modal fade" id="employAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -102,8 +102,8 @@
                   <div class="invalid-feedback">Please provide a valid phone number.</div>
               </div>
               <div class="mb-3">
-                  <label for="country" class="form-label">Country</label>
-                  <input type="text" id="country" name="country" class="form-control editable-field" maxlength="50" required>
+                  <label for="country" class="form-label">County</label>
+                  <input type="text" id="county" name="county" class="form-control editable-field" maxlength="50" required>
                   <div class="invalid-feedback">Please provide a valid country.</div>
               </div>
               <div class="mb-3">
@@ -126,21 +126,34 @@
                   <input type="text" id="next_of_kin_phone_no" name="next_of_kin_phone_no" class="form-control editable-field" maxlength="15" required>
                   <div class="invalid-feedback">Please provide a valid next of kin phone number.</div>
               </div>
-              <div class="mb-3">
+              <!-- <div class="mb-3">
                   <label for="area_of_residence" class="form-label">Area of Residence</label>
                   <input type="text" id="area_of_residence" name="area_of_residence" class="form-control editable-field" maxlength="100" required>
                   <div class="invalid-feedback">Please provide a valid area of residence.</div>
-              </div>
+              </div> -->
+              <div class="mb-3">
+                <label for="chief_name" class="form-label">Chief's Name</label>
+                <input type="text" id="chief_name" name="chief_name" class="form-control editable-field" maxlength="15" required>
+                <div class="invalid-feedback">Please provide a valid chief's phone number.</div>
+            </div>
               <div class="mb-3">
                   <label for="chief_phone_no" class="form-label">Chief's Phone Number</label>
                   <input type="text" id="chief_phone_no" name="chief_phone_no" class="form-control editable-field" maxlength="15" required>
                   <div class="invalid-feedback">Please provide a valid chief's phone number.</div>
               </div>
               <div class="mb-3">
-                  <label for="employee_position" class="form-label">Employee Position</label>
-                  <input type="text" id="employee_position" name="employee_position" class="form-control editable-field" maxlength="50" required>
-                  <div class="invalid-feedback">Please provide a valid employee position.</div>
-              </div>
+                <label for="employee_position" class="form-label">Employee Position</label>
+                <select id="employee_position" name="employee_position" class="form-control editable-field" required>
+                    <option value="">Select Position</option>
+                    <option value="Milker">Milker</option>
+                    <option value="Cleaner">Cleaner</option>
+                    <option value="Animal caretaker">Animal caretaker</option>
+                    <option value="Driver">Driver</option>
+                    <option value="Veterinary officer">Veterinary officer</option>
+                    <option value="Manager">Manager</option>
+                </select>
+                <div class="invalid-feedback">Please provide a valid employee position.</div>
+            </div>
               <div class="mb-3">
                   <label for="salary" class="form-label">Salary</label>
                   <input type="number" id="salary" name="salary" class="form-control editable-field" step="0.01" max="99999999.99" required>
@@ -220,8 +233,8 @@
                   <div class="invalid-feedback">Please provide a valid phone number.</div>
               </div>
               <div class="mb-3">
-                  <label for="country" class="form-label">Country</label>
-                  <input type="text" id="country" name="country" class="form-control editable-field" maxlength="50" required>
+                  <label for="country" class="form-label">County</label>
+                  <input type="text" id="county" name="county" class="form-control editable-field" maxlength="50" required>
                   <div class="invalid-feedback">Please provide a valid country.</div>
               </div>
               <div class="mb-3">
@@ -244,21 +257,34 @@
                   <input type="text" id="next_of_kin_phone_no" name="next_of_kin_phone_no" class="form-control editable-field" maxlength="15" required>
                   <div class="invalid-feedback">Please provide a valid next of kin phone number.</div>
               </div>
-              <div class="mb-3">
+              <!-- <div class="mb-3">
                   <label for="area_of_residence" class="form-label">Area of Residence</label>
                   <input type="text" id="area_of_residence" name="area_of_residence" class="form-control editable-field" maxlength="100" required>
                   <div class="invalid-feedback">Please provide a valid area of residence.</div>
-              </div>
+              </div> -->
+              <div class="mb-3">
+                <label for="chief_name" class="form-label">Chief's Name</label>
+                <input type="text" id="chief_name" name="chief_name" class="form-control editable-field" maxlength="15" required>
+                <div class="invalid-feedback">Please provide a valid chief's phone number.</div>
+            </div>
               <div class="mb-3">
                   <label for="chief_phone_no" class="form-label">Chief's Phone Number</label>
                   <input type="text" id="chief_phone_no" name="chief_phone_no" class="form-control editable-field" maxlength="15" required>
                   <div class="invalid-feedback">Please provide a valid chief's phone number.</div>
               </div>
               <div class="mb-3">
-                  <label for="employee_position" class="form-label">Employee Position</label>
-                  <input type="text" id="employee_position" name="employee_position" class="form-control editable-field" maxlength="50" required>
-                  <div class="invalid-feedback">Please provide a valid employee position.</div>
-              </div>
+                <label for="employee_position" class="form-label">Employee Position</label>
+                <select id="employee_position" name="employee_position" class="form-control editable-field" required>
+                    <option value="">Select Position</option>
+                    <option value="Milker">Milker</option>
+                    <option value="Cleaner">Cleaner</option>
+                    <option value="Animal caretaker">Animal caretaker</option>
+                    <option value="Driver">Driver</option>
+                    <option value="Veterinary officer">Veterinary officer</option>
+                    <option value="Manager">Manager</option>
+                </select>
+                <div class="invalid-feedback">Please provide a valid employee position.</div>
+            </div>
               <div class="mb-3">
                   <label for="salary" class="form-label">Salary</label>
                   <input type="number" id="salary" name="salary" class="form-control editable-field" step="0.01" max="99999999.99" required>
@@ -310,15 +336,8 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <div class="modal-header">
-            <h4 class="col-9 modal-title text-center">Farm Records</h4>
-            <button type="button"  id="closeModalBtn">
-              <i class="fa fa-times" aria-hidden="true"></i>
-            </button>
-          </div>
-          <div class="modal-header">
-            <h5 class="col-12 modal-title text-center " >Employees  Records</h5> 
-          </div>
+         <h2 class="text-center">Farm Records</h2>
+       <h3 class="text-center">Employees Records </h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -329,27 +348,7 @@
       </div><!-- /.modal-dialog -->
     </div><!-- /. Display  modal -->
 <!-- sucess Modal -->
-<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-confirm">
-      <div class="modal-content">
-          <div class="modal-header">
-              <div class="icon-box">
-                  <i class="material-icons">&#xE876;</i>
-              </div>
-              <h4 class="modal-title">Details Submitted successfully</h4>
-          </div>
-          <div class="modal-body">
-              <div class="spinner-border text-success" role="status">
-                  <span class="sr-only">Loading...</span>
-              </div>
-              <p class="text-center">Saving....</p>
-          </div>
-          <div class="modal-footer">
-              <button class="btn btn-success btn-block" data-dismiss="modal">OK</button>
-          </div>
-      </div>
-  </div>
-</div>
+
 <!-- sucess Modal End -->
 
 
@@ -487,37 +486,55 @@ const csrftoken = getCookie('csrftoken');
         $('#dsModal').modal('hide');
     });
 }
+
 $('#employAddForm').submit(function(e) {
-        e.preventDefault(); // Prevent the default form submission
-        // Serialize form data
-        var formData = $(this).serialize();
-        
-        // Send AJAX request
-        $.ajax({
-            type: 'POST',
-            url: "/employees/create/",
-            data: formData,
-           
-            success: function(data) {
-              $('#employAddModal').modal('hide');
-              $('#successModal').modal('show');
-                //console.log(data.message);
-                // Redirect after 3 seconds
-                setTimeout(function() {
-                  window.location.reload(); // Redirect to the home page
-                }, 3000); 
-                // Handle success response
-                console.log('Form submitted successfully');
-                console.log(data);   
-            },
-            
-            error: function(xhr, textStatus, errorThrown) {
-                // Handle error response
-                console.error('Error submitting form:', errorThrown);
-            }
-        });
-        
+  e.preventDefault();
+  var formData = new FormData(this);
+  var jsonObject = {};
+  formData.forEach(function(value, key) {
+      jsonObject[key] = value;
+  });
+  var id_no = $('#id_no').val();
+
+  var csrftoken = getCookie('csrftoken');
+
+  $.ajax({
+    method: 'POST',
+    url: "/employees/create/",
+    data: JSON.stringify(jsonObject),
+    beforeSend: function(xhr) {
+      xhr.setRequestHeader('X-CSRFToken', csrftoken);
+      xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+    }
+  }).done(function(data) {
+    console.log('POST response data:', data);
+    $('#employAddModal').modal('hide');
+    $('#statusSuccessModal').modal('show');
+    setTimeout(function() {
+      window.location.reload();
+    }, 1000);
+  }).fail(function(xhr, textStatus, errorThrown) {
+    $('#employAddModal').modal('hide');
+    if (xhr.status === 400) {
+      var errors = JSON.parse(xhr.responseText);
+      if (errors.id_no) {
+        errorMessage = errors.id_no;
+      } else {
+        errorMessage = xhr.responseText;
+      }
+    } else {
+      errorMessage = xhr.responseText;
+    }
+    console.error('Error submitting form:', errorMessage);
+    $('#errorModalBody').html('<p>' + errorMessage + '</p>');
+    $('#statusErrorsModal').modal('show');
+    $('#errorButton').click(function() {
+      setTimeout(function() {
+        window.location.reload();
+      }, 5);  
     });
+  });
+});
      function operateFormatter(value, row, index) {
         return [
           '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
@@ -600,7 +617,7 @@ $('#employAddForm').submit(function(e) {
       
 })
 .then(data=>{
-  $('#successModal').modal('show');
+  $('#statusSuccessModalal').modal('show');
 
 })
 .catch(error => console.error('Error:', error));
@@ -686,8 +703,8 @@ $('#employAddForm').submit(function(e) {
   align: 'center'
 },
 {
-  field: 'country',
-  title: 'Country',
+  field: 'county',
+  title: 'County',
   sortable: true,
   align: 'center'
 },
@@ -715,9 +732,15 @@ $('#employAddForm').submit(function(e) {
   sortable: true,
   align: 'center'
 },
+// {
+//   field: 'area_of_residence',
+//   title: 'Area of Residence',
+//   sortable: true,
+//   align: 'center'
+// },
 {
-  field: 'area_of_residence',
-  title: 'Area of Residence',
+  field: 'chief_name',
+  title: 'Chief\'s Name',
   sortable: true,
   align: 'center'
 },
@@ -822,7 +845,7 @@ $('#employAddForm').submit(function(e) {
                 };
               
                 document.getElementById("modal-footer").style.display = "none";
-                document.getElementById("closeModalBtn").style.display = "none";
+                //document.getElementById("closeModalBtn").style.display = "none";
 
                 html2pdf().from(invoice).set(opt).save().then(() => {
                     
@@ -851,7 +874,7 @@ $('#employAddForm').submit(function(e) {
 
   <script src="{% static 'portals/assets/js/core/popper.min.js' %}"></script>
   <script src="{% static 'portals/assets/js/core/bootstrap.min.js' %}"></script>
- 
+  <script src="{% static 'portals/assets/js/script.js' %}"></script>
   <script src="{% static 'portals/assets/js/main.js' %}"></script>
   
   <!--  Notifications Plugin    -->
@@ -867,7 +890,7 @@ $('#employAddForm').submit(function(e) {
             <div class="copyright">
               &copy; Copyright <strong><span>SoinVet</span></strong>. All Rights Reserved
               <div class="credits">
-              Designed by <a>ishasir</a>
+              
             </div>
           </div>
         </footer><!-- End Footer -->

@@ -64,13 +64,13 @@
           <div class="col-md-12">
             <div class="card">
               <div class="card-header">
-<h4 class="">Archaricides</h4>
+<h4 class="">Acaricides</h4>
     <!-- Content Wrapper. Contains page content -->
     <div class="px-5 my-1 text-center">
     </div>
    
    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#archaricidesAddModal">
-     Add 
+    Add Record
     </button>
      <!-- form modal -->
      <div class="modal fade" id="archaricidesAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -99,9 +99,14 @@
                     <input type="text" id="chemical_name" name="chemical_name" class="form-control editable-field" maxlength="30">
                     <div class="invalid-feedback">Please provide a valid chemical name.</div>
                   </div>
+                  <div class="mb-3">
+                    <label for="trade_name" class="form-label">Trade Name</label>
+                    <input type="text" id="trade_name" name="trade_name" class="form-control editable-field" maxlength="30">
+                    <div class="invalid-feedback">Please provide a valid chemical name.</div>
+                  </div>
                   
                   <div class="mb-3">
-                    <label for="quantity" class="form-label">Quantity</label>
+                    <label for="quantity" class="form-label">Volume</label>
                     <input type="text" id="quantity" name="quantity" class="form-control editable-field" maxlength="255">
                     <div class="invalid-feedback">Please provide a valid quantity.</div>
                   </div>
@@ -178,9 +183,14 @@
                     <input type="text" id="chemical_name" name="chemical_name" class="form-control editable-field" maxlength="30">
                     <div class="invalid-feedback">Please provide a valid chemical name.</div>
                   </div>
+                  <div class="mb-3">
+                    <label for="trade_name" class="form-label">Trade Name</label>
+                    <input type="text" id="trade_name" name="trade_name" class="form-control editable-field" maxlength="30">
+                    <div class="invalid-feedback">Please provide a valid chemical name.</div>
+                  </div>
                   
                   <div class="mb-3">
-                    <label for="quantity" class="form-label">Quantity</label>
+                    <label for="quantity" class="form-label">Volume</label>
                     <input type="text" id="quantity" name="quantity" class="form-control editable-field" maxlength="255">
                     <div class="invalid-feedback">Please provide a valid quantity.</div>
                   </div>
@@ -236,15 +246,8 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <div class="modal-header">
-            <h4 class="col-9 modal-title text-center">Farm Records</h4>
-            <button type="button"  id="closeModalBtn">
-              <i class="fa fa-times" aria-hidden="true"></i>
-            </button>
-          </div>
-          <div class="modal-header">
-            <h5 class="col-12 modal-title text-center " >Arcaricides  Records</h5> 
-          </div>
+          <h2 class="text-center">Farm Records</h2>
+       <h3 class="text-center">Acaricides Records</h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -255,28 +258,7 @@
       </div><!-- /.modal-dialog -->
     </div><!-- /. Display  modal -->
 <!-- sucess Modal -->
-<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-confirm">
-      <div class="modal-content">
-          <div class="modal-header">
-              <div class="icon-box">
-                  <i class="material-icons">&#xE876;</i>
-              </div>
-              <h4 class="modal-title">Details Submitted successfully</h4>
-          </div>
-          <div class="modal-body">
-              <div class="spinner-border text-success" role="status">
-                  <span class="sr-only">Loading...</span>
-              </div>
-              <p class="text-center">Saving....</p>
-          </div>
-          <div class="modal-footer">
-              <button class="btn btn-success btn-block" data-dismiss="modal">OK</button>
-          </div>
-      </div>
-  </div>
-</div>
-<!-- sucess Modal End -->
+
 
 
     
@@ -426,18 +408,26 @@ $('#archaricidesAddForm').submit(function(e) {
            
             success: function(data) {
               $('#archaricidesAddModal').modal('hide');
-              $('#successModal').modal('show');
+              $('#statusSuccessModal').modal('show');
                 //console.log(data.message);
                 // Redirect after 3 seconds
                 setTimeout(function() {
                   window.location.reload(); // Redirect to the home page
-                }, 3000); 
+                }, 1000); 
                 // Handle success response
                 console.log('Form submitted successfully');
                 console.log(data);   
             },
             
             error: function(xhr, textStatus, errorThrown) {
+              $('#arcaricidesAddModal').modal('hide');
+              $('#statusErrorsModal').modal('show');
+              $('#errorButton').click(function() {
+      setTimeout(function() {
+        window.location.reload();
+      }, 5);  
+    });
+
                 // Handle error response
                 console.error('Error submitting form:', errorThrown);
             }
@@ -526,7 +516,7 @@ $('#archaricidesAddForm').submit(function(e) {
       
 })
 .then(data=>{
-  $('#successModal').modal('show');
+  $('#statusSuccessModal').modal('show');
 
 })
 .catch(error => console.error('Error:', error));
@@ -612,6 +602,7 @@ $('#archaricidesAddForm').submit(function(e) {
             }
     
   },
+ 
   {
     field: 'chemical_name',
     title: 'Chemical Name',
@@ -619,8 +610,14 @@ $('#archaricidesAddForm').submit(function(e) {
     align: 'center'
   },
   {
+    field: 'trade_name',
+    title: 'Trade Name',
+    sortable: true,
+    align: 'center'
+  },
+  {
     field: 'quantity',
-    title: 'Quantity',
+    title: 'Volume',
     sortable: true,
     align: 'center'
   },
@@ -711,27 +708,31 @@ $('#archaricidesAddForm').submit(function(e) {
   
   <script>
     window.onload = function () {
-    document.getElementById("download")
-        .addEventListener("click", () => {
-            const invoice = this.document.getElementById("invoice");
-            console.log(invoice);
-            console.log(window);
-            var opt = {
-                margin: 1,
-                filename: 'myfile.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-            };
-          // Hide the modal footer
-        document.getElementById("modal-footer").style.display = "none";
+        document.getElementById("download")
+            .addEventListener("click", () => {
+                const invoice = document.getElementById("invoice");
+                console.log(invoice);
+                console.log(window);
+                var opt = {
+                    margin: 1,
+                    filename: 'farmer records.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                };
+              
+                document.getElementById("modal-footer").style.display = "none";
+                //document.getElementById("closeModalBtn").style.display = "none";
 
-html2pdf().from(invoice).set(opt).save();
-
-// Show the modal footer again after the download
-document.getElementById("modal-footer").style.display = "none";
-        })
-}
+                html2pdf().from(invoice).set(opt).save().then(() => {
+                    
+                    window.location.reload();
+                });
+                
+                
+                document.getElementById("modal-footer").style.display = "none";
+            });
+    }
 </script>
 
     
@@ -753,7 +754,7 @@ document.getElementById("modal-footer").style.display = "none";
   
   
   <!--  Notifications Plugin    -->
-  
+  <script src="{% static 'portals/assets/js/scripts.js' %}"></script>
   <!-- Control Center for Now Ui Dashboard: parallax effects, scripts for the example pages etc -->
   <script src="{% static 'portals/assets/js/main.js' %}"></script>
   <!-- page-wrapper -->
@@ -770,7 +771,7 @@ document.getElementById("modal-footer").style.display = "none";
             <div class="copyright">
               &copy; Copyright <strong><span>SoinVet</span></strong>. All Rights Reserved
               <div class="credits">
-              Designed by <a>ishasir</a>
+              
             </div>
           </div>
         </footer><!-- End Footer -->

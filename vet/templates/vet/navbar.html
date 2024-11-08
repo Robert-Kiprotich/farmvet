@@ -44,6 +44,7 @@
               <ul>
                 <li><a href="{% url 'vet-login' %}">Vet Officer Login</a></li>
                   <li><a href="{% url 'farmer-login' %}">Farmer Login</a></li>
+                  <li><a href="{% url 'official-login' %}">Government Official Login</a></li>
               </ul>
             </li>
           {% else %}
@@ -53,6 +54,8 @@
                   <li><a href="{% url 'vet-portal' %}">My Dashboard</a></li>
                 {% elif user.is_farmer %}
                   <li><a href="{% url 'farmer-portal' %}">My Dashboard</a></li>
+                  {% elif user.is_official %}
+                  <li><a href="{% url 'official-portal' %}">My Dashboard</a></li>
                 {% elif user.is_superuser %}            
                   <li><a href="/admin">Admin Dashboard</a></li>
                 {% endif %} 

@@ -70,7 +70,7 @@
     </div>
    
    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newAddModal">
-     Add 
+    Add Record
     </button>
      <!-- form modal -->
      <div class="modal fade" id="newAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -95,7 +95,7 @@
                   <input type="text" class="form-control editable-field" id="id_reg_no" name="reg_no">
               </div>
               <div class="mb-3">
-                  <label for="id_source" class="form-label">Source</label>
+                  <label for="id_source" class="form-label">Source Of The Animal</label>
                   <select class="form-control editable-field" id="id_source" name="source">
                       <option value="Market">Market</option>
                       <option value="Farmer">Farmer</option>
@@ -121,15 +121,17 @@
                 <select class="form-control editable-field" id="id_breed" name="breed">
                   <optgroup label="Cattle" aria-selected="">
                     <option value="Angus">Angus</option>
-                    <option value="Hereford">Hereford</option>
-                    <option value="Charolais">Charolais</option>
-                    <option value="Simmental">Simmental</option>
-                    <option value="Limousin">Limousin</option>
-                    <option value="Texas Longhorn">Texas Longhorn</option>
-                    <option value="Holstein">Holstein</option>
-                    <option value="Jersey">Jersey</option>
-                    <option value="Gelbvieh">Gelbvieh</option>
-                    <option value="Brahman">Brahman</option>
+                        <option value="Friesian">Friesian</option>
+                        <option value="Ayrshire">Ayrshire</option>
+                        <option value="Hereford">Hereford</option>
+                        <option value="Charolais">Charolais</option>
+                        <option value="Simmental">Simmental</option>
+                        <option value="Limousin">Limousin</option>
+                        <option value="Texas Longhorn">Texas Longhorn</option>
+                        <option value="Holstein">Holstein</option>
+                        <option value="Jersey">Jersey</option>
+                        <option value="Gelbvieh">Gelbvieh</option>
+                        <option value="Brahman">Brahman</option>
                 </optgroup>
                 <optgroup label="Sheep">
                     <option value="Merino">Merino</option>
@@ -285,7 +287,7 @@
                   <input type="text" class="form-control editable-field" id="id_reg_no" name="reg_no">
               </div>
               <div class="mb-3">
-                  <label for="id_source" class="form-label">Source</label>
+                  <label for="id_source" class="form-label">Source Of The Animal</label>
                   <select class="form-control editable-field" id="id_source" name="source">
                       <option value="Market">Market</option>
                       <option value="Farmer">Farmer</option>
@@ -301,9 +303,9 @@
                     <option value="Cow">Cow</option>
                       <option value="Goat">Goat</option>
                       <option value="Sheep">Sheep </option>
-                      <option value="Dog">Sheep </option>
-                      <option value="Cat">Sheep </option>
-                      <option value="Horse">Sheep </option>
+                      <option value="Dog">Dog </option>
+                      <option value="Cat">Cat</option>
+                      <option value="Horse">Horse</option>
                     </select>
               </div>
               <div class="mb-3">
@@ -311,6 +313,8 @@
                   <select class="form-control editable-field" id="id_breed" name="breed">
                     <optgroup label="Cattle" aria-selected="">
                       <option value="Angus">Angus</option>
+                      <option value="Friesian">Friesian</option>
+                      <option value="Ayrshire">Ayrshire</option>
                       <option value="Hereford">Hereford</option>
                       <option value="Charolais">Charolais</option>
                       <option value="Simmental">Simmental</option>
@@ -455,15 +459,8 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <div class="modal-header">
-            <h4 class="col-9 modal-title text-center">Farm Records</h4>
-            <button type="button"  id="closeModalBtn">
-              <i class="fa fa-times" aria-hidden="true"></i>
-            </button>
-          </div>
-          <div class="modal-header">
-            <h5 class="col-12 modal-title text-center " >New Animal  Records</h5> 
-          </div>
+          <h2 class="text-center">Farm Records</h2>
+       <h3 class="text-center">New Animal Record</h3> 
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -474,28 +471,6 @@
       </div><!-- /.modal-dialog -->
     </div><!-- /. Display  modal -->
 <!-- sucess Modal -->
-<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-confirm">
-      <div class="modal-content">
-          <div class="modal-header">
-              <div class="icon-box">
-                  <i class="material-icons">&#xE876;</i>
-              </div>
-              <h4 class="modal-title">Details Submitted successfully</h4>
-          </div>
-          <div class="modal-body">
-              <div class="spinner-border text-success" role="status">
-                  <span class="sr-only">Loading...</span>
-              </div>
-              <p class="text-center">Saving....</p>
-          </div>
-          <div class="modal-footer">
-              <button class="btn btn-success btn-block" data-dismiss="modal">OK</button>
-          </div>
-      </div>
-  </div>
-</div>
-<!-- sucess Modal End -->
 
 
     
@@ -633,37 +608,55 @@ const csrftoken = getCookie('csrftoken');
     });
 }
 $('#newAddForm').submit(function(e) {
-        e.preventDefault(); // Prevent the default form submission
-        // Serialize form data
-        var formData = $(this).serialize();
-        
-        // Send AJAX request
-        $.ajax({
-            type: 'POST',
-            url: "/new-animal/create/",
-            data: formData,
-           
-            success: function(data) {
-              $('#newAddModal').modal('hide');
-              $('#successModal').modal('show');
-                //console.log(data.message);
-                // Redirect after 3 seconds
-                setTimeout(function() {
-                  window.location.reload(); // Redirect to the home page
-                }, 3000); 
-                // Handle success response
-                console.log('Form submitted successfully');
-                console.log(data);   
-            },
-            
-            error: function(xhr, textStatus, errorThrown) {
-                // Handle error response
-                console.error('Error submitting form:', errorThrown);
-            }
-        });
-        
+  e.preventDefault();
+  var formData = new FormData(this);
+  var jsonObject = {};
+  formData.forEach(function(value, key) {
+      jsonObject[key] = value;
+  });
+  var reg_no = $('#reg_no').val();
+
+  var csrftoken = getCookie('csrftoken');
+
+  $.ajax({
+    method: 'POST',
+    url: "/new-animal/create/",
+    data: JSON.stringify(jsonObject),
+    beforeSend: function(xhr) {
+      xhr.setRequestHeader('X-CSRFToken', csrftoken);
+      xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+    }
+  }).done(function(data) {
+    console.log('POST response data:', data);
+    $('#newAddModal').modal('hide');
+    $('#statusSuccessModal').modal('show');
+    setTimeout(function() {
+      window.location.reload();
+    }, 1000);
+  }).fail(function(xhr, textStatus, errorThrown) {
+    $('#newAddModal').modal('hide');
+    if (xhr.status === 400) {
+      var errors = JSON.parse(xhr.responseText);
+      if (errors.reg_no) {
+        errorMessage = errors.reg_no;
+      } else {
+        errorMessage = xhr.responseText;
+      }
+    } else {
+      errorMessage = xhr.responseText;
+    }
+    console.error('Error submitting form:', errorMessage);
+    $('#errorModalBody').html('<p>' + errorMessage + '</p>');
+    $('#statusErrorsModal').modal('show');
+    $('#errorButton').click(function() {
+      setTimeout(function() {
+        window.location.reload();
+      }, 5);  
     });
-     function operateFormatter(value, row, index) {
+  });
+});
+
+function operateFormatter(value, row, index) {
         return [
           '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
           '<i class="fa fa-edit"></i>',
@@ -674,7 +667,6 @@ $('#newAddForm').submit(function(e) {
           
         ].join('')
       }
-
      
       window.operateEvents = {
         'click .edit': function(e, value, row, index) {
@@ -745,7 +737,7 @@ $('#newAddForm').submit(function(e) {
       
 })
 .then(data=>{
-  $('#successModal').modal('show');
+  $('#statusSuccessModal').modal('show');
 
 })
 .catch(error => console.error('Error:', error));
@@ -996,7 +988,7 @@ $('#newAddForm').submit(function(e) {
                 };
               
                 document.getElementById("modal-footer").style.display = "none";
-                document.getElementById("closeModalBtn").style.display = "none";
+                //document.getElementById("closeModalBtn").style.display = "none";
 
                 html2pdf().from(invoice).set(opt).save().then(() => {
                     
@@ -1025,7 +1017,7 @@ $('#newAddForm').submit(function(e) {
 
   <script src="{% static 'portals/assets/js/core/popper.min.js' %}"></script>
   <script src="{% static 'portals/assets/js/core/bootstrap.min.js' %}"></script>
-  <script src="{% static 'portals/assets/js/main.js' %}"></script>
+  
   
   <!--  Notifications Plugin    -->
   
@@ -1033,7 +1025,7 @@ $('#newAddForm').submit(function(e) {
   <script src="{% static 'portals/assets/js/now-ui-dashboard.min.js' %}" type="text/javascript"></script><!-- Now Ui Dashboard DEMO methods, don't include it in your project! -->
   <script src="{% static 'portals/assets/js/main.js' %}"></script>
   <!-- page-wrapper -->
-  
+  <script src="{% static 'portals/assets/js/scripts.js' %}"></script>
  
       
 </div>
@@ -1046,7 +1038,7 @@ $('#newAddForm').submit(function(e) {
             <div class="copyright">
               &copy; Copyright <strong><span>SoinVet</span></strong>. All Rights Reserved
               <div class="credits">
-              Designed by <a>ishasir</a>
+              
             </div>
           </div>
         </footer><!-- End Footer -->
@@ -1054,7 +1046,7 @@ $('#newAddForm').submit(function(e) {
     </div>
     </div>
     </div>
-    </div>
+   </div>
     </main>
 {% endblock %}
 

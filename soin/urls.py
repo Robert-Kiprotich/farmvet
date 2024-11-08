@@ -4,14 +4,9 @@ from user import views as user_views
 from portals import views as portal_views  
 from portals.views import *
 from portals.monitoring import *
-
-
-
 from django.conf.urls.static import static
 from django.conf import settings
-
 from django.contrib.auth.decorators import login_required
-
 from django.contrib.auth import views as auth_views
 app_name = 'portals'
 
@@ -22,11 +17,11 @@ urlpatterns = [
     #users sign up
     path('user/signup/vet_officer/', user_views.vet0fficer_signup_view, name='vet-register'),
     path('user/signup/farmer/',user_views.farmer_signup_view,name='farmer-register'),
-    # path('user/signup/student/',user_views.student_signup_view,name='student-register'),
+    path('user/signup/official/',user_views.Official_signup_view,name='official-register'),
     #users login 
     path('vet/login/',user_views.vet_login,name='vet-login'),
     path('farmer/login/',user_views.farmer_login,name='farmer-login'),
-    # path('student/login/',user_views.student_login,name='student-login'),
+    path('official/login/',user_views.official_login,name='official-login'),
     path('logout/', user_views.user_logout, name='logout'),
     #password reset
     path("password-reset", auth_views.PasswordResetView.as_view(template_name="user/password_reset.html"), name="password_reset"),
@@ -37,99 +32,17 @@ urlpatterns = [
     #users portals
     path('vet_portal/', portal_views.portal_vet, name='vet-portal'),
     path('vet_list/', portal_views.vet_list, name='vet-list'),
+    path('vet_list_vet/', portal_views.vet_list_vet, name='vet-list_vet'),
     path('farmer_portal/', portal_views.portal_farmer, name='farmer-portal'),
-    path('student_portal/', portal_views.portal_student, name='student-portal'),
-    path('sickformview/',portal_views.sick_form_view,name='sickformview'),
-    path('editsickform/<int:pk>/',portal_views.edit_sick_form,name='sickform-edit'),
-    path('deathformview/',portal_views.dead_form_view,name='deadformview'),
-    path('editdeadform/<int:pk>/',portal_views.edit_dead_form,name='deadform-edit'),
-    path('surgicalformview/',portal_views.surgical_form_view,name='surgicalformview'),
-    path('editsurgicalform/<int:pk>/',portal_views.edit_surgical_form,name='surgicalform-edit'),
-    path('dewormingformview/',portal_views.deworming_form_view,name='dewormingformview'),
-    path('editdewormingform/<int:pk>/',portal_views.edit_deworming_form,name='dewormingform-edit'),
-    path('vaccinationformview/',portal_views.vaccination_form_view,name='vaccinationformview'),
-    path('editvaccinationform/<int:pk>/',portal_views.edit_vaccination_form,name='vaccinationform-edit'),
-    path('artificialformview/',portal_views.artificial_form_view,name='artificialformview'),
-    path('editartificialform/<int:pk>/',portal_views.edit_artificial_form,name='artificialform-edit'),
-    path('pregnancyformview/',portal_views.pregnancy_form_view,name='pregnancyformview'),
-    path('editpregnancyform/<int:pk>/',portal_views.edit_pregnancy_form,name='pregnancyform-edit'),
-    #vet forms
-    path('clinical_approach/',portal_views.clinical_approach,name='clinical-approach'),
-    path('sick_approach', portal_views.sick_approach, name='sick-approach'),
-    path('dead_approach', portal_views.dead_approach, name='dead-approach'),
-    path('surgical_approach',portal_views.surgical_approach, name='surgical-approach'),
-    path('deworming',portal_views.deworming,name='deworming'),
-    path('vaccination',portal_views.vaccination,name='vaccination'),
-    path('breeding_record/',portal_views.breeding_record,name='breeding_record'),
-    path('artificial_insemination', portal_views.artificial_insemination, name='artificial-insemination'),
-    path('pregnancy_diagnosis',portal_views.pregnancy_diagnosis,name='pregnancy_diagnosis'),
-    path('calf_registration', portal_views.calf_registration, name='calf-registration'),
-    path('calfformview/',portal_views.calf_form_view,name='calfformview'),
-    path('editcalfform/<int:pk>/',portal_views.edit_calf_registration,name='calfform-edit'),   
-    path('livestock_inventory', portal_views.livestock_inventory, name='livestock-inventory'),
-    path('livestockformview/',portal_views.livestock_inventory_view,name='livestockformview'),
-    path('editlivestockform/<int:pk>/',portal_views.edit_livestock_inventory,name='livestockform-edit'),
-    path('consultation',portal_views.consultation,name='consultation'),
-    path('consultationformview/',portal_views.consultation_form_view,name='consultationformview'),
-    path('editconsultationform/<int:pk>/',portal_views.edit_consultation_form,name='consultation-edit'),
-    path('vetbilling',portal_views.vet_billing,name='vetbilling'),
-    path('vetbillingformview/',portal_views.vet_billing_form_view,name='vetbillformview'),
-    path('editvetbillingform/<int:pk>/',portal_views.edit_vet_billing_form,name='vetbill-edit'),
-    path('laboratory',portal_views.lab,name='lab'),
-    path('labformview/',portal_views.lab_form_view,name='labformview'),
-    path('editlabform/<int:pk>/',portal_views.edit_lab_form,name='lab-edit'),  
-    path('referral',portal_views.referral_form,name='referral'),
-    path('referralformview/',portal_views.referral_form_view,name='referralformview'),
-    path('editreferralform/<int:pk>/',portal_views.edit_referral_form,name='referral-edit'), 
+    path('official_portal/', portal_views.portal_official, name='official-portal'),
 
-    #reports
-    path('artificial-report/', portal_views.artificial_report, name='artificial-report'), 
-    path('artificial-report-data/', portal_views.artificial_report_data, name='artificial_report_data'),
-    path('deworming-report/', portal_views.deworming_report, name='deworming-report'),
-    path('deworming-report-data/', portal_views.deworming_report_data, name='deworming_report_data'),
-    path('sick-report/', portal_views.sick_report, name='sick-report'),
-    path('sick-report-data/', portal_views.sick_report_data, name='sick_approach_data'),
-    path('death-report/',portal_views.death_report, name='death-report'),
-    path('death-report-data/',portal_views.death_report_data, name='death_report_data'),
-    path('vaccination-report/', portal_views.vaccination_report, name='vaccination-report'),
-    path('vaccination-report-data/', portal_views.vaccination_report_data, name='vaccination_report_data'),
-    path('pregnancy-report/', portal_views.pregnancy_diagnosis_report, name='pregnancy-report'),
-    path('pregnancy-report-data/', portal_views.pregnancy_diagnosis_report_data, name='pregnancy_diagnosis_report_data'),
-    path('farm-consultation/', portal_views.farm_consultation_report, name='farm-consultation'),
-    path('farm-consultation-data/', portal_views.farm_consultation_report_data, name='farm_consultation_data'),
-    path('veterinary-billing-report/', portal_views.veterinary_billing_report, name='veterinary-billing-report'),
-    path('veterinary-billing-report-data/', portal_views.veterinary_billing_report_data, name='veterinary_billing_report_data'),
-    path('laboratory-report/', portal_views.laboratory_report, name='laboratory-report'),
-    path('laboratory-report-data/', portal_views.laboratory_report_data, name='laboratory_report_data'),
-    path('referral-report/', portal_views.referral_report, name='referral-report'),
-    path('referral-report-data/', portal_views.referral_report_data, name='referral_report_data'),
-    path('livestock-inventory-report/', portal_views.livestock_inventory_report, name='livestock-inventory-report'),
-    path('livestock-inventory-report-data/', portal_views.livestock_inventory_report_data, name='livestock_inventory_report_data'),
-    path('surgical-report/', portal_views.surgical_report, name='surgical-report'),
-    path('surgical-report-data/', portal_views.surgical_report_data, name='surgical-report-data'),
-   
-          
     
-    #Farmer fetching forms pdf
-    path('sickformpdf/', login_required(portal_views.sick_form_pdf), name='sickformpdf'),
-    path('sickformvetpdf/', login_required(portal_views.Sick_Form_Pdf_Vet.as_view()), name='sickformvetpdf'),
-    path('deadpdf/', login_required(portal_views.dead_form_pdf), name='deadformpdf'),
-    path('deadformvetpdf/', login_required(portal_views.Dead_Form_Pdf_Vet.as_view()), name='deadformvetpdf'),
-    path('surgicalformpdf/', login_required(portal_views.Surgical_Form_Pdf.as_view()), name='surgicalformpdf'),
-    path('dewormingformpdf/', login_required(portal_views.Deworming_Form_Pdf.as_view()), name='dewormingformpdf'),
-    path('artificialformpdf/', login_required(portal_views.Artificial_Insemination_Form_Pdf.as_view()), name='artificialformpdf'),
-    path('vaccinationformpdf/', login_required(portal_views.Vaccination_Form_Pdf.as_view()), name='vaccinationformpdf'),
-    #path('deadformpdf/', login_required(portal_views.Dead_Form_Pdf.as_view()), name='deadformpdf'),
-    path('surgicalformpdf/', login_required(portal_views.Surgical_Form_Pdf.as_view()), name='surgicalformpdf'),
-    path('dewormingformpdf/', login_required(portal_views.Deworming_Form_Pdf.as_view()), name='dewormingformpdf'),
-    path('artificialformpdf/', login_required(portal_views.Artificial_Insemination_Form_Pdf.as_view()), name='artificialformpdf'),
-    path('vaccinationpdf/', login_required(portal_views.Vaccination_Form_Pdf.as_view()), name='vaccinationformpdf'),
-    path('consultationformpdf/', login_required(portal_views.Farm_Consultation_Form_Pdf.as_view()), name='consultationformpdf'),
-    path('pregnancyformpdf/', login_required(portal_views.Pregnancy_Diagnosis_Form_Pdf.as_view()), name='pregnancyformpdf'),
-    path('calfregformpdf/', login_required(portal_views.Calf_Registration_Form_Pdf.as_view()), name='calfregformpdf'),
-    path('inventorypdf/', login_required(portal_views.Livestock_Form_Pdf.as_view()), name='inventoryformpdf'),
-    path('referralpdf/', login_required(portal_views.referral_Form_Pdf.as_view()), name='referralformpdf'),
-    path('gallerypdf/', portal_views.display_images, name='display-images'),
+   
+   
+   
+   
+#################################FARMER  Urls######################################## 
+   
     ##calf
     path('calf', portal_views.calf, name='calf'),
     path('calves-list', CalfList.as_view(), name='calves-list'),
@@ -290,12 +203,196 @@ urlpatterns = [
     path('sales-of-milk/update/<int:pk>/', SalesOfMilkUpdate.as_view(), name='sales_of_milk_update'),
     path('sales-of-milk/delete/<int:pk>/', SalesOfMilkDelete.as_view(), name='sales_of_milk_delete'),
 
+    path('daily-milk/', portal_views.daily_record, name='daily-record'),
+    path('daily-milk/list/', DailyMilkRecordList.as_view(), name='daily-milk-list'),
+    path('daily-milk/delete/<int:pk>/', DailyMilkRecordDelete.as_view(), name='daily-delete'),
 
-]   
+
+    #################  VET URLs###############################################
+     #vet billing
+    path('vet-billing/', portal_views.vetbilling, name='vet-billing'),
+    path('vet-billing-view/', portal_views.vetbilling_view, name='vet-billing-view'),
+    path('vet-billing/create/', VeterinaryBillingCreate.as_view(), name='vet-billing-create'),
+    path('vet-billing/list/', VeterinaryBillingList.as_view(), name='vet-billing-list'),
+    path('vet-billing/update/<int:pk>/', VeterinaryBillingUpdate.as_view(), name='vet-billing-update'),
+    path('vet-billing/delete/<int:pk>/', VeterinaryBillingDelete.as_view(), name='vet-billing-delete'),
+
+    # Deworming URLs
+    path('deworming/', portal_views.deworming, name='deworming'),
+    path('deworming-view/', portal_views.deworming_view, name='deworming-view'),
+    path('deworming/create/', DewormingCreate.as_view(), name='deworming-create'),
+    path('deworming/list/', DewormingList.as_view(), name='deworming-list'),
+    path('deworming/update/<int:pk>/', DewormingUpdate.as_view(), name='deworming-update'),
+    path('deworming/delete/<int:pk>/', DewormingDelete.as_view(), name='deworming-delete'),
+
+    # Artificial Insemination URLs
+    path('ai/', portal_views.artificial, name='ai'),
+    path('ai-view/', portal_views.artificial_view, name='ai-view'),
+    path('artificial-insemination/create/', ArtificialInseminationCreate.as_view(), name='ai-create'),
+    path('artificial-insemination/list/', ArtificialInseminationList.as_view(), name='ai-list'),
+    path('artificial-insemination/update/<int:pk>/', ArtificialInseminationUpdate.as_view(), name='ai-update'),
+    path('artificial-insemination/delete/<int:pk>/', ArtificialInseminationDelete.as_view(), name='ai-delete'),
+
+    # Pregnancy Diagnosis URLs
+    path('pregnanacy-diag/', portal_views.pregdiagnosis, name='pregnancy-diag'),
+    path('pregnanacy-view/', portal_views.pregdiagnosis_view, name='pregnancy-view'),
+    path('pregnancy-diagnosis/create/', PregnancyDiagnosisCreate.as_view(), name='pd-create'),
+    path('pregnancy-diagnosis/list/', PregnancyDiagnosisList.as_view(), name='pd-list'),
+    path('pregnancy-diagnosis/update/<int:pk>/', PregnancyDiagnosisUpdate.as_view(), name='pd-update'),
+    path('pregnancy-diagnosis/delete/<int:pk>/', PregnancyDiagnosisDelete.as_view(), name='pd-delete'),
+
+    # Farm Consultation URLs
+    path('consultation/', portal_views.consultation, name='consultation'),
+    path('consultation-view/', portal_views.consultation_view, name='consultation-view'),
+    path('farm-consultation/create/', FarmConsultationCreate.as_view(), name='fc-create'),
+    path('farm-consultation/list/', FarmConsultationList.as_view(), name='fc-list'),
+    path('farm-consultation/update/<int:pk>/', FarmConsultationUpdate.as_view(), name='fc-update'),
+    path('farm-consultation/delete/<int:pk>/', FarmConsultationDelete.as_view(), name='fc-delete'),
+
+    # Referral URLs
+    path('referral/',portal_views.referral,name='referral'),
+    path('referral-view/',portal_views.referral_view,name='referral-view'),
+    path('referral/create/', ReferralCreate.as_view(), name='referral-create'),
+    path('referral/list/', ReferralList.as_view(), name='referral-list'),
+    path('referral/update/<int:pk>/', ReferralUpdate.as_view(), name='referral-update'),
+    path('referral/delete/<int:pk>/', ReferralDelete.as_view(), name='referral-delete'),
+
+     # SampleCollection URLs
+    path('collection/', portal_views.sample_collection, name='collection'),
+    path('collection-view/', portal_views.sample_collection_view, name='collection-view'),
+    path('sample-collection/create/', SampleCollectionCreate.as_view(), name='sample-collection-create'),
+    path('sample-collection/list/', SampleCollectionList.as_view(), name='sample-collection-list'),
+    path('sample-collection/update/<int:pk>/', SampleCollectionUpdate.as_view(), name='sample-collection-update'),
+    path('sample-collection/delete/<int:pk>/', SampleCollectionDelete.as_view(), name='sample-collection-delete'),
+
+    # SampleProcessing URLs
+    path('processing/', portal_views.sample_processing, name='processing'),
+    path('processing-view/', portal_views.sample_processing_view, name='processing-view'),
+    path('sample-processing/create/', SampleProcessingCreate.as_view(), name='sample-processing-create'),
+    path('sample-processing/list/', SampleProcessingList.as_view(), name='sample-processing-list'),
+    path('sample-processing/update/<int:pk>/', SampleProcessingUpdate.as_view(), name='sample-processing-update'),
+    path('sample-processing/delete/<int:pk>/', SampleProcessingDelete.as_view(), name='sample-processing-delete'),
 
 
+    # LaboratoryRecord URLs
+    path('lab-record/', portal_views.lab_record, name='lab-record'),
+    path('lab-record-view/', portal_views.lab_record_view, name='lab-record-view'),
+    path('laboratory-record/create/', LaboratoryRecordCreate.as_view(), name='laboratory-record-create'),
+    path('laboratory-record/list/', LaboratoryRecordList.as_view(), name='laboratory-record-list'),
+    path('laboratory-record/update/<int:pk>/', LaboratoryRecordUpdate.as_view(), name='laboratory-record-update'),
+    path('laboratory-record/delete/<int:pk>/', LaboratoryRecordDelete.as_view(), name='laboratory-record-delete'),
 
- 
+    path('incident/', portal_views.incidence_record, name='incident'),
+    path('incident-view/', portal_views.incidence_view, name='incident-view'),
+    path('incidents/create/', LivestockIncidentCreate.as_view(), name='livestock_incident_create'),
+    path('incidents/', LivestockIncidentList.as_view(), name='livestock_incident_list'),
+    path('incidents/update/<int:pk>/', LivestockIncidentUpdate.as_view(), name='livestock_incident_update'),
+    path('incidents/delete/<int:pk>/', LivestockIncidentDelete.as_view(), name='livestock_incident_delete'),
+
+    path('postmortem/', portal_views.post_mortem, name='postmortem'),
+    path('postmortem-view/', portal_views.post_mortem_view, name='postmortem-view'),
+    path('postmortem/create/', PostMortemRecordCreate.as_view(), name='postmortem-create'),
+    path('postmortem/list/', PostMortemRecordList.as_view(), name='postmortem-list'),
+    path('postmortem/update/<int:pk>/', PostMortemRecordgUpdate.as_view(), name='postmortem-update'),
+    path('postmortem/delete/<int:pk>/', PostMortemRecordDelete.as_view(), name='postmortem-delete'),
+
+    path('vaccination/', portal_views.vaccination, name='vaccination'),
+    path('vaccination-view/', portal_views.vaccination_view, name='vaccination-view'),
+    path('vaccination-records/', VaccinationRecordList.as_view(), name='vaccination-record-list'),
+    path('vaccination-records/create/', VaccinationRecordCreate.as_view(), name='vaccination-record-create'),
+    path('vaccination-records/update/<int:pk>/', VaccinationRecordUpdate.as_view(), name='vaccination-record-update'),
+    path('vaccination-records/delete/<int:pk>/', VaccinationRecordDelete.as_view(), name='vaccination-record-delete'),
+
+    path('surgery/', portal_views.surgical_record, name='surgery'),  
+    path('surgery-view/', portal_views.surgical_view, name='surgery-view'),  
+    path('surgical-record/create/', SurgicalRecordCreate.as_view(), name='surgical_record_create'),
+    path('surgical-record/list/', SurgicalRecordList.as_view(), name='surgical_record_list'),
+    path('surgical-record/update/<int:pk>/', SurgicalRecordUpdate.as_view(), name='surgical_record_update'),
+    path('surgical-record/delete/<int:pk>/',SurgicalRecordDelete.as_view(), name='surgical_record_delete'),
+    
+    path('clinical/', portal_views.clinical, name='clinical'),  
+    path('clinical-view/', portal_views.clinical_view, name='clinical-view'), 
+    path('clinical-record/create/', ClinicalRecordCreate.as_view(), name='clinical-record-create'),
+    path('clinical-record/', ClinicalRecordList.as_view(), name='clinical-record-list'),
+    path('clinical-record/update/<int:pk>/', ClinicalRecordUpdate.as_view(), name='clinical-record-update'),
+    path('clinical-record/delete/<int:pk>/', ClinicalRecordDelete.as_view(), name='clinical-record-delete'),
+
+
+    path('client/', portal_views.client, name='client'),
+    path('clients/create/', ClientCreate.as_view(), name='client-create'),
+    path('clients/', ClientList.as_view(), name='client-list'),
+    path('clients/update/<int:pk>/', ClientUpdate.as_view(), name='client_update'),
+    path('clients/delete/<int:pk>/', ClientDelete.as_view(), name='client_delete'),
+
+    path('diary/', portal_views.diary, name='diary'),
+    path('diaries/create/', DiaryCreate.as_view(), name='diary-create'),
+    path('diaries/', DiaryList.as_view(), name='diary-list'),
+    path('diaries/update/<int:pk>/', DiaryUpdate.as_view(), name='diary_update'),
+    path('diaries/delete/<int:pk>/', DiaryDelete.as_view(), name='diary_delete'),
+    ##############Shop######################
+    
+    path('shop/', portal_views.shop, name='shop'),
+    path('resources/', portal_views.resources, name='resources'),
+    
+    path('disease-reports/', disease_report, name='disease-report'),
+    path('disease-reports/view/', disease_report_view, name='disease-report-view'),
+    path('disease-reports/list', DiseaseReportList.as_view(), name='disease-report-list'),
+    path('disease-reports/create/', DiseaseReportCreate.as_view(), name='disease-report-create'),
+    path('disease-reports/update/<int:pk>/', DiseaseReportUpdate.as_view(), name='disease-report-update'),
+    path('disease-reports/delete/<int:pk>/', DiseaseReportDelete.as_view(), name='disease-report-delete'),
+
+    path('slaughterhouse/', slaughterhouse, name='slaughterhouse'),
+    path('slaughterhouse/create/', SlaughterhouseCreate.as_view(), name='slaughterhouse_create'),
+    path('slaughterhouse/list/', SlaughterhouseList.as_view(), name='slaughterhouse_list'),
+    path('slaughterhouse/update/<int:pk>/', SlaughterhouseUpdate.as_view(), name='slaughterhouse_update'),
+    path('slaughterhouse/delete/<int:pk>/', SlaughterhouseDelete.as_view(), name='slaughterhouse_delete'),
+    
+    # Employee URLs
+    path('employee/', employee, name='employee'),
+    path('employee/create/', EmployeeCreate.as_view(), name='employee_create'),
+    path('employee/list/', EmployeeList.as_view(), name='employee_list'),
+    path('employee/update/<int:pk>/', EmployeeUpdate.as_view(), name='employee_update'),
+    path('employee/delete/<int:pk>/', EmployeeDelete.as_view(), name='employee_delete'),
+    
+    # Butcher URLs
+    path('butcher/', butcher, name='butcher'),
+    path('butcher/create/', ButcherCreate.as_view(), name='butcher_create'),
+    path('butcher/list/', ButcherList.as_view(), name='butcher_list'),
+    path('butcher/update/<int:pk>/', ButcherUpdate.as_view(), name='butcher_update'),
+    path('butcher/delete/<int:pk>/', ButcherDelete.as_view(), name='butcher_delete'),
+    
+    # Invoice URLs
+    path('invoice/', invoice, name='invoice'),
+    path('invoice-view',invoice_view, name='invoiceview'),
+    path('invoice/create/', InvoiceCreate.as_view(), name='invoice_create'),
+    path('invoice/list/', InvoiceList.as_view(), name='invoice_list'),
+    path('invoice/update/<int:pk>/', InvoiceUpdate.as_view(), name='invoice_update'),
+    path('invoice/delete/<int:pk>/', InvoiceDelete.as_view(), name='invoice_delete'),
+
+    # questions
+    path('quiz/', quiz, name='quiz'),
+    path('questions/', QuestionListView.as_view(), name='question-list'),
+    path('submit-answer/', SubmitAnswerView.as_view(), name='submit-answer'),
+    path('cpd/', tutorial, name='cpd'),
+    path('lessons/', lesson, name='lessons'),
+    path('tutorials/create/', TutorialCreate.as_view(), name='tutorial-create'),
+    path('tutorials/list/', TutorialList.as_view(), name='tutorial-list'),
+    path('tutorials/update/<int:pk>/', TutorialUpdate.as_view(), name='tutorial-update'),
+    path('tutorials/delete/<int:pk>/', TutorialDelete.as_view(), name='tutorial-delete'),
+    path('question/', QuestionListView.as_view(), name='question-list'),
+    path('question/<int:pk>/', QuestionDetailView.as_view(), name='question-detail'),
+    path('question/create/', QuestionCreateView.as_view(), name='question-create'),
+    
+    #path('section/<int:lesson_id>/', SectionList.as_view(), name='section-lists'),
+    
+    path('sections/<int:lesson_id>/', SectionList.as_view(), name='section-list'),
+    path('sections/comments/create/<int:section_id>/', CommentCreateView.as_view(), name='comment-create'),
+    path('sections/comments/<int:section_id>/', CommentListView.as_view(), name='comment-list'),
+    path('sections/create/', SectionCreate.as_view(), name='section-create'),
+
+    path('answers/', UserAnswerCreate.as_view(), name='user-answer-create'),
+
+]
 if  not settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

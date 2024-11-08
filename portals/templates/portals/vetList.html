@@ -78,8 +78,9 @@
                                     <table class="table table-borderless table-striped table-earning">
                                         <thead>
                                           <th>Name</th>
-                                          <th>Registration Number</th>
+                                          <th>Reg No</th>
                                           <th>Specialization</th>
+                                          <th>Location</th>
                                           <th>Phone</th>
                                           <th>Email</th>
                                           <th class="text-right">Consultation</th>
@@ -87,9 +88,10 @@
                                         <tbody>
                                             {% for vet in all_vets %}
                                             <tr>
-                                              <td>{{vet.user}}</td>
+                                              <td>{{vet.user.first_name}}</td>
                                               <td>{{vet.user.registration_number}}</td>
                                               <td>{{vet.user.specialization}}</td>
+                                              <td>{{vet.user.location}}</td>
                                               <td>{{vet.user.phone_number}}</td>
                                               <td>{{vet.user.email}}</td>
                                               <td class="text-right">
@@ -118,7 +120,7 @@
             <div class="copyright">
               &copy; Copyright <strong><span>SoinVet</span></strong>. All Rights Reserved
               <div class="credits">
-              Designed by <a>ishasir</a>
+              
             </div>
           </div>
         </footer><!-- End Footer -->

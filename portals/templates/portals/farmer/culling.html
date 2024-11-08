@@ -70,7 +70,7 @@
     </div>
    
    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#cullingAddModal">
-     Add 
+    Add Record
     </button>
      <!-- form modal -->
      <div class="modal fade" id="cullingAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -91,6 +91,11 @@
                   <input type="text" id="id_name" name="name" class="form-control editable-field">
                   <div class="invalid-feedback">Invalid name</div>
               </div>
+              <div class="mb-3">
+                <label for="id_reg_no" class="form-label">Registration Number</label>
+                <input type="text" id="id_reg_no" name="reg_no" class="form-control editable-field">
+                <div class="invalid-feedback">Invalid registration number</div>
+            </div>
       
               <div class="mb-3">
                   <label for="id_age" class="form-label">Age</label>
@@ -223,11 +228,7 @@
                   <div class="invalid-feedback">Invalid culling reason</div>
               </div>
       
-              <div class="mb-3">
-                  <label for="id_reg_no" class="form-label">Registration Number</label>
-                  <input type="text" id="id_reg_no" name="reg_no" class="form-control editable-field">
-                  <div class="invalid-feedback">Invalid registration number</div>
-              </div>
+             
       
               <div class="mb-3">
                   <label for="id_culling_date" class="form-label">Culling Date</label>
@@ -277,6 +278,11 @@
                   <input type="text" id="id_name" name="name" class="form-control editable-field">
                   <div class="invalid-feedback">Invalid name</div>
               </div>
+              <div class="mb-3">
+                <label for="id_reg_no" class="form-label">Registration Number</label>
+                <input type="text" id="id_reg_no" name="reg_no" class="form-control editable-field">
+                <div class="invalid-feedback">Invalid registration number</div>
+            </div>
       
               <div class="mb-3">
                   <label for="id_age" class="form-label">Age</label>
@@ -409,11 +415,7 @@
                   <div class="invalid-feedback">Invalid culling reason</div>
               </div>
       
-              <div class="mb-3">
-                  <label for="id_reg_no" class="form-label">Registration Number</label>
-                  <input type="text" id="id_reg_no" name="reg_no" class="form-control editable-field">
-                  <div class="invalid-feedback">Invalid registration number</div>
-              </div>
+             
       
               <div class="mb-3">
                   <label for="id_culling_date" class="form-label">Culling Date</label>
@@ -448,15 +450,8 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <div class="modal-header">
-            <h4 class="col-9 modal-title text-center">Farm Records</h4>
-            <button type="button"  id="closeModalBtn">
-              <i class="fa fa-times" aria-hidden="true"></i>
-            </button>
-          </div>
-          <div class="modal-header">
-            <h5 class="col-12 modal-title text-center " >Culling  Records</h5> 
-          </div>
+          <h2 class="text-center">Farm Records</h2>
+          <h3 class="text-center">Culling Records  </h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -467,28 +462,7 @@
       </div><!-- /.modal-dialog -->
     </div><!-- /. Display  modal -->
 <!-- sucess Modal -->
-<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-confirm">
-      <div class="modal-content">
-          <div class="modal-header">
-              <div class="icon-box">
-                  <i class="material-icons">&#xE876;</i>
-              </div>
-              <h4 class="modal-title">Details Submitted successfully</h4>
-          </div>
-          <div class="modal-body">
-              <div class="spinner-border text-success" role="status">
-                  <span class="sr-only">Loading...</span>
-              </div>
-              <p class="text-center">Saving....</p>
-          </div>
-          <div class="modal-footer">
-              <button class="btn btn-success btn-block" data-dismiss="modal">OK</button>
-          </div>
-      </div>
-  </div>
-</div>
-<!-- sucess Modal End -->
+
 
 
     
@@ -638,7 +612,7 @@ $('#cullingAddForm').submit(function(e) {
            
             success: function(data) {
               $('#cullingAddModal').modal('hide');
-              $('#successModal').modal('show');
+              $('#statusSuccessModal').modal('show');
                 //console.log(data.message);
                 // Redirect after 3 seconds
                 setTimeout(function() {
@@ -738,7 +712,7 @@ $('#cullingAddForm').submit(function(e) {
       
 })
 .then(data=>{
-  $('#successModal').modal('show');
+  $('#statusSuccessModalal').modal('show');
 
 })
 .catch(error => console.error('Error:', error));
@@ -962,7 +936,7 @@ $('#cullingAddForm').submit(function(e) {
                 };
               
                 document.getElementById("modal-footer").style.display = "none";
-                document.getElementById("closeModalBtn").style.display = "none";
+                //document.getElementById("closeModalBtn").style.display = "none";
 
                 html2pdf().from(invoice).set(opt).save().then(() => {
                     
@@ -992,7 +966,7 @@ $('#cullingAddForm').submit(function(e) {
   <script src="{% static 'portals/assets/js/core/popper.min.js' %}"></script>
   <script src="{% static 'portals/assets/js/core/bootstrap.min.js' %}"></script>
   <script src="{% static 'portals/assets/js/main.js' %}"></script>
- 
+  <script src="{% static 'portals/assets/js/scripts.js' %}"></script>
   
   
   
@@ -1007,7 +981,7 @@ $('#cullingAddForm').submit(function(e) {
             <div class="copyright">
               &copy; Copyright <strong><span>SoinVet</span></strong>. All Rights Reserved
               <div class="credits">
-              Designed by <a>ishasir</a>
+              
             </div>
           </div>
         </footer><!-- End Footer -->

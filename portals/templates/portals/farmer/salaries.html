@@ -70,7 +70,7 @@
     </div>
    
    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#salariesAddModal">
-     Add 
+     Add Record 
     </button>
      <!-- form modal -->
      <div class="modal fade" id="salariesAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -87,45 +87,51 @@
                 {% csrf_token %}
                 <input type="hidden" id="pk" name="id">
                 <div class="mb-3">
-                    <label for="category" class="form-label">Category</label>
-                    <select id="category" name="category" class="form-control editable-field">
-                      <option value="Drivers">Drivers</option>
-                      <option value="Milkers">Milkers</option>
-                      <option value="Sales Representatives">Sales Representatives</option>
-                      <option value="Managers">Managers</option>
+                  <label for="employee_name" class="form-label">Employee Name</label>
+                  <select id="employee_name" name="employee_name" class="form-control editable-field">
+                  </select>
+                  <div class="invalid-feedback">Please provide a valid category.</div>
+                </div>
+                <div class="mb-3">
+                    <label for="category" class="form-label">Employee Position</label>
+                    <select id="employee_position" name="employee_position" class="form-control editable-field">
+                      
+                           
                     </select>
                     <div class="invalid-feedback">Please provide a valid category.</div>
                   </div>
-        
                   <div class="mb-3">
-                    <label for="name" class="form-label">Name</label>
-                    <input type="text" id="name" name="name" class="form-control editable-field" maxlength="255">
-                    <div class="invalid-feedback">Please provide a valid name.</div>
-                  </div>
-        
-                  <div class="mb-3">
-                    <label for="identification" class="form-label">Identification</label>
+                    <label for="identification" class="form-label">ID Number</label>
                     <input type="text" id="identification" name="identification" class="form-control editable-field" maxlength="255">
                     <div class="invalid-feedback">Please provide a valid identification.</div>
                   </div>
         
                   <div class="mb-3">
-                    <label for="mode_of_payment" class="form-label">Mode of Payment</label>
-                    <input type="text" id="mode_of_payment" name="mode_of_payment" class="form-control editable-field" maxlength="255">
-                    <div class="invalid-feedback">Please provide a valid mode of payment.</div>
-                  </div>
-        
+                    <label for="payment_method" class="form-label">Payment Method</label>
+                    <select id="mode_of_payment" name="mode_of_payment" class="form-control editable-field" required>
+                      <option value="Bank Transfer">Bank Transfer</option>
+                      <option value="Cash">Cash</option>
+                      <option value="Cheque">Cheque</option>
+                      <option value="Mobile Banking">Mobile Banking</option>
+                    </select>
+                    <div class="invalid-feedback">Please provide a valid payment method.</div>
+                </div>
+                <div class="mb-3">
+                  <label for="salary_amount" class="form-label">Salary Amount</label>
+                  <input type="number" id="salary_amount" name="salary_amount" class="form-control editable-field" step="0.01" max="99999999.99">
+                  <div class="invalid-feedback">Please provide a valid amount.</div>
+                </div>
                   <div class="mb-3">
-                    <label for="amount" class="form-label">Amount</label>
+                    <label for="amount" class="form-label">Amount Paid</label>
                     <input type="number" id="amount" name="amount" class="form-control editable-field" step="0.01" max="99999999.99">
                     <div class="invalid-feedback">Please provide a valid amount.</div>
                   </div>
         
-                  <div class="mb-3">
+                  <!-- <div class="mb-3">
                     <label for="balance" class="form-label">Balance</label>
                     <input type="number" id="balance" name="balance" class="form-control editable-field" step="0.01" max="99999999.99">
                     <div class="invalid-feedback">Please provide a valid balance.</div>
-                  </div>
+                  </div> -->
         
                   <div class="mb-3">
                     <label for="payment_date" class="form-label">Payment Date</label>
@@ -135,7 +141,13 @@
         
                   <div class="mb-3">
                     <label for="payment_type" class="form-label">Payment Type</label>
-                    <input type="text" id="payment_type" name="payment_type" class="form-control editable-field" maxlength="255">
+                    <select id="payment_type" name="payment_type" class="form-control editable-field" required>
+                      <option value="">Select Payment Type</option>
+                      <option value="Salary">Salary</option>
+                      <option value="Advance">Advance</option>
+                      <option value="Emergency">Emergency</option>
+                      <option value="Other">Other</option>
+                    </select>
                     <div class="invalid-feedback">Please provide a valid payment type.</div>
                   </div>
         
@@ -170,47 +182,53 @@
               <form id="feedsEditForm" class="form-group">
                 {% csrf_token %}
                 <input type="hidden" id="id" name="id">
+                <div class="mb-3">
+                  <label for="employee_name" class="form-label">Employee Name</label>
+                  <select id="employee_name" name="employee_name" class="form-control editable-field">
+                      
+                  </select>
+                  <div class="invalid-feedback">Please provide a valid category.</div>
+                </div>
                 
                 <div class="mb-3">
-                    <label for="category" class="form-label">Category</label>
-                    <select id="category" name="category" class="form-control editable-field">
-                      <option value="Drivers">Drivers</option>
-                      <option value="Milkers">Milkers</option>
-                      <option value="Sales Representatives">Sales Representatives</option>
-                      <option value="Managers">Managers</option>
+                    <label for="employee_psotion" class="form-label">Employee Position</label>
+                    <select id="employee_position" name="employee_position" class="form-control editable-field">
+                        
                     </select>
                     <div class="invalid-feedback">Please provide a valid category.</div>
                   </div>
-        
                   <div class="mb-3">
-                    <label for="name" class="form-label">Name</label>
-                    <input type="text" id="name" name="name" class="form-control editable-field" maxlength="255">
-                    <div class="invalid-feedback">Please provide a valid name.</div>
-                  </div>
-        
-                  <div class="mb-3">
-                    <label for="identification" class="form-label">Identification</label>
+                    <label for="identification" class="form-label">Id Number</label>
                     <input type="text" id="identification" name="identification" class="form-control editable-field" maxlength="255">
                     <div class="invalid-feedback">Please provide a valid identification.</div>
                   </div>
         
                   <div class="mb-3">
-                    <label for="mode_of_payment" class="form-label">Mode of Payment</label>
-                    <input type="text" id="mode_of_payment" name="mode_of_payment" class="form-control editable-field" maxlength="255">
-                    <div class="invalid-feedback">Please provide a valid mode of payment.</div>
-                  </div>
-        
+                    <label for="payment_method" class="form-label">Payment Method</label>
+                    <select id="mode_of_payment" name="mode_of_payment" class="form-control editable-field" required>
+                      <option value="Bank Transfer">Bank Transfer</option>
+                      <option value="Cash">Cash</option>
+                      <option value="Cheque">Cheque</option>
+                      <option value="Mobile Banking">Mobile Banking</option>
+                    </select>
+                    <div class="invalid-feedback">Please provide a valid payment method.</div>
+                </div>
+                <div class="mb-3">
+                  <label for="salary_amount" class="form-label">Salary Amount</label>
+                  <input type="number" id="salary_amount" name="salary_amount" class="form-control editable-field" step="0.01" max="99999999.99">
+                  <div class="invalid-feedback">Please provide a valid amount.</div>
+                </div>
                   <div class="mb-3">
-                    <label for="amount" class="form-label">Amount</label>
+                    <label for="amount" class="form-label">Amount Paid</label>
                     <input type="number" id="amount" name="amount" class="form-control editable-field" step="0.01" max="99999999.99">
                     <div class="invalid-feedback">Please provide a valid amount.</div>
                   </div>
         
-                  <div class="mb-3">
+                  <!-- <div class="mb-3">
                     <label for="balance" class="form-label">Balance</label>
                     <input type="number" id="balance" name="balance" class="form-control editable-field" step="0.01" max="99999999.99">
                     <div class="invalid-feedback">Please provide a valid balance.</div>
-                  </div>
+                  </div> -->
         
                   <div class="mb-3">
                     <label for="payment_date" class="form-label">Payment Date</label>
@@ -220,10 +238,15 @@
         
                   <div class="mb-3">
                     <label for="payment_type" class="form-label">Payment Type</label>
-                    <input type="text" id="payment_type" name="payment_type" class="form-control editable-field" maxlength="255">
+                    <select id="payment_type" name="payment_type" class="form-control editable-field" required>
+                      <option value="">Select Payment Type</option>
+                      <option value="Salary">Salary</option>
+                      <option value="Advance">Advance</option>
+                      <option value="Emergency">Emergency</option>
+                      <option value="Other">Other</option>
+                    </select>
                     <div class="invalid-feedback">Please provide a valid payment type.</div>
                   </div>
-        
                   <div class="mb-3">
                     <label for="comment" class="form-label">Comment</label>
                     <textarea id="comment" name="comment" class="form-control editable-field" rows="3"></textarea>
@@ -245,15 +268,8 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <div class="modal-header">
-            <h4 class="col-9 modal-title text-center">Farm Records</h4>
-            <button type="button"  id="closeModalBtn">
-              <i class="fa fa-times" aria-hidden="true"></i>
-            </button>
-          </div>
-          <div class="modal-header">
-            <h5 class="col-12 modal-title text-center " >Employee Salaries  Records</h5> 
-          </div>
+          <h2 class="text-center">Farm Records</h2>
+       <h3 class="text-center">Salaries </h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -264,27 +280,7 @@
       </div><!-- /.modal-dialog -->
     </div><!-- /. Display  modal -->
 <!-- sucess Modal -->
-<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-confirm">
-      <div class="modal-content">
-          <div class="modal-header">
-              <div class="icon-box">
-                  <i class="material-icons">&#xE876;</i>
-              </div>
-              <h4 class="modal-title">Details Submitted successfully</h4>
-          </div>
-          <div class="modal-body">
-              <div class="spinner-border text-success" role="status">
-                  <span class="sr-only">Loading...</span>
-              </div>
-              <p class="text-center">Saving....</p>
-          </div>
-          <div class="modal-footer">
-              <button class="btn btn-success btn-block" data-dismiss="modal">OK</button>
-          </div>
-      </div>
-  </div>
-</div>
+
 <!-- sucess Modal End -->
 
 
@@ -421,37 +417,79 @@ const csrftoken = getCookie('csrftoken');
         $('#dsModal').modal('hide');
     });
 }
+$(document).ready(function() {
+ 
+  const employeeUrl = '/employees-list/';
+
+
+  fetch(employeeUrl)
+    .then(response => response.json())
+    .then(data => {
+      const person = data.results;
+      const nameSelect = $('#employee_name');
+      person.forEach(employee => {
+        nameSelect.append($('<option></option>').val(employee.id).text(employee.employee_name));
+        console.log(employee.employee_name)
+        
+      });
+      const positionSelect = $('#employee_position');
+      person.forEach(employee => {
+        positionSelect.append($('<option></option>').val(employee.employee_position).text(employee.employee_position));
+        
+      });
+    })
+    .catch(error => console.error('Error fetching employees:', error));
+});
+
 $('#salariesAddForm').submit(function(e) {
-        e.preventDefault(); // Prevent the default form submission
-        // Serialize form data
-        var formData = $(this).serialize();
-        
-        // Send AJAX request
-        $.ajax({
-            type: 'POST',
-            url: "/salaries/create/",
-            data: formData,
-           
-            success: function(data) {
-              $('#salariesAddModal').modal('hide');
-              $('#successModal').modal('show');
-                //console.log(data.message);
-                // Redirect after 3 seconds
-                setTimeout(function() {
-                  window.location.reload(); // Redirect to the home page
-                }, 3000); 
-                // Handle success response
-                console.log('Form submitted successfully');
-                console.log(data);   
-            },
-            
-            error: function(xhr, textStatus, errorThrown) {
-                // Handle error response
-                console.error('Error submitting form:', errorThrown);
-            }
-        });
-        
+  e.preventDefault();
+  var formData = new FormData(this);
+  var jsonObject = {};
+  formData.forEach(function(value, key) {
+      jsonObject[key] = value;
+  });
+  var registration_number = $('#registration_number').val();
+
+  var csrftoken = getCookie('csrftoken');
+
+  $.ajax({
+    method: 'POST',
+    url: "/salaries/create/",
+    data: JSON.stringify(jsonObject),
+    beforeSend: function(xhr) {
+      xhr.setRequestHeader('X-CSRFToken', csrftoken);
+      xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+    }
+  }).done(function(data) {
+    console.log('POST response data:', data);
+    $('#salariesAddModal').modal('hide');
+    $('#statusSuccessModal').modal('show');
+    setTimeout(function() {
+      window.location.reload();
+    }, 1000);
+  }).fail(function(xhr, textStatus, errorThrown) {
+    $('#salariesAddModal').modal('hide');
+    if (xhr.status === 400) {
+      var errors = JSON.parse(xhr.responseText);
+      if (errors.registration_number) {
+        errorMessage = errors.registration_number;
+      } else {
+        errorMessage = xhr.responseText;
+      }
+    } else {
+      errorMessage = xhr.responseText;
+    }
+    console.error('Error submitting form:', errorMessage);
+    $('#errorModalBody').html('<p>' + errorMessage + '</p>');
+    $('#statusErrorsModal').modal('show');
+    $('#errorButton').click(function() {
+      setTimeout(function() {
+        window.location.reload();
+      }, 5);  
     });
+  });
+});
+                 
      function operateFormatter(value, row, index) {
         return [
           '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
@@ -479,9 +517,42 @@ $('#salariesAddForm').submit(function(e) {
 
     $('#salariesEditModal').modal('show');
 
+    const employeeUrl = '/employees-list/';
+
+    fetch(employeeUrl)
+    .then(response => response.json())
+    .then(data => {
+     
+      const person = data.results;
+      const nameSelect = $('#employee_name');
+      person.forEach(employee => {
+        nameSelect.append($('<option></option>').val(employee.employee_name).text(employee.employee_name));
+      });console.log(employee.employee_name)
+
+      const positionSelect = $('#employee_position');
+      person.forEach(employee => {
+        positionSelect.append($('<option></option>').val(employee.employee_position).text(employee.employee_position));
+      });console.log(employee.employee_position)
+    })
+    .catch(error => console.error('Error fetching breeds:', error));
+
+
     // Populate form fields after the modal is shown (ensures elements exist)
     $('#salariesEditModal').on('shown.bs.modal', function () {
+  
+    // Fetch the ID from the row data (assuming 'id' is a property in your data)
+    const objectId = row.id;
+    console.log(objectId)
+
+    // Check if ID is available before proceeding
+    if (!objectId) {
+      console.error('Error: Missing ID in row data');
+      return;
+    }
+
+
       const formFields = $('#salariesEditModal .editable-field');
+      
 
       formFields.each(function(i, field) {
     const fieldName = $(field).attr('name');
@@ -508,7 +579,7 @@ $('#salariesAddForm').submit(function(e) {
 
     
     $('#submitsalaries').on('click', function () {
-  const formFields = $('#salariesEditModal .editable-field');
+  const formFields = $('#milkEditModal .editable-field');
 
   formFields.each(function (i, field) {
     const fieldName = $(field).attr('name');
@@ -534,7 +605,7 @@ $('#salariesAddForm').submit(function(e) {
       
 })
 .then(data=>{
-  $('#successModal').modal('show');
+  $('#statusSuccessModal').modal('show');
 
 })
 .catch(error => console.error('Error:', error));
@@ -611,20 +682,20 @@ $('#salariesAddForm').submit(function(e) {
             
           // },
           {
-    field: 'category',
+    field: 'employee_position',
     title: 'Category',
     sortable: true,
     align: 'center'
   },
   {
-    field: 'name',
+    field: 'employee_names',
     title: 'Name',
     sortable: true,
     align: 'center'
   },
   {
     field: 'identification',
-    title: 'Identification',
+    title: 'ID Number',
     sortable: true,
     align: 'center'
   },
@@ -635,8 +706,14 @@ $('#salariesAddForm').submit(function(e) {
     align: 'center'
   },
   {
+    field: 'salary_amount',
+    title: 'Salary Amount',
+    sortable: true,
+    align: 'center'
+  },
+  {
     field: 'amount',
-    title: 'Amount',
+    title: 'Amount Paid',
     sortable: true,
     align: 'center'
   },
@@ -726,7 +803,7 @@ $('#salariesAddForm').submit(function(e) {
                 };
               
                 document.getElementById("modal-footer").style.display = "none";
-                document.getElementById("closeModalBtn").style.display = "none";
+                //document.getElementById("closeModalBtn").style.display = "none";
 
                 html2pdf().from(invoice).set(opt).save().then(() => {
                     
@@ -760,6 +837,12 @@ $('#salariesAddForm').submit(function(e) {
   
   <!--  Notifications Plugin    -->
   
+  <!-- Control Center for Now Ui Dashboard: parallax effects, scripts for the example pages etc -->
+  <script src="{% static 'portals/assets/js/now-ui-dashboard.min.js' %}" type="text/javascript"></script><!-- Now Ui Dashboard DEMO methods, don't include it in your project! -->
+  <script src="{% static 'portals/assets/js/main.js' %}"></script>
+  <script src="{% static 'portals/assets/js/scripts.js' %}"></script>
+  <!--  Notifications Plugin    -->
+  
   
 </div>
 <!-- /.row (main row) -->
@@ -771,7 +854,7 @@ $('#salariesAddForm').submit(function(e) {
             <div class="copyright">
               &copy; Copyright <strong><span>SoinVet</span></strong>. All Rights Reserved
               <div class="credits">
-              Designed by <a>ishasir</a>
+              
             </div>
           </div>
         </footer><!-- End Footer -->

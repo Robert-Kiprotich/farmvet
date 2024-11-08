@@ -1,5 +1,5 @@
-{% extends 'portals/base.html' %}
 
+{% extends 'portals/base.html' %}
 {% load static %}
 
 {% block content %}
@@ -7,10 +7,11 @@
 <main class="page-content">
 <div class="container-fluid">
       <!-- Navbar -->
-      <nav class="navbar navbar-expand-lg navbar-transparent bg-primary navbar-absolute">
+      <nav class="navbar navbar-expand-lg navbar-transparent  bg-primary  navbar-absolute">
+   
         <div class="container-fluid">
           <div class="navbar-wrapper">
-           
+            
           </div>
           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navigation" aria-controls="navigation-index" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-bar navbar-kebab"></span>
@@ -18,16 +19,7 @@
             <span class="navbar-toggler-bar navbar-kebab"></span>
           </button>
           <div class="collapse navbar-collapse justify-content-end" id="navigation">
-            <form>
-              <div class="input-group no-border">
-                <input type="text" value="" class="form-control" placeholder="Search...">
-                <div class="input-group-append">
-                  <div class="input-group-text">
-                    <i class="now-ui-icons ui-1_zoom-bold"></i>
-                  </div>
-                </div>
-              </div>
-            </form>
+            
             <ul class="navbar-nav">
               <li class="nav-item">
                 <a class="nav-link" href="#pablo">
@@ -72,133 +64,826 @@
           <div class="col-md-12">
             <div class="card">
               <div class="card-header">
-                                <h2 class="title-1 m-b-25">Consultation Report</h2>
-                                <div class="table-responsive table--no-card m-b-40" style="font-size: 10px; font-weight: bold;">
-                                    <table class="table table-borderless table-striped table-earning" id="consultation">
-                                        <thead >
-                                            <tr>
-                                                <th>Farmer Username</th>
-                                                <th>Dairy Cows Unit</th>
-                                                <th>Beef Production Unit</th>
-                                                <th>Poultry Production Unit</th>
-                                                <th>Sheep Production Unit</th>
-                                                <th>Goat Production Unit</th>
-                                                <th>Canine Keeping</th>
-                                                <th>Other Livestock</th>
-                                                <th>Recommendation</th>
-                                                <th>Grazing System and Pasture Management</th>
-                                                <th>Disease Control</th>
-                                                <th>Farm Biosecurity</th>
-                                                <th>Culling and Selection</th>
-                                                <th>Farm Manager</th>
-                                                <th>If None, Who is the Farm Consultant</th>
-                                                <th>Name of Veterinary Officer Incharge</th>
-                                                <th>Registration Number</th>
-                                                <th>Comment</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                              
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+<h4 class="">Farm Consultation Records</h4>
+    <!-- Content Wrapper. Contains page content -->
+    <div class="px-5 my-1 text-center">
+    </div>
+   
+   <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#consultAddModal">
+    Add Record
+    </button>
+     <!-- form modal -->
+     <div class="modal fade" id="consultAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Add</h5>
+            <button type="button" class="close" id="canceless" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form id="consultAddForm" >
+              {% csrf_token %}
+              <input type="hidden" id="id"  name="id" >
+              <div class="mb-3">
+                <label for="assigned_to" class="form-label">Assigned To</label>
+                <select name="assigned_to" id="assigned_to" class="form-control">
+                  {% for farmer in all_farmers %}
+                      <option value="{{ farmer.username }}">{{ farmer.username }}</option>
+                  {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="area_of_interest">Area of Interest</label>
+              <select class="form-control" id="area_of_interest" name="area_of_interest">
+                <option value="Dairy">Dairy</option>
+                <option value="Beef Production">Beef Production</option>
+                <option value="Poultry Production">Poultry Production</option>
+                <option value="Goat Production">Goat Production</option>
+                <option value="Pets">Pets</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          
+            <!-- Other (for area of interest) -->
+            <div class="form-group">
+              <label for="other_area_of_interest">Other Area of Interest</label>
+              <input type="text" class="form-control" id="other_area_of_interest" name="other_area_of_interest" placeholder="Specify if other">
+            </div>
+          
+            <!-- Recommendation -->
+            <div class="form-group">
+              <label for="recommendation">Recommendation</label>
+              <textarea class="form-control" id="recommendation" name="recommendation" rows="3"></textarea>
+            </div>
+          
+            <!-- Give Recommendation -->
+            <div class="form-group">
+              <label for="give_recommendation">Give Recommendation</label>
+              <textarea class="form-control" id="give_recommendation" name="give_recommendation" rows="3"></textarea>
+            </div>
+          
+            <!-- Manager -->
+            <div class="form-group">
+              <label for="manager">Manager</label>
+              <input type="text" class="form-control" id="manager" name="manager" placeholder="Enter manager's name">
+            </div>
+          
+            <!-- Consultant -->
+            <div class="form-group">
+              <label for="consultant">Consultant</label>
+              <input type="text" class="form-control" id="consultant" name="consultant" placeholder="Enter consultant's name">
+            </div>
+          
+            <!-- Farmer Name -->
+            <div class="form-group">
+              <label for="farmer_name">Farmer Name</label>
+              <input type="text" class="form-control" id="farmer_name" name="farmer_name" placeholder="Enter farmer's name">
+            </div>
+          
+            <!-- Contact -->
+            <div class="form-group">
+              <label for="contact">Farmer Contact</label>
+              <input type="text" class="form-control" id="contact" name="contact" placeholder="Enter contact">
+            </div>
+          
+            <!-- Village -->
+            <div class="form-group">
+              <label for="village">Village</label>
+              <input type="text" class="form-control" id="village" name="village" placeholder="Enter village">
+            </div>
+          
+            <!-- Vet Name -->
+            <div class="form-group">
+              <label for="vet_name">Vet Name</label>
+              <input type="text" class="form-control" id="vet_name" name="vet_name" placeholder="Enter vet's name">
+            </div>
+          
+            <!-- Vet Registration Number -->
+            <div class="form-group">
+              <label for="vet_reg_no">Vet Registration Number</label>
+              <input type="text" class="form-control" id="vet_reg_no" name="vet_reg_no" placeholder="Enter vet registration number">
+            </div>
+          
+            <!-- Vet Contact -->
+            <div class="form-group">
+              <label for="vet_contact">Vet Contact</label>
+              <input type="text" class="form-control" id="vet_contact" name="vet_contact" placeholder="Enter vet contact">
+            </div>
+          
+            <!-- Signature -->
+            <div class="form-group">
+              <label for="signature">Signature</label>
+              <textarea class="form-control" id="signature" name="signature" rows="2" placeholder="Enter signature"></textarea>
+            </div>
+          
+            <!-- Stamp -->
+            <div class="form-group">
+              <label for="stamp">Stamp</label>
+              <textarea class="form-control" id="stamp" name="stamp" rows="2" placeholder="Enter stamp"></textarea>
+            </div>
+          
+            <!-- Comment -->
+            <div class="form-group">
+              <label for="comment">Comment</label>
+              <textarea class="form-control" id="comment" name="comment" rows="3" placeholder="Enter comment"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="submit" id="submit" class="btn btn-primary">Save</button>
             </div>
           </div>
+          </form>
         </div>
-        
       </div>
     </div>
-  </div>
+    <!-- form modal end -->
+    <!--edit Modal  -->
+     <!-- form modal -->
+     <div class="modal fade" id="consultEditModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Edit Record</h5>
+            <button type="button" id="cancel" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+          <form id="consultEditForm">
+            {% csrf_token %}
+            <input type="hidden" id="id" name="id">
+            <div class="mb-3">
+              <label for="assigned_to" class="form-label">Assigned To</label>
+              <select name="assigned_to" id="assigned_to" class="form-control">
+                {% for farmer in all_farmers %}
+                    <option value="{{ farmer.username }}">{{ farmer.username }}</option>
+                {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="area_of_interest">Area of Interest</label>
+            <select class="form-control editable-field" id="area_of_interest" name="area_of_interest">
+                <option value="Dairy">Dairy</option>
+                <option value="Beef Production">Beef Production</option>
+                <option value="Poultry Production">Poultry Production</option>
+                <option value="Goat Production">Goat Production</option>
+                <option value="Pets">Pets</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        
+        <!-- Other (for area of interest) -->
+        <div class="form-group">
+            <label for="other_area_of_interest">Other Area of Interest</label>
+            <input type="text" class="form-control editable-field" id="other_area_of_interest" name="other_area_of_interest" placeholder="Specify if other">
+        </div>
+        
+        <!-- Recommendation -->
+        <div class="form-group">
+            <label for="recommendation">Recommendation</label>
+            <textarea class="form-control editable-field" id="recommendation" name="recommendation" rows="3"></textarea>
+        </div>
+        
+        <!-- Give Recommendation -->
+        <div class="form-group">
+            <label for="give_recommendation">Give Recommendation</label>
+            <textarea class="form-control editable-field" id="give_recommendation" name="give_recommendation" rows="3"></textarea>
+        </div>
+        
+        <!-- Manager -->
+        <div class="form-group">
+            <label for="manager">Manager</label>
+            <input type="text" class="form-control editable-field" id="manager" name="manager" placeholder="Enter manager's name">
+        </div>
+        
+        <!-- Consultant -->
+        <div class="form-group">
+            <label for="consultant">Consultant</label>
+            <input type="text" class="form-control editable-field" id="consultant" name="consultant" placeholder="Enter consultant's name">
+        </div>
+        
+        <!-- Farmer Name -->
+        <div class="form-group">
+            <label for="farmer_name">Farmer Name</label>
+            <input type="text" class="form-control editable-field" id="farmer_name" name="farmer_name" placeholder="Enter farmer's name">
+        </div>
+        
+        <!-- Contact -->
+        <div class="form-group">
+            <label for="contact">Farmer Contact</label>
+            <input type="text" class="form-control editable-field" id="contact" name="contact" placeholder="Enter contact">
+        </div>
+        
+        <!-- Village -->
+        <div class="form-group">
+            <label for="village">Village</label>
+            <input type="text" class="form-control editable-field" id="village" name="village" placeholder="Enter village">
+        </div>
+        
+        <!-- Vet Name -->
+        <div class="form-group">
+            <label for="vet_name">Vet Name</label>
+            <input type="text" class="form-control editable-field" id="vet_name" name="vet_name" placeholder="Enter vet's name">
+        </div>
+        
+        <!-- Vet Registration Number -->
+        <div class="form-group">
+            <label for="vet_reg_no">Vet Registration Number</label>
+            <input type="text" class="form-control editable-field" id="vet_reg_no" name="vet_reg_no" placeholder="Enter vet registration number">
+        </div>
+        
+        <!-- Vet Contact -->
+        <div class="form-group">
+            <label for="vet_contact">Vet Contact</label>
+            <input type="text" class="form-control editable-field" id="vet_contact" name="vet_contact" placeholder="Enter vet contact">
+        </div>
+        
+        <!-- Signature -->
+        <div class="form-group">
+            <label for="signature">Signature</label>
+            <textarea class="form-control editable-field" id="signature" name="signature" rows="2" placeholder="Enter signature"></textarea>
+        </div>
+        
+        <!-- Stamp -->
+        <div class="form-group">
+            <label for="stamp">Stamp</label>
+            <textarea class="form-control editable-field" id="stamp" name="stamp" rows="2" placeholder="Enter stamp"></textarea>
+        </div>
+        
+        <!-- Comment -->
+        <div class="form-group">
+            <label for="comment">Comment</label>
+            <textarea class="form-control editable-field" id="comment" name="comment" rows="3" placeholder="Enter comment"></textarea>
+        </div>
+        
+            
+          <div class="modal-footer">
+              <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="" id="submitconsult" class="btn btn-primary">Save</button>
+          </div>
+          </div>
+        </form>
+        
+        </div>
+      </div>
+    </div>
+    <!-- edit modal end -->
+    
+    <!-- Display Modal  Modal -->
+    <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content" id="invoice">
+          <h2 class="text-center">Veterinary Professional Services</h2>
+       <h3 class="text-center">Farm Consultation Records</h3>
+          <div class="modal-body" id="modalBody">
+          </div>
+          <div class="modal-footer" id="modal-footer">
+            <button type="button" class="btn btn-secondary" id="closeModalBtn1">Close</button>
+            <button type="button" id="download" class="btn btn-primary">Download Pdf</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /. Display  modal -->
+<!-- sucess Modal -->
 
+
+
+    
+    <style>
+      /* .select,
+      #locale {
+        width: 100%;
+      }
+      .like {
+        margin-right: 10px;
+      }
+      .mytable th{
+        font-size: 6px;
+
+      } */
+    </style>
+     <!-- Placeholder for the modal -->
+
+    <div id="toolbar">
+      <h5 class="text-danger">Click the plus sign To view More</h5>
+    </div>
+    <style>
+      table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+        font-size: medium;
+      }
+      </style>
+      <div class="select" hidden>
+        <select class="form-control" id="locale">
+          <option value="en-" selected>en-US</option>
+        </select>
+      </div>
+      
+    <table
+      id="table"
+      class="table"
+      data-search="false"
+      data-show-refresh="true"
+      data-show-toggle="true"   
+      data-show-fullscreen="true"
+      data-show-columns="true"
+      data-show-columns-toggle-all="true"
+      data-detail-view="true"
+      data-show-export="false"
+      data-click-to-select="true"
+      data-detail-formatter="detailFormatter"
+      data-minimum-count-columns="15"
+      data-show-pagination-switch="true"
+      data-pagination="true"
+      data-id-field="id"
+      data-page-list="[10, 25, 50, 100, all]"
+      data-show-footer="true"
+      data-side-pagination="server"
+      data-url="{% url 'fc-list' %}"
+      data-response-handler="responseHandler">
+    </table>
+    <script>
+
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+const csrftoken = getCookie('csrftoken');
+
+
+      var $table = $('#table')
+      var $remove = $('#remove')
+      var selections = []
+    
+      function getIdSelections() {
+        return $.map($table.bootstrapTable('getSelections'), function (row) {
+          return row.id
+        })
+      }
+    
+      function responseHandler(res) {
+        return {
+                total: res.count,
+                rows: res.results
+            };
+      }
+      function detailFormatter(index, row) {
+    var html = '<table class="table">';
+    var columns = $('#table').bootstrapTable('getOptions').columns[0]; 
+    
+    // Create table rows
+    $.each(columns, function (index, column) {
+        if (column.field !== 'state' && column.field !== 'operate') {
+            html += '<tr>';
+            html += '<td><b>' + column.title + '</b></td>'; 
+            var key = column.field;
+            var value = row[key];
+            
+            // Check if the value is a valid date and format it
+            if (moment(value, moment.ISO_8601, true).isValid()) {
+                value = moment(value).format('DD-MM-YYYY');
+            }
+
+            html += '<td>' + value + '</td>'; 
+            html += '</tr>';
+        }
+    });
+
+    html += '</table>';
+    
+
+    
+    
+   
+    $('#modalBody').html(html);
+    
+    
+    $('#dsModal').modal('show');
+
+    
+    $('#closeModalBtn').on('click', function() {
+        $('#dsModal').modal('hide');
+    });
+    $('#closeModalBtn1').on('click', function() {
+        $('#dsModal').modal('hide');
+    });
+}
+$('#consultAddForm').submit(function(e) {
+    e.preventDefault(); // Prevent the default form submission
+    
+    // Serialize form data
+    var formData = $(this).serialize();
+    console.log(formData);
+    
+    // Send AJAX request
+    $.ajax({
+        type: 'POST',
+        url: "/farm-consultation/create/",
+        data: formData,
+        success: function(data) {
+            $('#consultAddModal').modal('hide');
+            $('#statusSuccessModal').modal('show');
+            // Redirect after 3 seconds
+            setTimeout(function() {
+                window.location.reload(); // Reload the page
+            }, 1000); 
+            // Handle success response
+            console.log('Form submitted successfully');
+            console.log(data);   
+        },
+        error: function(xhr, textStatus, errorThrown) {
+            console.error('Error submitting form:', errorThrown);
+            console.log('Response:', xhr.responseText);
+
+            // Optionally, you can display the error in a modal or alert
+            alert('Error: ' + xhr.responseText);
+        }
+    });
+});
+     function operateFormatter(value, row, index) {
+        return [
+          '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
+          '<i class="fa fa-edit"></i>',
+          '</a>  ',
+          '<a class="remove" href="javascript:void(0)" title="Remove">',
+          '<i class="fa fa-trash"></i>',
+          '</a>'
+          
+        ].join('')
+      }
+
+     
+      window.operateEvents = {
+        'click .edit': function(e, value, row, index) {
+    // Fetch the ID from the row data (assuming 'id' is a property in your data)
+    const objectId = row.id;
+    console.log(objectId)
+
+    // Check if ID is available before proceeding
+    if (!objectId) {
+      console.error('Error: Missing ID in row data');
+      return;
+    }
+
+    $('#consultEditModal').modal('show');
+
+    // Populate form fields after the modal is shown (ensures elements exist)
+    $('#consultEditModal').on('shown.bs.modal', function () {
+      const formFields = $('#consultEditModal .editable-field');
+
+      formFields.each(function(i, field) {
+    const fieldName = $(field).attr('name');
+    const fieldValue = row[fieldName];
+
+    if ($(field).is('select')) {
+        
+        $(field).val(fieldValue || ''); 
+    } else {
+
+        $(field).val(fieldValue || ''); 
+    }
+});
+    });
+
+    $('#cancel').click(function() {
+      $('#consultEditModal').modal('hide');
+    });
+    $('#canceless').click(function() {
+      $('#consultEditModal').modal('hide');
+    });
+
+    e.preventDefault();
+
+    
+    $('#submitconsult').on('click', function () {
+  const formFields = $('#consultEditModal .editable-field');
+
+  formFields.each(function (i, field) {
+    const fieldName = $(field).attr('name');
+    const fieldValue = $(field).val();
+
+    row[fieldName] = fieldValue; 
+  });
+   
+  fetch(`/farm-consultation/update/${row.id}/`, {
+    method: 'PATCH',
+    headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
+    },
+    body: JSON.stringify(row)
+})
+.then(response => response.json())
+.then(data => {
+    console.log('Success:', data);
+    
+    window.location.reload()
+   
+      
+})
+.then(data=>{
+  $('#statusSuccessModal').modal('show');
+
+})
+.catch(error => console.error('Error:', error));
+});
+
+  },
+        'click .remove': function (e, value, row, index) {
+    // Send an AJAX request to the Django backend to delete the record
+    $.ajax({
+        url: `/farm-consultation/delete/${row.id}/`, // Replace with the appropriate URL
+        type: 'DELETE',
+        headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
+    }, // Include CSRF token if required
+        success: function () {
+          
+            // If deletion is successful, remove the row from the Bootstrap Table
+            $table.bootstrapTable('remove', {
+                row: 'id',
+                values: [row.id]
+            });
+            window.location.reload();
+        },
+        error: function (xhr, textStatus, errorThrown) {
+            // Handle errors, if any
+            console.error('Error deleting record:', errorThrown);
+            // Optionally, you can display error messages or handle UI updates here
+        }
+    });
+
+}
+      }
+    
+      function totalTextFormatter(data) {
+        return 'Total'
+      }
+    
+      function totalNameFormatter(data) {
+        return data.length
+      }
+    
+      function totalPriceFormatter(data) {
+        var field = this.field
+        return '$' + data.map(function (row) {
+          return +row[field].substring(1)
+        }).reduce(function (sum, i) {
+          return sum + i
+        }, 0)
+      }
+      
+    
+      function initTable() {
+      // Process the fetched data and initialize Bootstrap Table
+    $table.bootstrapTable('destroy').bootstrapTable({
+      height: 550,
+      locale: $('#locale').val(),
+      columns: [
+        [
+          {
+            field: 'state',
+            checkbox: true,
+            rowspan: 2,
+            align: 'center',
+            valign: 'middle'
+          },
+          {
+            field: 'assigned_to',
+            title: 'Farmer Name',
+            sortable: true,
+            align: 'center'
+          },
+        {
+            field: 'area_of_interest',
+            title: 'Area of Interest',
+            sortable: true,
+            align: 'center'
+        },
+        {
+            field: 'other_area_of_interest',
+            title: 'Other Area of Interest',
+            sortable: true,
+            align: 'center'
+        },
+        {
+            field: 'recommendation',
+            title: 'Recommendation',
+            sortable: true,
+            align: 'center'
+        },
+        {
+            field: 'give_recommendation',
+            title: 'Give Recommendation',
+            sortable: true,
+            align: 'center'
+        },
+        {
+            field: 'manager',
+            title: 'Manager',
+            sortable: true,
+            align: 'center'
+        },
+        {
+            field: 'consultant',
+            title: 'Consultant',
+            sortable: true,
+            align: 'center'
+        },
+        {
+            field: 'farmer_name',
+            title: 'Farmer Name',
+            sortable: true,
+            align: 'center'
+        },
+        {
+            field: 'contact',
+            title: 'Farmer Contact',
+            sortable: true,
+            align: 'center'
+        },
+        {
+            field: 'village',
+            title: 'Village',
+            sortable: true,
+            align: 'center'
+        },
+        {
+            field: 'vet_name',
+            title: 'Vet Name',
+            sortable: true,
+            align: 'center'
+        },
+        {
+            field: 'vet_reg_no',
+            title: 'Vet Registration Number',
+            sortable: true,
+            align: 'center'
+        },
+        {
+            field: 'vet_contact',
+            title: 'Vet Contact',
+            sortable: true,
+            align: 'center'
+        },
+        {
+            field: 'signature',
+            title: 'Signature',
+            sortable: true,
+            align: 'center'
+        },
+        {
+            field: 'stamp',
+            title: 'Stamp',
+            sortable: true,
+            align: 'center'
+        },
+        {
+            field: 'comment',
+            title: 'Comment',
+            sortable: true,
+            align: 'center'
+        },
+         
+          {
+            field: 'operate',
+            title: 'Item Operate',
+            align: 'center',
+            clickToSelect: false,
+            events: window.operateEvents,
+            formatter: operateFormatter
+          }
+        ],
+        [
+        ]
+        ]
+    })
+    $table.on('check.bs.table uncheck.bs.table ' +
+      'check-all.bs.table uncheck-all.bs.table',
+    function () {
+      $remove.prop('disabled', !$table.bootstrapTable('getSelections').length)
+
+      // save your data, here just save the current page
+      selections = getIdSelections()
+      // push or splice the selections if you want to save all data selections
+    })
+    $table.on('all.bs.table', function (e, name, args) {
+      
+    })
+    $remove.click(function () {
+      var ids = getIdSelections()
+      $table.bootstrapTable('remove', {
+        field: 'id',
+        values: ids
+      })
+      $remove.prop('disabled', true)
+    })
+  }
+
+  $(function() {
+    initTable()
+
+    $('#locale').change(initTable)
+  })
+    </script>
+  
+  <script>
+    window.onload = function () {
+        document.getElementById("download")
+            .addEventListener("click", () => {
+                const invoice = document.getElementById("invoice");
+                console.log(invoice);
+                console.log(window);
+                var opt = {
+                    margin: 1,
+                    filename: 'farmer records.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                };
+              
+                document.getElementById("modal-footer").style.display = "none";
+                //document.getElementById("closeModalBtn").style.display = "none";
+
+                html2pdf().from(invoice).set(opt).save().then(() => {
+                    
+                    window.location.reload();
+                });
+                
+                
+                document.getElementById("modal-footer").style.display = "none";
+            });
+    }
+</script>
+
+
+    
+<!-- Placeholder for the modal -->  
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/tableexport.jquery.plugin@1.28.0/tableExport.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap-table@1.22.4/dist/bootstrap-table.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap-table@1.22.4/dist/bootstrap-table-locale-all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap-table@1.22.4/dist/extensions/export/bootstrap-table-export.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
+
+  <script src="{% static 'portals/assets/js/core/popper.min.js' %}"></script>
+  <script src="{% static 'portals/assets/js/core/bootstrap.min.js' %}"></script>
+  <script src="{% static 'portals/assets/js/main.js' %}"></script>
+  <script src="{% static 'portals/assets/js/scripts.js' %}"></script>
+  
+  
+  <!--  Notifications Plugin    -->
+  
+
+<!-- start of template -->
+</div>
+<!-- /.row (main row) -->
+</div><!-- /.container-fluid -->
+<!-- end  of template -->
+             
       <footer class="footer">
         <div class=" container-fluid ">
             <div class="copyright">
               &copy; Copyright <strong><span>SoinVet</span></strong>. All Rights Reserved
               <div class="credits">
-              Designed by <a>ishasir</a>
+              
             </div>
           </div>
         </footer><!-- End Footer -->
-      </footer><!-- End Footer -->
-    <script>
-       
-        $(document).ready(function() {
-            $('#consultation').DataTable({
-                "ajax": "../farm-consultation-data",
-              
-                "columns": [
-                { "data": "farmer_username" },
-                { "data": "dairy_cows" },
-                { "data": "beef_production" },
-                { "data": "poultry" },
-                { "data": "sheep" },
-                { "data": "goat" },
-                { "data": "canine" },
-                { "data": "other" },
-                { "data": "give_recommendation" },
-                { "data": "grazing" },
-                { "data": "disease" },
-                { "data": "farm" },
-                { "data": "culling_selection" },
-                { "data": "farm_manager" },
-                { "data": "if_no" },
-                { "data": "name_incharge" },
-                { "data": "reg_number" },
-                { "data": "comment" },
-                    // Add more columns as needed based on your model fields
-                ]
-                
-            });
-        });
-    </script>
-<!--   Core JS Files   -->
-<script src="{% static 'portals/assets/js/core/jquery.min.js' %}"></script>
-<script src="{% static 'portals/assets/js/core/popper.min.js' %}"></script>
-<script src="{% static 'portals/assets/js/core/bootstrap.min.js' %}"></script>
-<script src="{% static 'portals/assets/js/plugins/perfect-scrollbar.jquery.min.js' %}"></script>
- <!--  Google Maps Plugin    -->
-  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-<!--  Google Maps Plugin    -->
-<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_KEY_HERE"></script>
-<!-- Chart JS -->
-<script src="{% static 'portals/assets/js/plugins/chartjs.min.js' %}"></script>
-<!--  Notifications Plugin    -->
-<script src="{% static 'portals/assets/js/plugins/bootstrap-notify.js' %}"></script>
-<!-- Control Center for Now Ui Dashboard: parallax effects, scripts for the example pages etc -->
-<script src="{% static 'portals/assets/js/now-ui-dashboard.min.js' %}" type="text/javascript"></script><!-- Now Ui Dashboard DEMO methods, don't include it in your project! -->
-<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-<!-- Include DataTables JS and Bootstrap JS -->
-<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.11.5/datatables.min.js"></script>
-<script type="text/javascript" src="https://cdn.datatables.net/searchpanes/2.5.1/js/dataTables.searchPanes.min.js"></script>
-<!-- Include Bootstrap JS here -->
-<script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.11.5/datatables.min.css"/>
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/searchpanes/2.5.1/css/searchPanes.dataTables.min.css"/>
-<!-- Include Bootstrap CSS here -->
-<link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"/>
-<script src="{% static 'portals/assets/js/main.js' %}"></script>
-  <!-- page-wrapper -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-      crossorigin="anonymous"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-      crossorigin="anonymous"></script>
-
-
-<script>
-  $(document).ready(function() {
-    // Javascript method's body can be found in assets/js/demos.js
-    demo.initDashboardPageCharts();
-
-  });
-</script>
-</body>
-
+      </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    </main>
 {% endblock %}
+
+
+
+
+
+
+
+
+
+

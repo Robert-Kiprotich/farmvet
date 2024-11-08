@@ -5,7 +5,7 @@ from django.db.models.signals import post_save
 class User(AbstractUser):
     is_vet_officer = models.BooleanField(default=False)
     is_farmer = models.BooleanField(default=False)
-    is_student = models.BooleanField(default=False)
+    is_official = models.BooleanField(default=False)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     email = models.EmailField(null=True, blank=True)
@@ -32,14 +32,16 @@ class Farmer(models.Model):
 	def __str__(self):
 		return f'Name: {self.user.username} Phone number {self.user.phone_number}'
 	
-class Student(models.Model):
-	user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-	student_number = models.CharField(max_length=50, unique=True)
-	college_name = models.CharField(max_length=100)
-	location = models.CharField(max_length=100)
+class Official(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    county = models.CharField(max_length=50, unique=True)
+    sub_county = models.CharField(max_length=100)
+    employment_number=models.CharField(max_length=100)
+    designation=models.CharField(max_length=50)
 
-	def __str__(self):
-		return f'Name: {self.user.username} student number {self.student_number}'
+
+    def __str__(self):
+        return f'Name: {self.user.username}'
 
 class Farm(models.Model):
 	farm_name = models.CharField(max_length=100)

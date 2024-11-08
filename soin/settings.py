@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'allauth.socialaccount.providers.google'
+    'allauth.socialaccount.providers.google',
+    
 ]
 
 
@@ -72,37 +73,62 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'portals.context_processor.all_farmers',
+                'portals.context_processor.choices',
+                
             ],
         },
     },
 ]
 
 WSGI_APPLICATION = 'soin.wsgi.application'
-
-
-
-REST_FRAMEWORK = {
-    # 'DATETIME_FORMAT': '%d-%m-%Y %H:%M:%S',
-    # 'DATE_FORMAT': '%d-%m-%Y',
-    'DEFAULT_PERMISSION_CLASSES': [
-    'portals.permissions.Is_Vet',
-   'portals.permissions.Is_Farmer',
-   'rest_framework.permissions.IsAuthenticated',
-],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 2,  # Set the default page size
-}
-
+if DEBUG:
+    REST_FRAMEWORK = {
+        'DEFAULT_RENDERER_CLASSES': (
+            'rest_framework.renderers.JSONRenderer',
+            'rest_framework.renderers.BrowsableAPIRenderer',  # Enable browsable API only in development
+        ),
+        'DEFAULT_PARSER_CLASSES': (
+            'rest_framework.parsers.MultiPartParser',
+            'rest_framework.parsers.FormParser',
+            'rest_framework.parsers.JSONParser',
+        ),
+        'DEFAULT_PERMISSION_CLASSES': [
+            'portals.permissions.Is_Vet',
+            'portals.permissions.Is_Farmer',
+            'rest_framework.permissions.IsAuthenticated',
+        ],
+        'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+        'PAGE_SIZE': 10,
+    }
+else:
+    REST_FRAMEWORK = {
+        'DEFAULT_RENDERER_CLASSES': (
+            'rest_framework.renderers.JSONRenderer',  
+        ),
+        'DEFAULT_PARSER_CLASSES': (
+            'rest_framework.parsers.MultiPartParser',
+            'rest_framework.parsers.FormParser',
+            'rest_framework.parsers.JSONParser',
+        ),
+        'DEFAULT_PERMISSION_CLASSES': [
+            'portals.permissions.Is_Vet',
+            'portals.permissions.Is_Farmer',
+            'rest_framework.permissions.IsAuthenticated',
+        ],
+        'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+        'PAGE_SIZE': 2,
+    }
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 
 # DATABASES = {
 #      'default': {
@@ -115,16 +141,16 @@ REST_FRAMEWORK = {
 #     }
 # }
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'soin',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': 'localhost',
-        'PORT': 5432,
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'soin',
+#         'USER': 'postgres',
+#         'PASSWORD': 'postgres',
+#         'HOST': 'localhost',
+#         'PORT': 5432,
+#     }
+# }
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # DATABASES = {
 #     'default': {
@@ -180,8 +206,8 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR,'portals', 'static'),
 ]
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media', 'public_html', 'vetWeb', 'soin', 'static')
-MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR,'portals/media')
+MEDIA_URL = '/portals/media/'
 
 LOGIN_REDIRECT_URL = 'index'
 

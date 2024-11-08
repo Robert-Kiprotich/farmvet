@@ -70,7 +70,7 @@
     </div>
    
    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#lactationAddModal">
-     Add 
+    Add Record
     </button>
      <!-- form modal -->
      <div class="modal fade" id="lactationAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -257,15 +257,9 @@
 <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content" id="invoice">
-      <div class="modal-header">
-        <h4 class="col-9 modal-title text-center">Farm Records</h4>
-        <button type="button"  id="closeModalBtn">
-          <i class="fa fa-times" aria-hidden="true"></i>
-        </button>
-      </div>
-      <div class="modal-header">
-        <h5 class="col-12 modal-title text-center " >Lactating Cows  Records</h5> 
-      </div>
+      
+        <h2 class="text-center">Farm Records</h2>
+        <h3 class="text-center">Lactating Cows Records </h3>
       <div class="modal-body" id="modalBody">
       </div>
       <div class="modal-footer" id="modal-footer">
@@ -276,28 +270,6 @@
   </div><!-- /.modal-dialog -->
 </div><!-- /. Display  modal -->
 <!-- sucess Modal -->
-<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-confirm">
-      <div class="modal-content">
-          <div class="modal-header">
-              <div class="icon-box">
-                  <i class="material-icons">&#xE876;</i>
-              </div>
-              <h4 class="modal-title">Details Submitted successfully</h4>
-          </div>
-          <div class="modal-body">
-              <div class="spinner-border text-success" role="status">
-                  <span class="sr-only">Loading...</span>
-              </div>
-              <p class="text-center">Saving....</p>
-          </div>
-          <div class="modal-footer">
-              <button class="btn btn-success btn-block" data-dismiss="modal">OK</button>
-          </div>
-      </div>
-  </div>
-</div>
-<!-- sucess Modal End -->
 
 
     
@@ -428,47 +400,51 @@ const csrftoken = getCookie('csrftoken');
 }
 
 $('#lactationAddForm').submit(function(e) {
-  e.preventDefault(); 
-  var formData =new  FormData(this) //.serialize();
+  e.preventDefault();
+  var formData = new FormData(this);
   var jsonObject = {};
   formData.forEach(function(value, key) {
       jsonObject[key] = value;
   });
-  var cowName = $('#cow_name').val();
-  console.log(cowName);
+  var cow_name = $('#cow_name').val();
+
   var csrftoken = getCookie('csrftoken');
+
   $.ajax({
-    type: 'GET', 
-    url: "/lactating-cows/?cow_name=" + cowName,
-    success: function(data) {
-      if (data.count > 0) {
-        alert("Error: A cow with the name '" + cowName + "' already exists!");
-        return; 
-      } else {   
-        console.log("COMING")
-        $.ajax({
-          method: 'POST',
-          url: "/lactating-cows/create/",
-          data: JSON.stringify(jsonObject),
-          beforeSend: function(xhr) {
-            xhr.setRequestHeader('X-CSRFToken', csrftoken)
-            xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
-          }}).done(function(data) {
-            console.log(data);
-            $('#lactationAddModal').modal('hide');
-            $('#successModal').modal('show'); 
-            setTimeout(function() {
-                  window.location.reload();
-                }, 3000); 
-          }).
-          fail(function(xhr, textStatus, errorThrown) {
-            console.error('Error submitting form:', errorThrown);
-          });
-      }
-    },
-    error: function(xhr, textStatus, errorThrown) {
-      console.error('Error checking cow name:', errorThrown);
+    method: 'POST',
+    url: "/lactating-cows/create/",
+    data: JSON.stringify(jsonObject),
+    beforeSend: function(xhr) {
+      xhr.setRequestHeader('X-CSRFToken', csrftoken);
+      xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
     }
+  }).done(function(data) {
+    console.log('POST response data:', data);
+    $('#lactationAddModal').modal('hide');
+    $('#statusSuccessModal').modal('show');
+    setTimeout(function() {
+      window.location.reload();
+    }, 1000);
+  }).fail(function(xhr, textStatus, errorThrown) {
+    $('#lactationAddModal').modal('hide');
+    if (xhr.status === 400) {
+      var errors = JSON.parse(xhr.responseText);
+      if (errors.cow_name) {
+        errorMessage = errors.cow_name;
+      } else {
+        errorMessage = xhr.responseText;
+      }
+    } else {
+      errorMessage = xhr.responseText;
+    }
+    console.error('Error submitting form:', errorMessage);
+    $('#errorModalBody').html('<p>' + errorMessage + '</p>');
+    $('#statusErrorsModal').modal('show');
+    $('#errorButton').click(function() {
+      setTimeout(function() {
+        window.location.reload();
+      }, 5);  
+    });
   });
 });
 
@@ -585,7 +561,7 @@ $('#lactationAddForm').submit(function(e) {
       
 })
 .then(data=>{
-  $('#successModal').modal('show');
+  $('#statusSuccessModal').modal('show');
 
 })
 .catch(error => console.error('Error:', error));
@@ -792,7 +768,7 @@ $('#lactationAddForm').submit(function(e) {
                 };
               
                 document.getElementById("modal-footer").style.display = "none";
-                document.getElementById("closeModalBtn").style.display = "none";
+               // document.getElementById("closeModalBtn").style.display = "none";
 
                 html2pdf().from(invoice).set(opt).save().then(() => {
                     
@@ -824,7 +800,7 @@ $('#lactationAddForm').submit(function(e) {
    
    <script src="{% static 'portals/assets/js/main.js' %}"></script>
    <!-- page-wrapper -->
- 
+   <script src="{% static 'portals/assets/js/scripts.js' %}"></script>
   
   
   <!--  Notifications Plugin    -->
@@ -843,7 +819,7 @@ $('#lactationAddForm').submit(function(e) {
             <div class="copyright">
               &copy; Copyright <strong><span>SoinVet</span></strong>. All Rights Reserved
               <div class="credits">
-              Designed by <a>ishasir</a>
+              
             </div>
           </div>
         </footer><!-- End Footer -->

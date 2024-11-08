@@ -70,7 +70,7 @@
     </div>
    
    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#calfAddModal">
-     Add 
+    Add Record
     </button>
      <!-- form modal -->
      <div class="modal fade" id="calfAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -91,6 +91,16 @@
                   <input type="text" class="form-control editable-field" id="name_given" name="name_given">
                   <div class="invalid-feedback">Please provide a valid name.</div>
               </div>
+              <div class="mb-3">
+                <label for="registration_number" class="form-label">Registration Number</label>
+                <input type="text" class="form-control editable-field" id="registration_number" name="registration_number">
+                <div class="invalid-feedback">Please provide a valid registration number.</div>
+            </div>
+              <div class="mb-3">
+                <label for="dam_details" class="form-label">Dam Details</label>
+                <input type="text" class="form-control editable-field" id="dam_details" name="dam_details">
+                <div class="invalid-feedback">Please provide a valid name.</div>
+            </div>
       
               <div class="mb-3">
                   <label for="birth_date" class="form-label">Birth Date</label>
@@ -103,6 +113,8 @@
                   <select class="form-control editable-field" id="breed" name="breed">
                       <optgroup label="Cattle" aria-selected="">
                         <option value="Angus">Angus</option>
+                        <option value="Friesian">Friesian</option>
+                        <option value="Ayrshire">Ayrshire</option>
                         <option value="Hereford">Hereford</option>
                         <option value="Charolais">Charolais</option>
                         <option value="Simmental">Simmental</option>
@@ -213,11 +225,7 @@
                   <div class="invalid-feedback">Please provide valid medical conditions.</div>
               </div>
       
-              <div class="mb-3">
-                  <label for="registration_number" class="form-label">Registration Number</label>
-                  <input type="text" class="form-control editable-field" id="registration_number" name="registration_number">
-                  <div class="invalid-feedback">Please provide a valid registration number.</div>
-              </div>
+             
       
               <div class="mb-3">
                   <label for="registration_date" class="form-label">Registration Date</label>
@@ -277,6 +285,17 @@
                   <input type="text" class="form-control editable-field" id="name_given" name="name_given">
                   <div class="invalid-feedback">Please provide a valid name.</div>
               </div>
+              <div class="mb-3">
+                <label for="registration_number" class="form-label">Registration Number</label>
+                <input type="text" class="form-control editable-field" id="registration_number" name="registration_number">
+                <div class="invalid-feedback">Please provide a valid registration number.</div>
+            </div>
+              <div class="mb-3">
+                <label for="dam_details" class="form-label">Dam Details</label>
+                <input type="text" class="form-control editable-field" id="dam_details" name="dam_details">
+                <div class="invalid-feedback">Please provide a valid name.</div>
+            </div>
+    
       
               <div class="mb-3">
                   <label for="birth_date" class="form-label">Birth Date</label>
@@ -289,6 +308,8 @@
                     <select id="id_breed" name="breed" class="form-control editable-field">
                       <optgroup label="Cattle" aria-selected="">
                         <option value="Angus">Angus</option>
+                        <option value="Friesian">Friesian</option>
+                        <option value="Ayrshire">Ayrshire</option>
                         <option value="Hereford">Hereford</option>
                         <option value="Charolais">Charolais</option>
                         <option value="Simmental">Simmental</option>
@@ -399,11 +420,7 @@
                   <div class="invalid-feedback">Please provide valid medical conditions.</div>
               </div>
       
-              <div class="mb-3">
-                  <label for="registration_number" class="form-label">Registration Number</label>
-                  <input type="text" class="form-control editable-field" id="registration_number" name="registration_number">
-                  <div class="invalid-feedback">Please provide a valid registration number.</div>
-              </div>
+             
       
               <div class="mb-3">
                   <label for="registration_date" class="form-label">Registration Date</label>
@@ -448,15 +465,8 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <div class="modal-header">
-            <h4 class="col-9 modal-title text-center">Farm Records</h4>
-            <button type="button"  id="closeModalBtn">
-              <i class="fa fa-times" aria-hidden="true"></i>
-            </button>
-          </div>
-          <div class="modal-header">
-            <h5 class="col-12 modal-title text-center " >Calves  Records</h5> 
-          </div>
+          <h2 class="text-center">Farm Records</h2>
+       <h3 class="text-center">Calves Records </h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -467,27 +477,7 @@
       </div><!-- /.modal-dialog -->
     </div><!-- /. Display  modal -->
 <!-- sucess Modal -->
-<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-confirm">
-      <div class="modal-content">
-          <div class="modal-header">
-              <div class="icon-box">
-                  <i class="material-icons">&#xE876;</i>
-              </div>
-              <h4 class="modal-title">Details Submitted successfully</h4>
-          </div>
-          <div class="modal-body">
-              <div class="spinner-border text-success" role="status">
-                  <span class="sr-only">Loading...</span>
-              </div>
-              <p class="text-center">Saving....</p>
-          </div>
-          <div class="modal-footer">
-              <button class="btn btn-success btn-block" data-dismiss="modal">OK</button>
-          </div>
-      </div>
-  </div>
-</div>
+
 <!-- sucess Modal End -->
 
 
@@ -626,36 +616,53 @@ const csrftoken = getCookie('csrftoken');
     });
 }
 $('#calfAddForm').submit(function(e) {
-        e.preventDefault(); // Prevent the default form submission
-        // Serialize form data
-        var formData = $(this).serialize();
-        
-        // Send AJAX request
-        $.ajax({
-            type: 'POST',
-            url: "/calves/create/",
-            data: formData,
-           
-            success: function(data) {
-              $('#calfAddModal').modal('hide');
-              $('#successModal').modal('show');
-                //console.log(data.message);
-                // Redirect after 3 seconds
-                setTimeout(function() {
-                  window.location.reload(); // Redirect to the home page
-                }, 3000); 
-                // Handle success response
-                console.log('Form submitted successfully');
-                console.log(data);   
-            },
-            
-            error: function(xhr, textStatus, errorThrown) {
-                // Handle error response
-                console.error('Error submitting form:', errorThrown);
-            }
-        });
-        
+  e.preventDefault();
+  var formData = new FormData(this);
+  var jsonObject = {};
+  formData.forEach(function(value, key) {
+      jsonObject[key] = value;
+  });
+  var IdNo = $('#registration_number').val();
+
+  var csrftoken = getCookie('csrftoken');
+
+  $.ajax({
+    method: 'POST',
+    url: "/calves/create/",
+    data: JSON.stringify(jsonObject),
+    beforeSend: function(xhr) {
+      xhr.setRequestHeader('X-CSRFToken', csrftoken);
+      xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+    }
+  }).done(function(data) {
+    console.log('POST response data:', data);
+    $('#calfAddModal').modal('hide');
+    $('#statusSuccessModal').modal('show');
+    setTimeout(function() {
+      window.location.reload();
+    }, 1000);
+  }).fail(function(xhr, textStatus, errorThrown) {
+    $('#calfAddModal').modal('hide');
+    if (xhr.status === 400) {
+      var errors = JSON.parse(xhr.responseText);
+      if (errors.registration_number) {
+        errorMessage = errors.registration_number;
+      } else {
+        errorMessage = xhr.responseText;
+      }
+    } else {
+      errorMessage = xhr.responseText;
+    }
+    console.error('Error submitting form:', errorMessage);
+    $('#errorModalBody').html('<p>' + errorMessage + '</p>');
+    $('#statusErrorsModal').modal('show');
+    $('#errorButton').click(function() {
+      setTimeout(function() {
+        window.location.reload();
+      }, 5);  
     });
+  });
+});
      function operateFormatter(value, row, index) {
         return [
           '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
@@ -822,6 +829,13 @@ $('#calfAddForm').submit(function(e) {
     align: 'center'
   },
   {
+    field: 'dam_details',
+    title: 'Dam Details',
+    label: 'Dam Details',
+    sortable: true,
+    align: 'center'
+  },
+  {
     field: 'birth_date',
     title: 'Birth Date',
     label: 'Birth Date',
@@ -973,7 +987,7 @@ $('#calfAddForm').submit(function(e) {
                 };
               
                 document.getElementById("modal-footer").style.display = "none";
-                document.getElementById("closeModalBtn").style.display = "none";
+               // document.getElementById("closeModalBtn").style.display = "none";
 
                 html2pdf().from(invoice).set(opt).save().then(() => {
                     
@@ -1003,7 +1017,7 @@ $('#calfAddForm').submit(function(e) {
   <script src="{% static 'portals/assets/js/core/popper.min.js' %}"></script>
   <script src="{% static 'portals/assets/js/core/bootstrap.min.js' %}"></script>
   <script src="{% static 'portals/assets/js/main.js' %}"></script>
- 
+  <script src="{% static 'portals/assets/js/scripts.js' %}"></script>
   
   
   
@@ -1017,7 +1031,7 @@ $('#calfAddForm').submit(function(e) {
             <div class="copyright">
               &copy; Copyright <strong><span>SoinVet</span></strong>. All Rights Reserved
               <div class="credits">
-              Designed by <a>ishasir</a>
+              
             </div>
           </div>
         </footer><!-- End Footer -->

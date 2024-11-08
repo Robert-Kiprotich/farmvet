@@ -70,8 +70,11 @@
     </div>
    
    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#milkrecordAddModal">
-     Add 
+    Add Record
     </button>
+    <a href="{% url 'daily-record'  %}" class="btn btn-primary" >
+      Record Per Cow
+    </a>
      <!-- form modal -->
      <div class="modal fade" id="milkrecordAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">
@@ -205,17 +208,11 @@
 <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content" id="invoice">
-      <div class="modal-header">
-        <h4 class="col-9 modal-title text-center">Farm Records</h4>
-        <button type="button"  id="closeModalBtn">
-          <i class="fa fa-times" aria-hidden="true"></i>
-        </button>
-      </div>
-      <div class="modal-header">
-        <h5 class="col-12 modal-title text-center " >Daily Milk  Records</h5> 
-      </div>
+        <h2 class="text-center">Farm Records</h2>
+       <h3 class="text-center">Daily Milk Records </h3>
       <div class="modal-body" id="modalBody">
       </div>
+
       <div class="modal-footer" id="modal-footer">
         <button type="button" class="btn btn-secondary" id="closeModalBtn1">Close</button>
         <button type="button" id="download" class="btn btn-primary">Download Pdf</button>
@@ -224,46 +221,11 @@
   </div><!-- /.modal-dialog -->
 </div><!-- /. Display  modal -->
 <!-- sucess Modal -->
-<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-confirm">
-      <div class="modal-content">
-          <div class="modal-header">
-              <div class="icon-box">
-                  <i class="material-icons">&#xE876;</i>
-              </div>
-              <h4 class="modal-title">Details Submitted successfully</h4>
-          </div>
-          <div class="modal-body">
-              <div class="spinner-border text-success" role="status">
-                  <span class="sr-only">Loading...</span>
-              </div>
-              <p class="text-center">Saving....</p>
-          </div>
-          <div class="modal-footer">
-              <button class="btn btn-success btn-block" data-dismiss="modal">OK</button>
-          </div>
-      </div>
-  </div>
-</div>
-<!-- sucess Modal End -->
 
 
-    
     <style>
-      /* .select,
-      #locale {
-        width: 100%;
-      }
-      .like {
-        margin-right: 10px;
-      }
-      .mytable th{
-        font-size: 6px;
-
-      } */
+      
     </style>
-     <!-- Placeholder for the modal -->
-
     <div id="toolbar">
       <h5 class="text-danger">Click the plus sign To view More</h5>
     </div>
@@ -294,10 +256,10 @@
       data-click-to-select="true"
       data-detail-formatter="detailFormatter"
       data-minimum-count-columns="15"
-      data-show-pagination-switch="true"
-      data-pagination="true"
-      data-id-field="id"
-      data-page-list="[10, 25, 50, 100, all]"
+      data-show-pagination-switch="false"
+      data-pagination="false"
+      data-id-field="page_size"
+      data-page-list="[100, 250, 500, 1000, all]"
       data-show-footer="true"
       data-side-pagination="server"
       data-url="{% url 'milkrecord-list' %}"
@@ -396,8 +358,8 @@ $(document).ready(function() {
       const cow = data.results;
       const lactatingCowSelect = $('#cow_name');
       cow.forEach(lactatingCow => {
-        console.log(lactatingCow.id,lactatingCow.cow_name)
-        lactatingCowSelect.append($('<option></option>').val(lactatingCow.id).text(lactatingCow.cow_name));
+        console.log(lactatingCow.cow_name)
+        lactatingCowSelect.append($('<option></option>').val(lactatingCow.cow_name).text(lactatingCow.cow_name));
         
       });
     })
@@ -410,7 +372,8 @@ $(document).ready(function() {
       const person = data.results;
       const employeeSelect = $('#employee_name');
       person.forEach(employee => {
-        employeeSelect.append($('<option></option>').val(employee.id).text(employee.employee_name));
+        console.log(employee.id,employee.employee_name)
+        employeeSelect.append($('<option></option>').val(employee.employee_name).text(employee.employee_name));
       });
     })
     .catch(error => console.error('Error fetching breeds:', error));
@@ -419,33 +382,40 @@ $(document).ready(function() {
 
        
 $('#milkrecordAddForm').submit(function(e) {
-  e.preventDefault(); // Prevent the default form submission
-
-    const formData = $(this).serialize();
-
-    // Send AJAX request with populated form data
-    $.ajax({
-      type: 'POST',
-      url: "/milk-records/create/",
-      data: formData,
-
-      success: function(data) {
-        $('#milkrecordAddModal').modal('hide');
-        $('#successModal').modal('show');
-        console.log('Form submitted successfully');
-        console.log(data);
-        // Redirect after 3 seconds
-        setTimeout(function() {
-          window.location.reload();
-        }, 3000);
-      },
-
-      error: function(xhr, textStatus, errorThrown) {
-        console.error('Error submitting form:', errorThrown);
-      }
-    });
+  e.preventDefault();
+  var formData = new FormData(this);
+  var jsonObject = {};
+  formData.forEach(function(value, key) {
+      jsonObject[key] = value;
+      console.log(jsonObject)
   });
+ 
+  var csrftoken = getCookie('csrftoken');
 
+  $.ajax({
+    method: 'POST',
+    url: "/milk-records/create/",
+    data: JSON.stringify(jsonObject),
+    beforeSend: function(xhr) {
+      xhr.setRequestHeader('X-CSRFToken', csrftoken);
+      xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+    }
+  }).done(function(data) {
+    console.log('POST response data:', data);
+    $('#milkrecordAddModal').modal('hide');
+    $('#statusSuccessModal').modal('show');
+    setTimeout(function() {
+      window.location.reload();
+    }, 1000);
+  }).fail(function(xhr, textStatus, errorThrown) {
+    if (xhr.status === 400) {
+      var errors = JSON.parse(xhr.responseText);
+      
+    } else {
+      console.error('Error submitting form:', xhr.responseText);
+    }
+  });
+});
      function operateFormatter(value, row, index) {
         return [
           '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
@@ -459,142 +429,137 @@ $('#milkrecordAddForm').submit(function(e) {
       }
 
      
-      window.operateEvents = {
+      $(document).ready(function() {
+       
+    const lactatingCowUrl = '/lactating-cows/';
+    const employeeUrl = '/employees-list/';
+
+    // Function to fetch and populate lactating cows and employees data
+    const fetchData = async () => {
+        try {
+            // Fetch animal types
+            const cowResponse = await fetch(lactatingCowUrl);
+            const cowData = await cowResponse.json();
+            const cows = cowData.results;
+            const lactatingCowSelect = $('#cow_name');
+            lactatingCowSelect.empty(); // Clear previous options
+            cows.forEach(lactatingCow => {
+                lactatingCowSelect.append($('<option></option>').val(lactatingCow.cow_name).text(lactatingCow.cow_name));
+            });
+
+            // Fetch employee names and positions
+            const employeeResponse = await fetch(employeeUrl);
+            const employeeData = await employeeResponse.json();
+            const employees = employeeData.results;
+            const employeeSelect = $('#employee_name');
+            employeeSelect.empty(); // Clear previous options
+            employees.forEach(employee => {
+                employeeSelect.append($('<option></option>').val(employee.id).text(employee.employee_name));
+            });
+            
+            console.log('Data fetched and dropdowns populated');
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    };
+
+    
+    fetchData();
+
+    window.operateEvents = {
         'click .edit': function(e, value, row, index) {
          
-  
-    $('#milkrecordEditModal').modal('show');
+            e.preventDefault();
+            console.log('Edit button clicked', row);
 
-    // Populate form fields after the modal is shown (ensures elements exist)
-    $('#milkrecordEditModal').on('shown.bs.modal', function () {
-      // Example API endpoints (replace with actual endpoints)
-  const lactatingCowUrl = '/lactating-cows/';
-  const employeeUrl = '/employees-list/';
+            
+            $('#milkrecordEditModal').modal('show');
 
-  // Fetch animal types
-  fetch(lactatingCowUrl)
-    .then(response => response.json())
-    .then(data => {
-      console.log(data)
-      const cow = data.results;
-      const lactatingCowSelect = $('#cow_name');
-      cow.forEach(lactatingCow => {
-        console.log(lactatingCow.id,lactatingCow.cow_name)
-        lactatingCowSelect.append($('<option></option>').val(lactatingCow.id).text(lactatingCow.cow_name));
-        
-      });
-    })
-    .catch(error => console.error('Error lactating cow:', error));
+            
+            $('#milkrecordEditModal').on('shown.bs.modal', function () {
+                console.log('Modal shown, populating form fields');
+                
+               
 
-  // Fetch breeds
-  fetch(employeeUrl)
-    .then(response => response.json())
-    .then(data => {
-      const person = data.results;
-      const employeeSelect = $('#employee_name');
-      person.forEach(employee => {
-        employeeSelect.append($('<option></option>').val(employee.id).text(employee.employee_name));
-      });
-    })
-    .catch(error => console.error('Error fetching breeds:', error));
+                // Fetch the ID from the row data (assuming 'id' is a property in your data)
+                const objectId = row.id;
+                console.log('Object ID:', objectId);
 
-    // Fetch the ID from the row data (assuming 'id' is a property in your data)
-    const objectId = row.id;
-    console.log(objectId)
+                // Check if ID is available before proceeding
+                if (!objectId) {
+                    console.error('Error: Missing ID in row data');
+                    return;
+                }
 
-    // Check if ID is available before proceeding
-    if (!objectId) {
-      console.error('Error: Missing ID in row data');
-      return;
-    }
+                // Populate form fields with row data
+                const formFields = $('#milkrecordEditModal .editable-field');
+                formFields.each(function(i, field) {
+                    const fieldName = $(field).attr('name');
+                    const fieldValue = row[fieldName];
 
-      const formFields = $('#milkrecordEditModal .editable-field');
-
-      formFields.each(function(i, field) {
-    const fieldName = $(field).attr('name');
-    const fieldValue = row[fieldName];
-
-    if ($(field).is('select')) {
-        
-        $(field).val(fieldValue || ''); 
-    } else {
-
-        $(field).val(fieldValue || ''); 
-    }
-});
-    });
-
-    $('#cancel').click(function() {
-      $('#milkrecordEditModal').modal('hide');
-    });
-    $('#canceless').click(function() {
-      $('#milkrecordEditModal').modal('hide');
-    });
-
-    e.preventDefault();
-
-    
-    $('#submitmilkrecord').on('click', function () {
-  const formFields = $('#milkrecordEditModal .editable-field');
-
-  formFields.each(function (i, field) {
-    const fieldName = $(field).attr('name');
-    const fieldValue = $(field).val();
-
-    row[fieldName] = fieldValue; 
-  });
-   
-  fetch(`/milk-records/update/${row.id}/`, {
-    method: 'PATCH',
-    headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrftoken
-    },
-    body: JSON.stringify(row)
-})
-.then(response => response.json())
-.then(data => {
-    console.log('Success:', data);
-    
-    window.location.reload()
-   
-      
-})
-.then(data=>{
-  $('#successModal').modal('show');
-
-})
-.catch(error => console.error('Error:', error));
-});
-
-  },
-        'click .remove': function (e, value, row, index) {
-    // Send an AJAX request to the Django backend to delete the record
-    $.ajax({
-        url: `/milk-records/delete/${row.id}/`, // Replace with the appropriate URL
-        type: 'DELETE',
-        headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrftoken
-    }, // Include CSRF token if required
-        success: function () {
-          
-            // If deletion is successful, remove the row from the Bootstrap Table
-            $table.bootstrapTable('remove', {
-                row: 'id',
-                values: [row.id]
+                });
             });
-            window.location.reload();
-        },
-        error: function (xhr, textStatus, errorThrown) {
-            // Handle errors, if any
-            console.error('Error deleting record:', errorThrown);
-            // Optionally, you can display error messages or handle UI updates here
-        }
-    });
 
-}
-      }
+            $('#cancel').click(function() {
+                $('#milkrecordEditModal').modal('hide');
+            });
+
+            $('#canceless').click(function() {
+                $('#milkrecordEditModal').modal('hide');
+            });
+
+            $('#submitmilkrecord').on('click', function () {
+                const formFields = $('#milkrecordEditModal .editable-field');
+
+                formFields.each(function (i, field) {
+                    const fieldName = $(field).attr('name');
+                    const fieldValue = $(field).val();
+
+                    row[fieldName] = fieldValue;
+                });
+
+                fetch(`/milk-records/update/${row.id}/`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify(row)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Success:', data);
+                    window.location.reload();
+                })
+                .then(data => {
+                    $('#statusSuccessModal').modal('show');
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        },
+        'click .remove': function (e, value, row, index) {
+            $.ajax({
+                url: `/milk-records/delete/${row.id}/`,
+                type: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                success: function () {
+                    $table.bootstrapTable('remove', {
+                        row: 'id',
+                        values: [row.id]
+                    });
+                    window.location.reload();
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    console.error('Error deleting record:', errorThrown);
+                }
+            });
+        }
+    };
+});
+        
     
       function totalTextFormatter(data) {
         return 'Total'
@@ -624,7 +589,7 @@ $('#milkrecordAddForm').submit(function(e) {
           {
             field: 'state',
             checkbox: true,
-            rowspan: 2,
+            rowspan: 1,
             align: 'center',
             valign: 'middle'
           },
@@ -644,14 +609,14 @@ $('#milkrecordAddForm').submit(function(e) {
         align: 'center'
     },
     {
-        field: 'employee_name',
+        field: 'employee_names',
         title: 'Employee Name',
         sortable: true,
         align: 'center'
     },
     {
         field: 'date',
-        title: 'Date',
+        title: 'Date &nbsp',
         sortable: true,
         align: 'center',
         formatter: function (value, row) {
@@ -729,7 +694,7 @@ $('#milkrecordAddForm').submit(function(e) {
                 };
               
                 document.getElementById("modal-footer").style.display = "none";
-                document.getElementById("closeModalBtn").style.display = "none";
+                //document.getElementById("closeModalBtn").style.display = "none";
 
                 html2pdf().from(invoice).set(opt).save().then(() => {
                     
@@ -760,7 +725,7 @@ $('#milkrecordAddForm').submit(function(e) {
   <script src="{% static 'portals/assets/js/core/bootstrap.min.js' %}"></script>
  
   <script src="{% static 'portals/assets/js/main.js' %}"></script>
-  
+  <script src="{% static 'portals/assets/js/scripts.js' %}"></script>
   <!--  Notifications Plugin    -->
   
   
@@ -774,7 +739,7 @@ $('#milkrecordAddForm').submit(function(e) {
             <div class="copyright">
               &copy; Copyright <strong><span>SoinVet</span></strong>. All Rights Reserved
               <div class="credits">
-              Designed by <a>ishasir</a>
+              
             </div>
           </div>
         </footer><!-- End Footer -->

@@ -142,9 +142,9 @@ class FarmerSignUpForm(UserCreationForm):
 		fields = ['username','first_name','last_name','farm_name','email','phone_number','country', 'location','password1', 'password2']
 			
 
-class StudentSignUpForm(UserCreationForm):
+class OfficialSignUpForm(UserCreationForm):
 	first_name = forms.CharField(
-		max_length=10,
+		max_length=50,
 		min_length=4,
 		required=True,
 		widget=forms.TextInput(
@@ -164,13 +164,53 @@ class StudentSignUpForm(UserCreationForm):
 				}
 			)
 		)
-	email = forms.EmailField()
+		
+	email = forms.EmailField(
+		max_length=254,
+		widget=forms.EmailInput(
+			attrs={
+				'placeholder': 'Email',
+				'class': 'form-control'
+			}
+		)
+	)
 	phone_number = forms.RegexField(regex='^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$', max_length=13)
-	student_number = forms.CharField(max_length=20)
-	college_name = forms.CharField(max_length=20)
-	location = forms.CharField(max_length=30)
+	vet_category=forms.ChoiceField(choices=[('surgeon', 'Surgeon'), ('technologist', 'Technologist'), ('technician', 'Technician')], label='Select Vet Category')
+	county=forms.CharField()
+	sub_county=forms.CharField()
+	employment_number=forms.CharField()
+	designation=forms.ChoiceField(choices=[('director', 'Director'), ('svo', 'Svo')], label='Select Designation')
 
+	
+
+	
+	password1 = forms.CharField(
+		label='Password',
+		max_length=30,
+		min_length=8,
+		required=True,
+		widget=forms.PasswordInput(
+			attrs={
+				'placeholder': 'Password',
+				'class': 'form-control'
+			}
+		)
+	)
+
+	password2 = forms.CharField(
+		label='Confirm Password',
+		max_length=30,
+		min_length=8,
+		required=True,
+		widget=forms.PasswordInput(
+			attrs={
+				'placeholder': 'Confirm Password',
+				'class': 'form-control'
+			}
+		)
+	)
+	
 	class Meta(UserCreationForm.Meta):
 		model = User
-		fields = ['username','first_name','last_name','student_number','college_name', 'phone_number', 'email', 'location','password1', 'password2']	
+		fields = ('username','first_name','last_name','phone_number','vet_category','county','sub_county','registration_number','employment_number','designation','email','password1', 'password2',)
 

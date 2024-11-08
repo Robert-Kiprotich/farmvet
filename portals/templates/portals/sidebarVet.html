@@ -10,7 +10,6 @@
 <link href="https://use.fontawesome.com/releases/v5.0.6/css/all.css" rel="stylesheet">
  
 
-
 <div class="page-wrapper chiller-theme ">
   <a id="show-sidebar" class="btn btn-sm btn-dark" href="#">
     <i class="fas fa-bars"></i>
@@ -20,7 +19,7 @@
       <div class="sidebar-brand">
         <a href="{% url 'vet-portal' %}">Vet Dashboard</a>
         <div id="close-sidebar">
-          <i class="fas fa-times"></i>
+          <i class="fas fa-times fa-lg"></i>
         </div>
       </div>
       <div class="sidebar-header">
@@ -46,53 +45,7 @@
           <li class="header-menu">
             <span>General</span>
           </li>
-          <li class="sidebar-dropdown">
-            <a href="#">
-              <i class="fa fa-tachometer-alt"></i>
-              <span>My Forms</span>
-             
-            </a>
-            <div class="sidebar-submenu">
-              <ul>
-                <li>
-                  <a href="{% url 'sickformview' %}">ClinicalApproachForm</a>
-                
-                  </a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="{% url 'deadformview' %}">PostMortemApproachForm</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="{% url 'surgicalformview' %}">SurgicalApproachForm</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="{% url 'dewormingformview' %}">DewormingForm</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="{% url 'vaccinationformview' %}">vaccination_form</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="{% url 'artificialformview' %}">ArtificialInseminationForm</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="{% url 'pregnancyformview' %}">PregnancyDiagnosisForm</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="{% url 'consultationformview' %}">ConsultationForm</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="{% url 'vetbillformview' %}">VeterinaryBillingForm</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="{% url 'labformview' %}">LaboratoryForm</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="{% url 'referralformview' %}">ReferralForm</a>
-                </li>
-               
-              </ul>
-            </div>
-          </li>
+          
           <li class="sidebar-dropdown">
             <a href="#">
               <i class="fa fa-shopping-cart"></i>
@@ -102,59 +55,95 @@
             <div class="sidebar-submenu">
               <ul>
                 <li>
-                  <a class="dropdown-item" href="{% url 'artificial-report' %}">AI Report</a>
+                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'ai'%}">AI Records</a>
+                  </a>
+                </li>
+                
+                <li>
+                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'pregnancy-diag'%}">Pregnancy Diagnosis</a>
+                  </a>
+                </li>
+              
+                <li>
+                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'vaccination' %}">Vaccination Records</a>
+                  </a>
+                </li>
+
+                <li>
+                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'surgery'%}">Surgery Records</a>
+                  </a>
+                </li>
+               
+                <li>
+                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'clinical'%}">Clinical Records</a>
+                  </a>
+                </li>
+                
+                
+                <li>
+                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'consultation'%}">Farm Consultation Records</a>
                   </a>
                 </li>
                 <li>
-                  <a class="dropdown-item" href="{% url 'deworming-report' %}">Deworming Report</a>
+                  <a class="dropdown-item"  href="{% url 'referral'%}" style="font-weight: bold;">Referral Records</a>
+                  </a>
                 </li>
                 <li>
-                  <a class="dropdown-item" href="{% url 'sick-report' %}">Sickness Report</a>
+                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'deworming'%}">Deworming Records</a>
+                  </a>
                 </li>
                 <li>
-                  <a class="dropdown-item" href="{% url 'death-report' %}">Death Report</a>
+                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'postmortem'%}">Post Mortem Records</a>
+                  </a>
                 </li>
-                <li>
-                  <a class="dropdown-item" href="{% url 'vaccination-report' %}">vaccination Report</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="{% url 'pregnancy-report' %}">Pregnancy Report</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="{% url 'farm-consultation' %}">Farm Consultation</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="{% url 'veterinary-billing-report' %}">Billing</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="{% url 'laboratory-report' %}">Lab Report</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="{% url 'referral-report' %}">Referral Report</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="{% url 'surgical-report' %}">surgical Report</a>
-                </li>
+                <li class="sidebar-dropdown">
+                  <a href="#" style="font-weight: bold;">
+                      <i class=""></i>
+                      <span>Laboratory Services</span>
+                  </a>
+                  <div class="sidebar-submenu">
+                      <ul>
+                          <li><a class="dropdown-item" style="font-weight: bold;" href="{% url 'collection'%}">Sample Collection</a></li>
+                          <li> <a class="dropdown-item" style="font-weight: bold;" href="{% url 'processing'%}">Sample Processing</a></li>
+                      </ul>
+                  </div>
+              </li> 
+              <li class="sidebar-dropdown">
+                <a href="#" style="font-weight: bold;">
+                    <i class=""></i>
+                    <span >Veterinary Bills</span>
+                </a>
+                <div class="sidebar-submenu">
+                    <ul>
+                      <li>
+                        <a  style="font-weight: bold;" href="{% url 'invoice'%}">Invoice</a>
+                      </li>
+                      <li>
+                        <a style="font-weight: bold;" href="{% url 'vet-billing'%}">Receipt</a>
+                      </li>
+                    </ul>
+                </div>
+            </li> 
               </ul>
             </div>
           </li>
+
+          
           <li class="sidebar-dropdown">
             <a href="#">
-              <i class="far fa-gem"></i>
-              <span>Learning Resources</span>
+              <i class="fa fa-chart-line"></i>
+              <span>Vets List</span>
             </a>
             <div class="sidebar-submenu">
               <ul>
                 <li>
-                  <a href="#">Quick Links </a>
-                </li>
-                <li>
-                  <a href="#">PDF NOTES</a>
+                  <a  style="font-weight: bold;" href="{% url 'vet-list_vet' %}">All Vets</a>
                 </li>
                 
               </ul>
             </div>
           </li>
+          
           <li class="sidebar-dropdown">
             <a href="#">
               <i class="fa fa-chart-line"></i>
@@ -163,28 +152,228 @@
             <div class="sidebar-submenu">
               <ul>
                 <li>
-                  <a href="#">Recent Clients</a>
+                  <a style="font-weight: bold;" href="{% url 'client' %}">Clients</a>
                 </li>
               </ul>
             </div>
           </li>
-           <li class="sidebar-dropdown">
+
+          <li class="sidebar-dropdown">
             <a href="#">
               <i class="fa fa-chart-line"></i>
-              <span>Other</span>
+              <span>My Gallery</span>
             </a>
             <div class="sidebar-submenu">
               <ul>
                 <li>
-                  <a href="#">VET LIST</a>
-                </li>
-                <li>
-                  <a href="#">Gallery</a>
+                  <a style="font-weight: bold;" href="#">Recent Clients</a>
                 </li>
               </ul>
             </div>
           </li>
-      
+         
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="fa fa-chart-line"></i>
+              <span>My Shop</span>
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a style="font-weight: bold;" href="#">My Supliers</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="#">My Customers</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="#">Creditors</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="#">Debtors</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+          <li class="sidebar-dropdown">
+            <a href="#">
+                <i class="fa fa-chart-line"></i>
+                <span>My Diary</span>
+            </a>
+            <div class="sidebar-submenu">
+                <ul>
+                    <li>
+                        <a style="font-weight: bold;" href="{% url 'diary' %}">Diary</a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="far fa-gem"></i>
+              <span>Learning Resources</span>
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li class="sidebar-submenu">
+                  <a style="font-weight: bold;" href="#">Videos And Tutorials</a>
+                </li>
+                <li class="sidebar-dropdown">
+                        <a  href="#" style="font-weight: bold;">
+                            
+                            <span>Quick Links</span>
+                        </a>
+                        <div class="sidebar-submenu">
+                            <ul>
+                                <li><a style="font-weight: bold;" href="https://kenyavetboard.or.ke">Kenyavetboard.or.ke</a></li>
+                                <li><a style="font-weight: bold;" href="https://VMD.go.ke">VMD.go.Ke</a></li>
+                                <li><a style="font-weight: bold;" style="font-size:12.31px;" href="https://fivetanimalhealth.com">Fivetanimalhealth.com</a></li>
+                                <li><a style="font-weight: bold;" href="https://kevevapi.or.ke">Kevevapi.or.ke</a></li>
+                                <li><a style="font-weight: bold;" href="https://kalro.org">Kalro.org</a></li>
+                                <li>
+                                  <a style="font-weight: bold;" href="https://vikaspedia.in/agriculture/livestock/">Vikaspedia</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                <li>
+                  <a style="font-weight: bold;" href="{% url 'resources' %}">PDF NOTES</a>
+                </li>
+                <li >
+                  <a style="font-weight: bold;" href="{% url 'quiz' %}">Test Your Knowledge</a>
+                </li>
+                <ul>
+                <li>
+                  <a style="font-weight: bold;" href="#">Online CPD program</a>
+                </li>
+              </ul>
+              </ul>
+            </div>
+          </li>
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="fa fa-chart-line"></i>
+              <span>Meat Inspection</span>
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a style="font-weight: bold;" href="{% url 'slaughterhouse' %}">Register Slaughterhouse</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="{% url 'employee' %}">Employess</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="{% url 'butcher' %}">Butchers Details</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="">Daily Kills</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="fa fa-chart-line"></i>
+              <span>Disease Report</span>
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a style="font-weight: bold;" class="dropdown-item" href="{% url 'disease-report'%}">Disease Report Records</a>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </li>
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="fa fa-chart-line"></i>
+              <span>Livestock Movement</span>
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a style="font-weight: bold;" href="#">Movement Permit</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="#">No objection Form</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="fa fa-chart-line"></i>
+              <span>Reports Writing</span>
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a style="font-weight: bold;" href="#">Monthly Report</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="#">Quarterly Report</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="#">Annual Report</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+          
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="fa fa-chart-line"></i>
+              <span> Director Vet Service</span>
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a style="font-weight: bold;" href="#">Meat Inspection </a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="#">Livestock Movement</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="#">Disease Reports</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="#">Artificial Insemination</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="#">Vaccination</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="#">Staff Reports</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="fa fa-chart-line"></i>
+              <span>Notifications</span>
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a style="font-weight: bold;" href="">Messages</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="">Farmer Requests</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+           
+          <li class="">
+            <a href="{%url 'logout'%}">
+              <i class="fa fa-power-off" style="font-size:28px;color:red"></i>
+
+              <span>Logout</span>
+            </a>
+          </li>
       </div>
       <!-- sidebar-menu  -->
     </div>

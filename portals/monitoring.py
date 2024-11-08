@@ -6,6 +6,7 @@ from .pagination import CustomPagination
 from rest_framework.permissions import IsAuthenticated
 from .permissions import Is_Farmer,Is_Vet
 from rest_framework.response import Response
+from datetime import timedelta, date
 
 
 
@@ -29,7 +30,7 @@ class HeatSignMonitoringList(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         #print(user)
-        return HeatSignMonitoring.objects.filter(user=self.request.user).order_by('-id')
+        return HeatSignMonitoring.objects.filter(user=user).order_by('-id')
     
 
 class HeatSignMonitoringUpdate(generics.UpdateAPIView):
@@ -53,7 +54,6 @@ class HeatSignMonitoringDelete(generics.DestroyAPIView):
 def pregnancy_monitoring(request):
     return render(request, 'portals/farmer/pregnancy.html', {})
 
-
 class PregnancyMonitoringCreate(generics.CreateAPIView):
     queryset = PregnancyMonitoring.objects.all()
     serializer_class = PregnancyMonitoringSerializer
@@ -70,7 +70,7 @@ class PregnancyMonitoringList(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         #print(user)
-        return PregnancyMonitoring.objects.filter(user=self.request.user).order_by('-id')
+        return PregnancyMonitoring.objects.filter(user=user).order_by('-id')
     
 
 class PregnancyMonitoringUpdate(generics.UpdateAPIView):
@@ -112,7 +112,7 @@ class FeedsList(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         #print(user)
-        return Feeds.objects.filter(user=self.request.user).order_by('-id')
+        return Feeds.objects.filter(user=user).order_by('-id')
     
 
 class FeedsUpdate(generics.UpdateAPIView):

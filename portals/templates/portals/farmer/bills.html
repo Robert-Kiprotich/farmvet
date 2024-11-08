@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block content %}
-{% include 'portals/sidebarFarmer.html' %}
+{% include 'portals/sidebarVet.html' %}
 <main class="page-content">
 <div class="container-fluid">
       <!-- Navbar -->
@@ -70,7 +70,7 @@
     </div>
    
    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#billsAddModal">
-     Add 
+    Add Record
     </button>
      <!-- form modal -->
      <div class="modal fade" id="billsAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -95,24 +95,39 @@
           
           <div class="mb-3">
             <label for="bill_category" class="form-label">Bill Category</label>
-            <input type="text" id="bill_category" name="bill_category" class="form-control editable-field" maxlength="20">
+            <select id="bill_category" name="bill_category" class="form-control editable-field">
+              <option value="clinical">Clinical</option>
+              <option value="postmortem">Postmortem</option>
+              <option value="surgery">Surgery</option>
+              <option value="deworming">Deworming</option>
+              <option value="AI">A.I</option>
+              <option value="farm_consultation">Farm Consultation</option>
+              <option value="vaccination">Vaccination</option>
+              <option value="pregnancy_diagnosis">Pregnancy Diagnosis</option>
+              <option value="laboratory_charges">Laboratory Charges</option>
+            </select>
             <div class="invalid-feedback">Please provide a valid bill category.</div>
           </div>
           
           <div class="mb-3">
-            <label for="amount" class="form-label">Amount</label>
+            <label for="amount" class="form-label">Amount Paid</label>
             <input type="number" id="amount" name="amount" class="form-control editable-field" step="0.01" max="99999999.99">
             <div class="invalid-feedback">Please provide a valid amount.</div>
           </div>
-          
           <div class="mb-3">
+            <label for="amount_billed" class="form-label">Amount Billed</label>
+            <input type="number" id="amount_billed" name="amount_billed" class="form-control editable-field" step="0.01" max="99999999.99">
+            <div class="invalid-feedback">Please provide a valid amount.</div>
+          </div>
+          
+          <!-- <div class="mb-3">
             <label for="balance" class="form-label">Balance</label>
             <input type="number" id="balance" name="balance" class="form-control editable-field" step="0.01" max="99999999.99">
             <div class="invalid-feedback">Please provide a valid balance.</div>
-          </div>
+          </div> -->
 
           <div class="mb-3">
-            <label for="billing_details" class="form-label">Billing Details</label>
+            <label for="billing_details" class="form-label">Billing Vet Details</label>
             <input type="text" id="billing_details" name="billing_details" class="form-control editable-field" maxlength="255">
             <div class="invalid-feedback">Please provide a valid billing detail.</div>
           </div>
@@ -157,24 +172,39 @@
           
           <div class="mb-3">
             <label for="bill_category" class="form-label">Bill Category</label>
-            <input type="text" id="bill_category" name="bill_category" class="form-control editable-field" maxlength="20">
+            <select id="bill_category" name="bill_category" class="form-control editable-field">
+              <option value="clinical">Clinical</option>
+              <option value="postmortem">Postmortem</option>
+              <option value="surgery">Surgery</option>
+              <option value="deworming">Deworming</option>
+              <option value="AI">A.I</option>
+              <option value="farm_consultation">Farm Consultation</option>
+              <option value="vaccination">Vaccination</option>
+              <option value="pregnancy_diagnosis">Pregnancy Diagnosis</option>
+              <option value="laboratory_charges">Laboratory Charges</option>
+            </select>
             <div class="invalid-feedback">Please provide a valid bill category.</div>
           </div>
           
           <div class="mb-3">
-            <label for="amount" class="form-label">Amount</label>
+            <label for="amount" class="form-label">Amount Paid</label>
             <input type="number" id="amount" name="amount" class="form-control editable-field" step="0.01" max="99999999.99">
             <div class="invalid-feedback">Please provide a valid amount.</div>
           </div>
-          
           <div class="mb-3">
+            <label for="amount_billed" class="form-label">Amount Billed</label>
+            <input type="number" id="amount_billed" name="amount_billed" class="form-control editable-field" step="0.01" max="99999999.99">
+            <div class="invalid-feedback">Please provide a valid amount.</div>
+          </div>
+          
+          <!-- <div class="mb-3">
             <label for="balance" class="form-label">Balance</label>
             <input type="number" id="balance" name="balance" class="form-control editable-field" step="0.01" max="99999999.99">
             <div class="invalid-feedback">Please provide a valid balance.</div>
-          </div>
+          </div> -->
 
           <div class="mb-3">
-            <label for="billing_details" class="form-label">Billing Details</label>
+            <label for="billing_details" class="form-label">Billing Vet Details</label>
             <input type="text" id="billing_details" name="billing_details" class="form-control editable-field" maxlength="255">
             <div class="invalid-feedback">Please provide a valid billing detail.</div>
           </div>
@@ -200,15 +230,8 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <div class="modal-header">
-            <h4 class="col-9 modal-title text-center">Farm Records</h4>
-            <button type="button"  id="closeModalBtn">
-              <i class="fa fa-times" aria-hidden="true"></i>
-            </button>
-          </div>
-          <div class="modal-header">
-            <h5 class="col-12 modal-title text-center " >Veterinary Bills  Records</h5> 
-          </div>
+          <h2 class="text-center">Farm Records</h2>
+       <h3 class="text-center">Veterinary Bills Records </h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -219,28 +242,7 @@
       </div><!-- /.modal-dialog -->
     </div><!-- /. Display  modal -->
 <!-- sucess Modal -->
-<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-confirm">
-      <div class="modal-content">
-          <div class="modal-header">
-              <div class="icon-box">
-                  <i class="material-icons">&#xE876;</i>
-              </div>
-              <h4 class="modal-title">Details Submitted successfully</h4>
-          </div>
-          <div class="modal-body">
-              <div class="spinner-border text-success" role="status">
-                  <span class="sr-only">Loading...</span>
-              </div>
-              <p class="text-center">Saving....</p>
-          </div>
-          <div class="modal-footer">
-              <button class="btn btn-success btn-block" data-dismiss="modal">OK</button>
-          </div>
-      </div>
-  </div>
-</div>
-<!-- sucess Modal End -->
+
 
 
     
@@ -389,12 +391,12 @@ $('#billsAddForm').submit(function(e) {
            
             success: function(data) {
               $('#billsAddModal').modal('hide');
-              $('#successModal').modal('show');
+              $('#statusSuccessModal').modal('show');
                 //console.log(data.message);
                 // Redirect after 3 seconds
                 setTimeout(function() {
                   window.location.reload(); // Redirect to the home page
-                }, 3000); 
+                }, 1000); 
                 // Handle success response
                 console.log('Form submitted successfully');
                 console.log(data);   
@@ -489,7 +491,7 @@ $('#billsAddForm').submit(function(e) {
       
 })
 .then(data=>{
-  $('#successModal').modal('show');
+  $('#statusSuccessModal').modal('show');
 
 })
 .catch(error => console.error('Error:', error));
@@ -582,7 +584,13 @@ $('#billsAddForm').submit(function(e) {
 },
 {
   field: 'amount',
-  title: 'Amount',
+  title: 'Amount Paid',
+  sortable: true,
+  align: 'center'
+},
+{
+  field: 'amount_billed',
+  title: 'Amount Billed',
   sortable: true,
   align: 'center'
 },
@@ -594,7 +602,7 @@ $('#billsAddForm').submit(function(e) {
 },
 {
   field: 'billing_details',
-  title: 'Billing Details',
+  title: 'Billing Vet Details',
   sortable: true,
   align: 'center'
 },
@@ -663,7 +671,7 @@ $('#billsAddForm').submit(function(e) {
                 };
               
                 document.getElementById("modal-footer").style.display = "none";
-                document.getElementById("closeModalBtn").style.display = "none";
+                //document.getElementById("closeModalBtn").style.display = "none";
 
                 html2pdf().from(invoice).set(opt).save().then(() => {
                     
@@ -693,7 +701,7 @@ $('#billsAddForm').submit(function(e) {
   <script src="{% static 'portals/assets/js/core/popper.min.js' %}"></script>
   <script src="{% static 'portals/assets/js/core/bootstrap.min.js' %}"></script>
   <script src="{% static 'portals/assets/js/main.js' %}"></script>
- 
+  <script src="{% static 'portals/assets/js/scripts.js' %}"></script>
   
   
   <!--  Notifications Plugin    -->
@@ -710,7 +718,7 @@ $('#billsAddForm').submit(function(e) {
             <div class="copyright">
               &copy; Copyright <strong><span>SoinVet</span></strong>. All Rights Reserved
               <div class="credits">
-              Designed by <a>ishasir</a>
+              
             </div>
           </div>
         </footer><!-- End Footer -->

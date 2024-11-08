@@ -70,7 +70,7 @@
     </div>
    
    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#drugsAddModal">
-     Add 
+    Add Record
     </button>
      <!-- form modal -->
      <div class="modal fade" id="drugsAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -86,6 +86,11 @@
               <form id="drugsAddForm" class="form-group">
                 {% csrf_token %}
                 <input type="hidden" id="pk" name="id">
+                <div class="mb-3">
+                  <label for="date_of_purchase" class="form-label">Date Of Purchase</label>
+                  <input type="date" id="date_of_purchase" name="date_of_purchase" class="form-control editable-field" maxlength="255">
+                  <div class="invalid-feedback">Please provide a valid name.</div>
+              </div>
                 <div class="mb-3">
                     <label for="name" class="form-label">Name Of Drug</label>
                     <input type="text" id="name" name="name" class="form-control editable-field" maxlength="255">
@@ -112,12 +117,12 @@
                     <div class="invalid-feedback">Please provide a valid expiry date.</div>
                 </div>
                 <div class="mb-3">
-                    <label for="strange_condition" class="form-label">Strange Condition</label>
+                    <label for="strange_condition" class="form-label">Storage Condition</label>
                     <input type="text" id="strange_condition" name="strange_condition" class="form-control editable-field" maxlength="255">
                     <div class="invalid-feedback">Please provide a valid strange condition.</div>
                 </div>
                 <div class="mb-3">
-                    <label for="vet_reg" class="form-label">Vet Registration</label>
+                    <label for="vet_reg" class="form-label">Vet Officer In Charge</label>
                     <input type="text" id="vet_reg" name="vet_reg" class="form-control editable-field" maxlength="255">
                     <div class="invalid-feedback">Please provide a valid vet registration.</div>
                 </div>
@@ -158,6 +163,11 @@
                 {% csrf_token %}
                 <input type="hidden" id="id" name="id">
                 <div class="mb-3">
+                  <label for="date_of_purchase" class="form-label">Date Of Purchase</label>
+                  <input type="date" id="date_of_purchase" name="date_of_purchase" class="form-control editable-field" maxlength="255">
+                  <div class="invalid-feedback">Please provide a valid name.</div>
+              </div>
+                <div class="mb-3">
                     <label for="name" class="form-label">Name Of Drug</label>
                     <input type="text" id="name" name="name" class="form-control editable-field" maxlength="255">
                     <div class="invalid-feedback">Please provide a valid name.</div>
@@ -183,12 +193,12 @@
                     <div class="invalid-feedback">Please provide a valid expiry date.</div>
                 </div>
                 <div class="mb-3">
-                    <label for="strange_condition" class="form-label">Strange Condition</label>
+                    <label for="strange_condition" class="form-label">Storage Condition</label>
                     <input type="text" id="strange_condition" name="strange_condition" class="form-control editable-field" maxlength="255">
                     <div class="invalid-feedback">Please provide a valid strange condition.</div>
                 </div>
                 <div class="mb-3">
-                    <label for="vet_reg" class="form-label">Vet Registration</label>
+                    <label for="vet_reg" class="form-label">Vet Officer In Charge</label>
                     <input type="text" id="vet_reg" name="vet_reg" class="form-control editable-field" maxlength="255">
                     <div class="invalid-feedback">Please provide a valid vet registration.</div>
                 </div>
@@ -218,15 +228,8 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <div class="modal-header">
-            <h4 class="col-9 modal-title text-center">Farm Records</h4>
-            <button type="button"  id="closeModalBtn">
-              <i class="fa fa-times" aria-hidden="true"></i>
-            </button>
-          </div>
-          <div class="modal-header">
-            <h5 class="col-12 modal-title text-center " >Veterinary Drugs  Records</h5> 
-          </div>
+          <h2 class="text-center">Farm Records</h2>
+       <h3 class="text-center">Veterinary Drugs Records </h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -237,28 +240,6 @@
       </div><!-- /.modal-dialog -->
     </div><!-- /. Display  modal -->
 <!-- sucess Modal -->
-<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-confirm">
-      <div class="modal-content">
-          <div class="modal-header">
-              <div class="icon-box">
-                  <i class="material-icons">&#xE876;</i>
-              </div>
-              <h4 class="modal-title">Details Submitted successfully</h4>
-          </div>
-          <div class="modal-body">
-              <div class="spinner-border text-success" role="status">
-                  <span class="sr-only">Loading...</span>
-              </div>
-              <p class="text-center">Saving....</p>
-          </div>
-          <div class="modal-footer">
-              <button class="btn btn-success btn-block" data-dismiss="modal">OK</button>
-          </div>
-      </div>
-  </div>
-</div>
-<!-- sucess Modal End -->
 
 
     
@@ -408,12 +389,12 @@ $('#drugsAddForm').submit(function(e) {
            
             success: function(data) {
               $('#drugsAddModal').modal('hide');
-              $('#successModal').modal('show');
+              $('#statusSuccessModal').modal('show');
                 //console.log(data.message);
                 // Redirect after 3 seconds
                 setTimeout(function() {
                   window.location.reload(); // Redirect to the home page
-                }, 3000); 
+                }, 1000); 
                 // Handle success response
                 console.log('Form submitted successfully');
                 console.log(data);   
@@ -508,7 +489,7 @@ $('#drugsAddForm').submit(function(e) {
       
 })
 .then(data=>{
-  $('#successModal').modal('show');
+  $('#statusSuccessModal').modal('show');
 
 })
 .catch(error => console.error('Error:', error));
@@ -584,7 +565,17 @@ $('#drugsAddForm').submit(function(e) {
           //   sortable: true,
             
           // },
+
           {
+  field: 'date_of_purchase',
+  title: 'Date of Purchase',
+  sortable: true,
+  align: 'center',
+  formatter: function (value, row) {
+                return moment(value).format('DD-MM-YYYY'); 
+            }
+}, 
+{
   field: 'name',
   title: 'Name of Drug',
   sortable: true,
@@ -613,7 +604,7 @@ $('#drugsAddForm').submit(function(e) {
 },
 {
   field: 'strange_condition',
-  title: 'Strange Condition of Drug',
+  title: 'Storage Condition',
   sortable: true,
   align: 'center'
 },
@@ -625,7 +616,7 @@ $('#drugsAddForm').submit(function(e) {
 },
 {
   field: 'vet_reg',
-  title: 'Vet Registration',
+  title: 'Vet Officer In Charge',
   sortable: true,
   align: 'center'
 },
@@ -694,7 +685,7 @@ $('#drugsAddForm').submit(function(e) {
                 };
               
                 document.getElementById("modal-footer").style.display = "none";
-                document.getElementById("closeModalBtn").style.display = "none";
+                //document.getElementById("closeModalBtn").style.display = "none";
 
                 html2pdf().from(invoice).set(opt).save().then(() => {
                     
@@ -724,7 +715,7 @@ $('#drugsAddForm').submit(function(e) {
   <script src="{% static 'portals/assets/js/core/popper.min.js' %}"></script>
   <script src="{% static 'portals/assets/js/core/bootstrap.min.js' %}"></script>
   <script src="{% static 'portals/assets/js/main.js' %}"></script>
-  
+  <script src="{% static 'portals/assets/js/scripts.js' %}"></script>
   
   
 <!-- start of template -->
@@ -738,7 +729,7 @@ $('#drugsAddForm').submit(function(e) {
             <div class="copyright">
               &copy; Copyright <strong><span>SoinVet</span></strong>. All Rights Reserved
               <div class="credits">
-              Designed by <a>ishasir</a>
+              
             </div>
           </div>
         </footer><!-- End Footer -->
