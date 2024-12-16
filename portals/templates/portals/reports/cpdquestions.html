@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block content %}
-{% include 'portals/sidebarFarmer.html' %}
+{% include 'portals/sidebarVet.html' %}
 <main class="page-content">
 <div class="container-fluid">
       <!-- Navbar -->
@@ -74,14 +74,46 @@
             <div class="card">
               <div class="card-header">
                <div class="card-body">
+<!-- quiz_form.html -->
 
-                                <h4 class="">Test Your Knowledge</h4>
-                                <h1>Quiz</h1>
-                                <div id="quiz-container"></div>
-                                <button id="submit-btn">Submit</button>
-                                <div id="result"></div>
-                                </div>
-                    </div>   
+<form method="POST" action="{% url 'questions-submit' section_id=section.id %}">
+  {% csrf_token %}
+  <div>
+      <h3>Online Cpd Questions</h3>
+      {% if questions %}
+          <p id="note">Note: You only have <span id="timer"><strong>20:00</strong></span> for this course</p>
+          
+          {% for question in questions %}
+              <div class="question">
+                  <p>{{ question.question_text }}</p>
+                  <ul>
+                      {% for choice in question.choices.all %}
+                          <li>
+                              <input type="radio" name="answers[{{ question.id }}]" value="{{ choice.id }}">
+                              <label for="choice">{{ choice.choice_text }}</label>
+                          </li>
+                          
+                      {% endfor %}
+                  </ul>
+              </div>
+          {% endfor %}
+      {% else %}
+          <p>No questions currently available for this section.</p>
+          <p>Since there are no questions, the timer will not be started.</p>
+          <style>
+              #timer {
+                  display: none;
+              }
+          </style>
+      {% endif %}
+  </div>
+  <button type="submit" 
+            {% if questions|length == 0 %}disabled style="background-color: brown; color: white;"{% endif %}>
+        Submit
+    </button>
+</form>
+
+
            </div>
       </div>
       </div>
@@ -96,62 +128,59 @@
         </footer><!-- End Footer -->
   <!--   Core JS Files   -->
   <script>
-    const userId = "{{ request.user.id }}";
-    function loadQuestions() {
-        $.ajax({
-            url: "/questions/",
-            method: "GET",
-            success: function(data) {
-                let quizHtml = '';
-                data.forEach(question => {
-                    quizHtml += `<div>
-                        <p><strong>${question.text}</strong></p>`;
-                    question.choices.forEach(choice => {
-                        quizHtml += `
-                            <label>
-                                <input type="radio" name="question_${question.id}" value="${choice.id}">
-                                ${choice.text}
-                            </label><br>`;
-                    });
-                    quizHtml += '</div>';
-                });
-                $('#quiz-container').html(quizHtml);
-            }
-        });
-    }
+    
 
-    // Submit Answers via AJAX
-    $('#submit-btn').on('click', function() {
-        const results = [];
-       
-        $('input[type="radio"]:checked').each(function() {
-            const questionId = $(this).attr('name').split('_')[1];
-            const choiceId = $(this).val();
-            results.push({ question: questionId, choice: choiceId, user: 'Anonymous' });
-        });
-
-        results.forEach(result => {
-            $.ajax({
-                url: "/submit-answer/",
-                method: "POST",
-                data: JSON.stringify(result),
-                contentType: "application/json",
-                headers: { "X-CSRFToken": "{{ csrf_token }}" },
-                success: function(response) {
-                    const message = response.is_correct ? 'Correct!' : 'Wrong!';
-                    $('#result').append(`<p>Question ${result.question}: ${message}</p>`);
-                },
-                error: function() {
-                    alert('Failed to submit the answer.');
-                }
-            });
-        });
-    });
-
+    
     // Load questions when the page is ready
     $(document).ready(function() {
         loadQuestions();
     });
+</script>
+<script>
+  const duration = 20 * 60; // Timer duration in seconds
+  const urlParams = new URLSearchParams(window.location.search);
+
+  // Check if the "retake" parameter is in the query string
+  if (urlParams.get('retake') === 'true') {
+      // Reset the timer
+      const now = new Date().getTime();
+      const newEndTime = now + duration * 1000;
+      localStorage.setItem('endTime', newEndTime);
+
+      // Optionally remove the "retake" parameter to avoid multiple resets
+      urlParams.delete('retake');
+      window.history.replaceState({}, document.title, window.location.pathname);
+  }
+
+  // Retrieve or set the endTime
+  let endTime = localStorage.getItem('endTime');
+  if (!endTime) {
+      const now = new Date().getTime();
+      endTime = now + duration * 1000;
+      localStorage.setItem('endTime', endTime);
+  }
+
+  function updateTimer() {
+      const currentTime = new Date().getTime();
+      const timeRemaining = Math.max(0, Math.floor((endTime - currentTime) / 1000));
+      const minutes = Math.floor(timeRemaining / 60);
+      const seconds = timeRemaining % 60;
+
+      document.getElementById('timer').textContent = `${minutes
+          .toString()
+          .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+      if (timeRemaining <= 0) {
+          clearInterval(timerInterval);
+          document.getElementById('timer').textContent = "00:00";
+          alert("Time is up! Please submit your work.");
+          window.location.reload()
+          localStorage.removeItem('endTime');
+      }
+  }
+
+  const timerInterval = setInterval(updateTimer, 1000);
+  updateTimer();
 </script>
   <script src="{% static 'portals/assets/js/core/jquery.min.js' %}"></script>
   <script src="{% static 'portals/assets/js/core/popper.min.js' %}"></script>

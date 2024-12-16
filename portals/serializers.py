@@ -344,7 +344,7 @@ class ArtificialInseminationSerializer(serializers.ModelSerializer):
         model = ArtificialInsemination
         fields = ['id','user','assigned_to','farm_name', 'cow_name', 'reg_no', 'dam_details', 'sire_details', 
                    'no_of_repeats', 'abortion_status', 'time_of_heat_sign', 'date_of_heat_sign','insemination_date',
-                  'insemination_time','insemination_status', 'breed_used', 'bull_name', 'bull_reg_no', 'semen_source', 'heat_sign_mtr_date',
+                  'insemination_time','insemination_status','semen_type','breed_used', 'bull_name', 'bull_reg_no', 'semen_source', 'heat_sign_mtr_date',
                   'repeat_heat_date', 'first_pd_date', 'expected_delivery_date', 'owners_name', 'village', 'contact',
                   'vet_name', 'vet_reg_no', 'vet_contact', 'signature', 'stamp']
         read_only_fields=['heat_sign_mtr_date','repeat_heat_date','first_pd_date','expected_delivery_date']
@@ -688,7 +688,8 @@ class SlaughterhouseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Slaughterhouse
         fields = [
-            'id', 
+            'id',
+            'user', 
             'name', 
             'county', 
             'sub_county', 
@@ -772,10 +773,10 @@ class QuestionSerializer(serializers.ModelSerializer):
         model = Question
         fields = ['id', 'text', 'choices']
 
-class UserAnswerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserAnswer
-        fields = ['id','user', 'question', 'choice']
+# class UserAnswerSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = UserAnswer
+#         fields = ['id','user', 'question', 'choice']
         
         
 #tutorial
@@ -785,26 +786,20 @@ class ChoicesSerializer(serializers.ModelSerializer):
         model = Choice
         fields = ['id', 'text', 'is_correct']
 
-class QuestionsSerializer(serializers.ModelSerializer):
-    choices = ChoiceSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Question
-        fields = ['id', 'text', 'choices']
 
 class SectionSerializer(serializers.ModelSerializer):
     lesson_id = serializers.IntegerField(source='lesson.id', read_only=True)
 
     class Meta:
         model = Section
-        fields = ['id', 'lesson_id', 'lesson', 'title', 'content']
+        fields = ['id', 'lesson_id', 'lesson', 'title', 'content','file','is_active','created_at']
 
 class TutorialSerializer(serializers.ModelSerializer):
     lesson_data = SectionSerializer(many=True, read_only=True, source='sections')  # Include sections and their lesson_id
-
     class Meta:
         model = Tutorial
-        fields = ['id', 'user', 'lesson', 'lesson_data', 'url', 'kvb_number', 'unit_price', 'points', 'is_active']
+        fields = ['id', 'user', 'lesson', 'lesson_data','cpd_number', 'unit_price', 'points', 'is_active']
+        
 class CommentSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source='author.username', read_only=True)
 
@@ -813,14 +808,195 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ['id', 'section', 'author', 'author_name', 'content', 'created_at', 'updated_at']
         read_only_fields = ['created_at', 'updated_at']
         
-class UserAnswersSerializer(serializers.ModelSerializer):
+# class UserAnswersSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = UserAnswers
+#         fields = ['user', 'question', 'choice']
+#cpd quiz
+class CpdChoicesSerializer(serializers.ModelSerializer):
     class Meta:
-        model = UserAnswer
-        fields = ['user', 'question', 'choice']
-        
+        model = Choice
+        fields = ['id', 'choice_text','is_correct']
+
+class CpdQuestionsSerializer(serializers.ModelSerializer):
+    choices = ChoiceSerializer(many=True)
+
+    class Meta:
+        model = Question
+        fields = ['id', 'question_text', 'choices']
+
+class QuizResultSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()  
+    section = serializers.StringRelatedField()  
+
+    class Meta:
+        model = QuizResult
+        fields = ['id', 'user', 'section', 'score', 'passed', 'timestamp']
+        # read_only_fields = ['id', 'timestamp']
+       
 class UserProgressSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProgress
         fields = '__all__'
         
+class LivestockExaminationRecordSerializer(serializers.ModelSerializer):
+    assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+    class Meta:
+        model = LivestockExaminationRecord
+        fields = [
+            'id',
+            'user',
+            'assigned_to',
+            'livestock_category',
+            'other_category',
+            'age_of_animal',
+            'breed',
+            'sex_of_animal',
+            'number_of_animals',
+            'origin_of_animal',
+            'destination',
+            'reason_for_examination',
+            'recommendation',
+            'owner_name',
+            'owner_mobile_number',
+            'veterinary_officer_in_charge',
+            'registration_number',
+            'veterinary_officer_mobile_number',
+            'veterinary_officer_signature',
+            'created_at',
+        ]
+
+class CalvingRecordSerializer(serializers.ModelSerializer):
+    assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+    class Meta:
+        model = CalvingRecord
+        fields = [
+            'id',
+            'user',
+            'assigned_to',
+            'date_of_calving',
+            'insemination_date',
+            'days_to_calving_down',
+            'cow_name',
+            'registration_number',
+            'calving_procedure',
+            'rab_status',
+            'hours_for_natural_expulsion',
+            'calf_sex',
+            'calf_status',
+            'reason_for_dead_foetus',
+            'comment',
+            'created_at',
+        ]
+class AssessmentRecordSerializer(serializers.ModelSerializer):
+    assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+
+    class Meta:
+        model = AssessmentRecord
+        fields = [
+            'id',
+            'user',
+            'assigned_to',
+            'livestock_category',
+            'other_category',
+            'date_of_assessment',
+            'name_of_animal',
+            'registration_number',
+            'color_of_animal',
+            'age_of_animal',
+            'sex_of_animal',
+            'number_of_animals',
+            'origin_of_animal',
+            'place_of_assessment',
+            'destination',
+            'reason_for_assessment',
+            'recommendation',
+            'owner_of_animal',
+            'owner_mobile_number',
+            'veterinary_practitioner_in_charge',
+            'practitioner_registration_number',
+            'practitioner_contact',
+            'signature_and_stamp',
+        ]
         
+class DailyKillSerializer(serializers.ModelSerializer):
+    assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+
+    class Meta:
+        model = DailyKill
+        fields = [
+            'id',
+            'user',
+            'assigned_to',
+            'date',
+            'livestock_category',
+            'number_of_females_killed',
+            'number_of_males_killed',
+            'total_kills_per_day',
+            'condemnation_done',
+            'condemnation_status',
+            'comment_by_inspector',
+            'inspector_name',
+            'inspector_reg_number',
+            'inspector_status',
+        ]
+class MovementPermitSerializer(serializers.ModelSerializer):
+    assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+
+ # Displays assigned_to as a string
+    class Meta:
+        model = MovementPermit
+        fields = [
+            'id', 'user', 'assigned_to', 'date_of_permit', 'sub_county_district',
+            'ward_level', 'authorized_by', 'registration_number', 'phone_number',
+            'uploaded_permit'
+        ]
+
+
+class NoObjectionSerializer(serializers.ModelSerializer):
+    assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+
+
+    class Meta:
+        model = NoObjection
+        fields = [
+            'id', 'user', 'assigned_to', 'date_of_confirmation', 'sub_county_district',
+            'ward_level', 'confirmed_by', 'registration_number', 'phone_number',
+            'uploaded_no_objection_form'
+        ]
+
+
+class MonthlyReportSerializer(serializers.ModelSerializer):
+    assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+
+
+    class Meta:
+        model = MonthlyReport
+        fields = [
+            'id', 'user', 'assigned_to', 'date_of_submission', 'sub_county',
+            'ward_level', 'submitted_by', 'registration_number', 'phone_number',
+            'uploaded_report'
+        ]
+        
+class PractitionerSerializer(serializers.ModelSerializer):
+    assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+
+
+    class Meta:
+        model = Practitioner
+        fields = [
+            'id',
+            'user',
+            'assigned_to',
+            'first_name',
+            'last_name',
+            'phone_number',
+            'email',
+            'county',
+            'subcounty',
+            'ward',
+            'area_of_operation',
+            'specialization',
+            'vet_category',
+            'registration_number',
+        ]

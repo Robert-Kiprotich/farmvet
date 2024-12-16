@@ -354,6 +354,12 @@ const csrftoken = getCookie('csrftoken');
             align: 'center'
           },
           {
+            field: 'semen_type',
+            title: 'Semen Type',
+            sortable: true,
+            align: 'center'
+          },
+          {
             field: 'breed_used',
             title: 'Breed Used',
             sortable: true,
@@ -388,7 +394,7 @@ const csrftoken = getCookie('csrftoken');
           },
           {
             field: 'repeat_heat_date',
-            title: 'Repeat Heat Date',
+            title: 'Expected Repeat Date',
             sortable: true,
             align: 'center',
             formatter: function (value, row) {

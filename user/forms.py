@@ -175,7 +175,6 @@ class OfficialSignUpForm(UserCreationForm):
 		)
 	)
 	phone_number = forms.RegexField(regex='^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$', max_length=13)
-	vet_category=forms.ChoiceField(choices=[('surgeon', 'Surgeon'), ('technologist', 'Technologist'), ('technician', 'Technician')], label='Select Vet Category')
 	county=forms.CharField()
 	sub_county=forms.CharField()
 	employment_number=forms.CharField()
@@ -212,5 +211,5 @@ class OfficialSignUpForm(UserCreationForm):
 	
 	class Meta(UserCreationForm.Meta):
 		model = User
-		fields = ('username','first_name','last_name','phone_number','vet_category','county','sub_county','registration_number','employment_number','designation','email','password1', 'password2',)
+		fields = ('username','first_name','last_name','phone_number','county','sub_county','registration_number','employment_number','designation','email','password1', 'password2',)
 

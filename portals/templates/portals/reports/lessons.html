@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block content %}
-{% include 'portals/sidebarFarmer.html' %}
+{% include 'portals/sidebarVet.html' %}
 <main class="page-content">
 <div class="container-fluid">
       <!-- Navbar -->
@@ -79,10 +79,14 @@
                                 {% for section in sections %}
                                     <div class="card">
                                         <div class="card-header">
-                                         Lesson {{ lesson_id }}
+                                          <h4>
+
+                                        {{ section.lesson }}
+                                          </h4>
                                         </div>
                                         <div class="card-body">
-                                            <h5 class="card-title">{{ section.title }}</h5>
+                                          <a href="{% url 'download_file' section_id=section.id %}">Download File</a>
+
                                             <p class="card-text">{{ section.content }}</p>
                                         </div>
                                     </div>
@@ -91,47 +95,47 @@
                                 <p>No sections available for this lesson.</p>
                             {% endif %}
                             {% if sections %}
-                            {% for section in sections %}
-                                <div class="card mb-3">
-                                    <div class="card-header">
-                                        {{ section.title }}
-                                        <a href="{% url 'comment-list' section.id %}">Comments and Discussion</a>
-                                    </div>
-                                    <div class="card-body">
-                                        <h5 class="card-title">{{ section.title }}</h5>
-                                        <p class="card-text">{{ section.content }}</p>
-                        
-                                        <!-- Display the most recent comment for this section -->
-                                        {% with section.comment_set.all|slice:":1" as latest_comment %}
-                                            {% if latest_comment %}
-                                                <div class="card mt-3">
-                                                    <div class="card-header">Latest Comment</div>
-                                                    <div class="card-body">
-                                                        <p class="card-text">{{ latest_comment.0.content }}</p>
-                                                        <small class="text-muted">- {{ latest_comment.0.author }}</small>
-                                                    </div>
-                                                </div>
-                                            {% else %}
-                                                <p>No comments yet for this section.</p>
-                                            {% endif %}
-                                        {% endwith %}
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        {% else %}
-                            <p>No sections available for this lesson.</p>
-                        {% endif %}
+                                    {% with sections.0 as section %}
+                                        <div class="card mb-3">
+                                            <div class="card-header">
+                                                {% comment %} <h5 class="card-title">{{ section.title }}</h5> {% endcomment %}
+                                                <a href="{% url 'comment-list' section_id=section.id %}">Comments and Discussion</a>
+                                            </div>
+                                            <div class="card-body">
+                                                <p class="card-text">{{ section.content }}</p>
+                                                
+                                                {% with section.comment_set.last as latest_comment %}
+                                                    {% if latest_comment %}
+                                                        <div class="card mt-3">
+                                                            <div class="card-header">Latest Comment</div>
+                                                            <div class="card-body">
+                                                                <p class="card-text">{{ latest_comment.content }}</p>
+                                                                <small class="text-muted">- {{ latest_comment.author }}</small>
+                                                            </div>
+                                                        </div>
+                                                    {% else %}
+                                                        <p>No comments yet for this section.</p>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            </div>
+                                        </div>
+                                    {% endwith %}
+                                {% else %}
+                                    <p>No sections available.</p>
+                                {% endif %}
+                                {% if sections %}
+                                {% with sections.0 as section %}
                                 <div class="card">
                                     <div class="card-header">
-                                      Quiz
+                                      <a href="{% url 'questions-list' section_id=section.id %}">Take Exam</a>
                                     </div>
                                     <div class="card-body">
-                                      <h5 class="card-title">Special title treatment</h5>
+                                      <h5 class="card-title">{{ section.content }}</h5>
                                       <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                                     
                                     </div>
                                 </div>
-                                    
+                                {% endwith %} 
+                                 {% endif %} 
               </div>
             </div>
           </div>

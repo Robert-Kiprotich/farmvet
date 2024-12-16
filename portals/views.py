@@ -16,16 +16,18 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
-from django.shortcuts import render, get_object_or_404
 from django.views import View
 import json
+import os 
+from django.shortcuts import get_object_or_404
+from django.urls import reverse
 from .monitoring import *
 from io import BytesIO
 from .serializers import *
-from rest_framework import generics
+from rest_framework import generics,parsers
 from .pagination import CustomPagination
 from rest_framework.permissions import IsAuthenticated
-from .permissions import Is_Farmer,Is_Vet
+from .permissions import Is_Farmer,Is_Vet,Is_Official
 from rest_framework.response import Response
 from django.db.models import OuterRef, Subquery
 from datetime import timedelta,time
@@ -34,6 +36,7 @@ from django.core.exceptions import MultipleObjectsReturned
 import logging
 from django.db import transaction
 from rest_framework import generics,status
+from django.http import FileResponse, Http404
 
 
 
@@ -239,6 +242,9 @@ def artificial(request):
     return render(request, 'portals/reports/artificialinsemination.html', {})
 def artificial_view(request):
     return render(request, 'portals/reports/artificial-inseminationview.html', {})
+def artificial_official_view(request):
+    return render(request, 'portals/reports/artificial_official.html', {})
+
 
 class ArtificialInseminationCreate(generics.CreateAPIView):
     queryset = ArtificialInsemination.objects.all()
@@ -258,7 +264,7 @@ class ArtificialInseminationCreate(generics.CreateAPIView):
 
 class ArtificialInseminationList(generics.ListAPIView):
     serializer_class = ArtificialInseminationSerializer
-    permission_classes = [Is_Vet|Is_Farmer]
+    permission_classes = [Is_Vet | Is_Official | Is_Farmer]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -266,12 +272,13 @@ class ArtificialInseminationList(generics.ListAPIView):
 
         if user.is_vet_officer:
             return ArtificialInsemination.objects.filter(user=user).order_by('-farm_name')
-        
-        elif user.is_farmer:
+        if user.is_official:
+                return ArtificialInsemination.objects.all()
+
+        if user.is_farmer:
             return ArtificialInsemination.objects.filter(assigned_to=user).order_by('-farm_name')
 
         return ArtificialInsemination.objects.none()
-    
 class ArtificialInseminationUpdate(generics.UpdateAPIView):
     queryset = ArtificialInsemination.objects.all()
     serializer_class = ArtificialInseminationSerializer
@@ -1416,6 +1423,8 @@ def vaccination(request):
     return render(request, 'portals/reports/vaccination.html', {})
 def vaccination_view(request):
     return render(request, 'portals/reports/vaccinationview.html', {})
+def vaccination_official_view(request):
+    return render(request, 'portals/reports/vaccination_official.html', {})
 class VaccinationRecordCreate(generics.CreateAPIView):
     queryset = VaccinationRecord.objects.all()
     serializer_class = VaccinationRecordSerializer
@@ -1426,7 +1435,7 @@ class VaccinationRecordCreate(generics.CreateAPIView):
 
 class VaccinationRecordList(generics.ListAPIView):
     serializer_class = VaccinationRecordSerializer
-    permission_classes = [Is_Vet|Is_Farmer]
+    permission_classes = [Is_Vet|Is_Farmer | Is_Official]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -1436,7 +1445,12 @@ class VaccinationRecordList(generics.ListAPIView):
            
             return VaccinationRecord.objects.filter(user=user)
         
-        elif user.is_farmer:
+        if user.is_official:
+           
+            return VaccinationRecord.objects.all()
+        
+        
+        if user.is_farmer:
             
             return VaccinationRecord.objects.filter(assigned_to=user)
 
@@ -1523,8 +1537,6 @@ class ClientCreate(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-
-
 class ClientList(generics.ListAPIView):
     serializer_class = ClientSerializer
     permission_classes = [Is_Vet]
@@ -1534,10 +1546,6 @@ class ClientList(generics.ListAPIView):
         user = self.request.user
         ###print(user)
         return Client.objects.filter(user=self.request.user).order_by('-id')
-
-    
-
-
 class ClientUpdate(generics.UpdateAPIView):
     queryset = Client.objects.all()
     serializer_class = ClientSerializer
@@ -1610,7 +1618,7 @@ class DiseaseReportCreate(generics.CreateAPIView):
 
 class DiseaseReportList(generics.ListAPIView):
     serializer_class = DiseaseReportSerializer
-    permission_classes = [Is_Vet | Is_Farmer]
+    permission_classes = [Is_Vet | Is_Farmer | Is_Official]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -1619,8 +1627,10 @@ class DiseaseReportList(generics.ListAPIView):
         if user.is_vet_officer:
             return DiseaseReport.objects.filter(user=user)
         
-        elif user.is_farmer:
+        if user.is_farmer:
             return DiseaseReport.objects.filter(assigned_to=user)
+        if user.is_official:
+            return DiseaseReport.objects.all()
 
         return DiseaseReport.objects.none()
 
@@ -1644,8 +1654,8 @@ def resources(request):
 def slaughterhouse(request):
     return render(request, 'portals/reports/slaughter.html', {})
 
-# def slaughterhouse(request):
-#     return render(request, 'portals/reports/slaughter_view.html', {})
+def slaughterhouse_view(request):
+    return render(request, 'portals/reports/slaughter_official.html', {})
 
 class SlaughterhouseCreate(generics.CreateAPIView):
     queryset = Slaughterhouse.objects.all()
@@ -1657,16 +1667,19 @@ class SlaughterhouseCreate(generics.CreateAPIView):
 
 class SlaughterhouseList(generics.ListAPIView):
     serializer_class = SlaughterhouseSerializer
-    permission_classes = [Is_Vet | Is_Farmer]
+    permission_classes = [Is_Vet | Is_Farmer | Is_Official]
     pagination_class = CustomPagination
 
     def get_queryset(self):
         user = self.request.user
 
         if user.is_vet_officer:
+            return Slaughterhouse.objects.filter(user=user)
+        
+        if user.is_official:
             return Slaughterhouse.objects.all()
         
-        elif user.is_farmer:
+        if user.is_farmer:
             return Slaughterhouse.objects.none()
 
         return Slaughterhouse.objects.none()
@@ -1807,17 +1820,17 @@ class QuestionListView(generics.ListAPIView):
     permission_classes = [Is_Vet]
     pagination_class=None
 
-class SubmitAnswerView(generics.CreateAPIView):
-    serializer_class = UserAnswerSerializer
-    permission_classes = [Is_Vet]
+# class SubmitAnswerView(generics.CreateAPIView):
+#     serializer_class = UserAnswerSerializer
+#     permission_classes = [Is_Vet]
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            user_answer = serializer.save()
-            is_correct = user_answer.choice.is_correct
-            return Response({'is_correct': is_correct}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#     def create(self, request, *args, **kwargs):
+#         serializer = self.get_serializer(data=request.data)
+#         if serializer.is_valid():
+#             user_answer = serializer.save()
+#             is_correct = user_answer.choice.is_correct
+#             return Response({'is_correct': is_correct}, status=status.HTTP_201_CREATED)
+#         return Re`sponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 def tutorial(request):
     return render(request, 'portals/reports/cpd.html', {})
@@ -1853,6 +1866,7 @@ class SectionCreate(generics.CreateAPIView):
     queryset = Section.objects.all()
     serializer_class = SectionSerializer
     permission_classes = [Is_Vet]
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser]
 
 # class SectionList(generics.ListAPIView):
 #     serializer_class = SectionSerializer
@@ -1877,7 +1891,22 @@ class SectionList(View):
         }
         return render(request, 'portals/reports/lessons.html', context)
     
-    
+def download_file(request, section_id):
+    try:
+        section = Section.objects.get(id=section_id)
+        file_path = section.file.path  # Get the absolute file path
+        
+        # Verify that the file is in the 'media/uploads/' directory
+        if os.path.exists(file_path) and 'media/uploads/' in file_path:
+            # Serve the file as a downloadable response
+            response = FileResponse(open(file_path, 'rb'))
+            response['Content-Disposition'] = f'attachment; filename="{os.path.basename(file_path)}"'
+            return response
+        else:
+            raise Http404("File not found in the uploads directory")
+    except Section.DoesNotExist:
+        raise Http404("Section not found")
+      
 class CommentCreateView(generics.CreateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
@@ -1907,40 +1936,400 @@ class CommentListView(View):
             'section_id': section_id,
         }
         return render(request, 'portals/reports/comments.html',context)
+#cpd qustions 
+class QuizView(View):
+    permission_classes = [Is_Vet]
+    def get(self, request, section_id):
+        section = get_object_or_404(Section, id=section_id)
+        
+        questions = CpdQuestions.objects.filter(section=section)
+        
+        context = {
+            'questions': questions,
+            'section': section,
+        }
+        return render(request, 'portals/reports/cpdquestions.html', context)
+class QuizSubmit(View):
+    permission_classes = [Is_Vet]
     
+    def post(self, request, section_id):
+        section = get_object_or_404(Section, id=section_id)
+        start_time = timezone.now()
+        end_time = start_time + timezone.timedelta(minutes=30)
+        print(f'new%{section.id}')
+
+        if timezone.now() > end_time:
+            return JsonResponse({"error": "Time's up!"}, status=400)
+
+        
+        correct_count = 0
+        total_questions = CpdQuestions.objects.filter(section=section).count()  
+        for question in CpdQuestions.objects.filter(section=section):  
+            question_id = str(question.id) 
+            selected_choice_id = request.POST.get(f'answers[{question_id}]')
+            
+            
+            correct_choice = CpdChoices.objects.filter(question_id=question.id, is_correct=True).first()
+            if correct_choice and str(correct_choice.id) == selected_choice_id:
+                correct_count += 1
+
+        score = (correct_count / total_questions) * 100 if total_questions > 0 else 0
+        passed = score >= 80
+        
+        result = QuizResult.objects.create(user=request.user,section=section, score=score, passed=passed)
+        
+        context = {'result': result, 'score': score, 'passed': passed,'section':section}
+        if not passed:
+            context['retake'] = True
+
+        # Return the result page
+        return render(request, 'portals/reports/cpdresult.html', context)
+class QuestionCreateAPIView(generics.CreateAPIView):
+    queryset = CpdQuestions.objects.all()
+    serializer_class = CpdQuestionsSerializer
+    permission_classes = [Is_Vet]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Question created successfully!'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-class QuestionCreateView(generics.CreateAPIView):
-    queryset = Question.objects.all()
-    serializer_class = QuestionsSerializer
-    permission_classes = [IsAuthenticated]
+def result(request):
+    return render(request,'portals/reports/myresults.html',{})
+
+
+class QuizResultList(generics.ListAPIView):
+    serializer_class = QuizResultSerializer
+    permission_classes = [Is_Vet]
+    
+    def get_queryset(self):
+        return QuizResult.objects.all()
+    
+def livestock_examination(request):
+    return render(request, 'portals/reports/examination.html', {})
+def livestock_examination_view(request):
+    return render(request, 'portals/reports/examination_view.html', {})
+
+# Create View
+class LivestockExaminationCreate(generics.CreateAPIView):
+    queryset = LivestockExaminationRecord.objects.all()
+    serializer_class = LivestockExaminationRecordSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
 
     def perform_create(self, serializer):
-        section_id = self.kwargs['section_id']
-        section = get_object_or_404(Section, id=section_id)
-        serializer.save(section=section)
-    
-class QuestionDetailView(generics.RetrieveAPIView):
-    queryset = Question.objects.all()
-    serializer_class = QuestionsSerializer
-    permission_classes = [IsAuthenticated]
-    
-class SectionQuestionListView(generics.ListAPIView):
-    serializer_class = QuestionsSerializer
-    permission_classes = [IsAuthenticated]
+        user = self.request.user
+        serializer.save(user=user)
+# List View
+class LivestockExaminationList(generics.ListAPIView):
+    serializer_class = LivestockExaminationRecordSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+    pagination_class = CustomPagination
 
     def get_queryset(self):
-        section_id = self.kwargs['section_id']
-        return Question.objects.filter(section_id=section_id)
-    
-class UserAnswerCreate(generics.CreateAPIView):
-    queryset = UserAnswer.objects.all()
-    serializer_class = UserAnswerSerializer
+        user = self.request.user
+        return LivestockExaminationRecord.objects.filter(user=user).order_by('-id')
+
+# Update View
+class LivestockExaminationUpdate(generics.UpdateAPIView):
+    queryset = LivestockExaminationRecord.objects.all()
+    serializer_class = LivestockExaminationRecordSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+# Delete View
+class LivestockExaminationDelete(generics.DestroyAPIView):
+    queryset = LivestockExaminationRecord.objects.all()
+    serializer_class = LivestockExaminationRecordSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+def calving_record(request):
+    return render(request, 'portals/reports/calving_records.html', {})
+
+# Create View
+class CalvingRecordCreate(generics.CreateAPIView):
+    queryset = CalvingRecord.objects.all()
+    serializer_class = CalvingRecordSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
 
     def perform_create(self, serializer):
-        user_id = self.request.data.get('user_id')
-        section_id = self.request.data.get('section_id')
-        answers = self.request.data.get('answers')
+        user = self.request.user
+        serializer.save(user=user)
+# List View
+class CalvingRecordList(generics.ListAPIView):
+    serializer_class = CalvingRecordSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+    pagination_class = CustomPagination
 
-        for answer in answers:
-            question_id, choice_id = answer.split('-')
-            serializer.save(user_id=user_id, question_id=question_id, choice_id=choice_id)
+    def get_queryset(self):
+        user = self.request.user
+        return CalvingRecord.objects.filter(user=user).order_by('-id')
+
+# Update View
+class CalvingRecordUpdate(generics.UpdateAPIView):
+    queryset = CalvingRecord.objects.all()
+    serializer_class = CalvingRecordSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+# Delete View
+class CalvingRecordDelete(generics.DestroyAPIView):
+    queryset = CalvingRecord.objects.all()
+    serializer_class = CalvingRecordSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+    
+def assessment_record(request):
+    return render(request, 'portals/reports/assessment.html', {})
+def assessment_record_view(request):
+    return render(request, 'portals/reports/assessment_official.html', {})
+
+# Create View
+class AssessmentRecordCreate(generics.CreateAPIView):
+    queryset = AssessmentRecord.objects.all()
+    serializer_class = AssessmentRecordSerializer
+    permission_classes = [Is_Farmer | Is_Vet]  
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+# List View
+class AssessmentRecordList(generics.ListAPIView):
+    serializer_class = AssessmentRecordSerializer
+    permission_classes = [Is_Farmer | Is_Vet |Is_Official]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return AssessmentRecord.objects.filter(user=user).order_by('-farm_name')
+        if user.is_official:
+                return AssessmentRecord.objects.all()
+
+        return AssessmentRecord.objects.none()
+# Update View
+class AssessmentRecordUpdate(generics.UpdateAPIView):
+    queryset = AssessmentRecord.objects.all()
+    serializer_class = AssessmentRecordSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+# Delete View
+class AssessmentRecordDelete(generics.DestroyAPIView):
+    queryset = AssessmentRecord.objects.all()
+    serializer_class = AssessmentRecordSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+    def perform_destroy(self, instance):
+        instance.delete()
+        
+def daily_kill_report(request):
+    return render(request, 'portals/reports/kills.html', {})
+def daily_kill_report_view(request):
+    return render(request, 'portals/reports/kills_official.html', {})
+
+class DailyKillCreate(generics.CreateAPIView):
+    queryset = DailyKill.objects.all()
+    serializer_class = DailyKillSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+class DailyKillList(generics.ListAPIView):
+    serializer_class = DailyKillSerializer
+    permission_classes = [Is_Vet |Is_Official | Is_Official]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return DailyKill.objects.filter(user=user).order_by('-farm_name')
+        if user.is_official:
+                return DailyKill.objects.all()
+
+        return DailyKill.objects.none()
+class DailyKillUpdate(generics.UpdateAPIView):
+    queryset = DailyKill.objects.all()
+    serializer_class = DailyKillSerializer
+    permission_classes = [Is_Vet]
+
+class DailyKillDelete(generics.DestroyAPIView):
+    queryset = DailyKill.objects.all()
+    serializer_class = DailyKillSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        instance.delete()
+        
+def movement_permit_report(request):
+    return render(request, 'portals/reports/movement.html', {})
+def movement_permit_report_view(request):
+    return render(request, 'portals/reports/movement_view.html', {})
+
+class MovementPermitCreate(generics.CreateAPIView):
+    queryset = MovementPermit.objects.all()
+    serializer_class = MovementPermitSerializer
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser]
+    permission_classes = [Is_Vet]
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+class MovementPermitList(generics.ListAPIView):
+    serializer_class = MovementPermitSerializer
+    permission_classes = [Is_Vet |Is_Official]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return MovementPermit.objects.filter(user=user).order_by('-user')
+        if user.is_official:
+                return MovementPermit.objects.all()
+
+        return MovementPermit.objects.none()
+
+class MovementPermitUpdate(generics.UpdateAPIView):
+    queryset = MovementPermit.objects.all()
+    serializer_class = MovementPermitSerializer
+    permission_classes = [Is_Vet]
+
+class MovementPermitDelete(generics.DestroyAPIView):
+    queryset = MovementPermit.objects.all()
+    serializer_class = MovementPermitSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        instance.delete()
+
+# No Objection Views
+
+def no_objection_report(request):
+    return render(request, 'portals/reports/no_objection.html', {})
+
+def no_objection_report_view(request):
+    return render(request, 'portals/reports/no_objection_view.html', {})
+
+
+class NoObjectionCreate(generics.CreateAPIView):
+    queryset = NoObjection.objects.all()
+    serializer_class = NoObjectionSerializer
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser]
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+class NoObjectionList(generics.ListAPIView):
+    serializer_class = NoObjectionSerializer
+    permission_classes = [Is_Vet |Is_Official]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return NoObjection.objects.all().order_by('-date_of_confirmation')
+
+class NoObjectionUpdate(generics.UpdateAPIView):
+    queryset = NoObjection.objects.all()
+    serializer_class = NoObjectionSerializer
+    permission_classes = [Is_Vet|Is_Official]
+
+class NoObjectionDelete(generics.DestroyAPIView):
+    queryset = NoObjection.objects.all()
+    serializer_class = NoObjectionSerializer
+    permission_classes = [Is_Vet|Is_Official]
+
+    def perform_destroy(self, instance):
+        instance.delete()
+
+# Monthly Report Views
+
+def monthly_report(request):
+    return render(request, 'portals/reports/monthly_report.html', {})
+
+def monthly_report_view(request):
+    return render(request, 'portals/reports/monthly_view.html', {})
+
+
+class MonthlyReportCreate(generics.CreateAPIView):
+    queryset = MonthlyReport.objects.all()
+    serializer_class = MonthlyReportSerializer
+    permission_classes = [Is_Vet |Is_Official]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+class MonthlyReportList(generics.ListAPIView):
+    serializer_class = MonthlyReportSerializer
+    permission_classes = [Is_Vet |Is_Official]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return MonthlyReport.objects.all().order_by('-date_of_submission')
+
+class MonthlyReportUpdate(generics.UpdateAPIView):
+    queryset = MonthlyReport.objects.all()
+    serializer_class = MonthlyReportSerializer
+    permission_classes = [Is_Vet |Is_Official]
+
+class MonthlyReportDelete(generics.DestroyAPIView):
+    queryset = MonthlyReport.objects.all()
+    serializer_class = MonthlyReportSerializer
+    permission_classes = [Is_Vet |Is_Official]
+
+    def perform_destroy(self, instance):
+        instance.delete()
+        
+def practitioner_record(request):
+    return render(request, 'portals/reports/practitioner.html', {})
+
+def practitioner_record_view(request):
+    return render(request, 'portals/reports/practitioner_official.html', {})
+
+class PractitionerCreate(generics.CreateAPIView):
+    queryset = Practitioner.objects.all()
+    serializer_class = PractitionerSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+class PractitionerList(generics.ListAPIView):
+    serializer_class = PractitionerSerializer
+    permission_classes = [Is_Vet | Is_Official]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return Practitioner.objects.filter(user=user).order_by('-county')
+        if user.is_official:
+            return Practitioner.objects.all()
+
+        return Practitioner.objects.none()
+
+class PractitionerUpdate(generics.UpdateAPIView):
+    queryset = Practitioner.objects.all()
+    serializer_class = PractitionerSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+class PractitionerDelete(generics.DestroyAPIView):
+    queryset = Practitioner.objects.all()
+    serializer_class = PractitionerSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+    def perform_destroy(self, instance):
+        instance.delete()

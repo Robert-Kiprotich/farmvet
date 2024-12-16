@@ -96,6 +96,23 @@
                   <a class="dropdown-item" style="font-weight: bold;" href="{% url 'postmortem'%}">Post Mortem Records</a>
                   </a>
                 </li>
+                <li>
+                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'livestock-examination' %}">Livestock Examination</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'calving-record' %}">Calving</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'assesment-record-page' %}">Assessment</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'daily-kills' %}">Daily Kills</a>
+                </li>
+                
+                <li>
+                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'monthly_report' %}">Monthly Report</a>
+                </li>
+                
                 <li class="sidebar-dropdown">
                   <a href="#" style="font-weight: bold;">
                       <i class=""></i>
@@ -243,9 +260,18 @@
                   <a style="font-weight: bold;" href="{% url 'quiz' %}">Test Your Knowledge</a>
                 </li>
                 <ul>
-                <li>
-                  <a style="font-weight: bold;" href="#">Online CPD program</a>
-                </li>
+                  <li class="sidebar-dropdown">
+                    <a href="#" style="font-weight: bold;">
+                        <i class=""></i>
+                        <span>Online CPD Program</span>
+                    </a>
+                    <div class="sidebar-submenu">
+                        <ul>
+                            <li><a class="dropdown-item" style="font-weight: bold;" href="{% url 'cpd'%}">Lessons</a></li>
+                            <li> <a class="dropdown-item" style="font-weight: bold;" href="{% url 'questions-result'%}">My Results</a></li>
+                        </ul>
+                    </div>
+                </li> 
               </ul>
               </ul>
             </div>
@@ -294,14 +320,17 @@
             <div class="sidebar-submenu">
               <ul>
                 <li>
-                  <a style="font-weight: bold;" href="#">Movement Permit</a>
+                  <a style="font-weight: bold;" class="dropdown-item" href="{% url 'movement-permit-report'%}">Movement Permit</a>
+                  </a>
                 </li>
                 <li>
-                  <a style="font-weight: bold;" href="#">No objection Form</a>
+                  <a style="font-weight: bold;" class="dropdown-item" href="{% url 'no_objection_report'%}">No Objections Report</a>
+                  </a>
                 </li>
               </ul>
             </div>
           </li>
+          
           <li class="sidebar-dropdown">
             <a href="#">
               <i class="fa fa-chart-line"></i>
@@ -321,35 +350,21 @@
               </ul>
             </div>
           </li>
-          
           <li class="sidebar-dropdown">
             <a href="#">
               <i class="fa fa-chart-line"></i>
-              <span> Director Vet Service</span>
+              <span>Practitioner</span>
             </a>
             <div class="sidebar-submenu">
               <ul>
                 <li>
-                  <a style="font-weight: bold;" href="#">Meat Inspection </a>
+                  <a style="font-weight: bold;" href="{% url 'practitioner_record'%}">Register</a>
                 </li>
-                <li>
-                  <a style="font-weight: bold;" href="#">Livestock Movement</a>
-                </li>
-                <li>
-                  <a style="font-weight: bold;" href="#">Disease Reports</a>
-                </li>
-                <li>
-                  <a style="font-weight: bold;" href="#">Artificial Insemination</a>
-                </li>
-                <li>
-                  <a style="font-weight: bold;" href="#">Vaccination</a>
-                </li>
-                <li>
-                  <a style="font-weight: bold;" href="#">Staff Reports</a>
-                </li>
+                
               </ul>
             </div>
           </li>
+          
           <li class="sidebar-dropdown">
             <a href="#">
               <i class="fa fa-chart-line"></i>

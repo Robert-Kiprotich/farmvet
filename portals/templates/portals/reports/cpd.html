@@ -69,12 +69,7 @@
     <div class="px-5 my-1 text-center">
     </div>
    
-   <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#cpdAddModal">
-    Add Record
-    </button>
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#cpdAddModal">
-      Take Test
-      </button>
+   
      <!-- form modal -->
      <div class="modal fade" id="cpdAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">
@@ -473,21 +468,26 @@ if (sectionListUrl.endsWith('/')) {
           
           {
             field: 'lesson',
-            titlppe: 'Lesson',
+            title: 'Lesson',
             sortable: true,
             align: 'center',
             formatter: (value, row) => {
-              if (row.lesson_data && row.lesson_data.length > 0) {
-                const lessonId = row.lesson_data[0].lesson_id || "N/A";
-                const url = `${sectionListUrl}/${lessonId}/`;
-                return `<a href="${url}" target="_blank">${value}</a>`;
-              }
-              return "Coming Soon";  
-          }
+                if (row.is_active) {
+                    if (row.lesson_data && row.lesson_data.length > 0) {
+                        const lessonId = row.lesson_data[0].lesson_id || "N/A";
+                        const url = `${sectionListUrl}/${lessonId}/`;
+                        return `<a href="${url}" target="_blank">${value}</a>`;
+                    }
+                    return "Coming Soon";
+                } else {
+                   
+                    return `<span style="color: gray; cursor: not-allowed;">${value}</span>`;
+                }
+            }
         },
           {
-            field: 'kvb_number',
-            title: 'KVB Number',
+            field: 'cpd_number',
+            title: 'CPD Number',
             sortable: true,
             align: 'center'
           },

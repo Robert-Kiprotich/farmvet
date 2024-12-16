@@ -3,7 +3,7 @@
 <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<!------ Include the above in your HEAD tag ---------->
+
 
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
         crossorigin="anonymous">
@@ -17,7 +17,7 @@
   <nav id="sidebar" class="sidebar-wrapper">
     <div class="sidebar-content">
       <div class="sidebar-brand">
-        <a href="{% url 'vet-portal' %}">Government Official</a>
+        <a href="{% url 'official-portal' %}">Government Official</a>
         <div id="close-sidebar">
           <i class="fas fa-times fa-lg"></i>
         </div>
@@ -43,47 +43,114 @@
       <div class="sidebar-menu">
         <ul>
           <li class="header-menu">
-            <span>General</span>
+            <span>Services</span>
           </li>
-          
           <li class="sidebar-dropdown">
             <a href="#">
               <i class="fa fa-shopping-cart"></i>
-              <span>Services</span>
+              <span>Practitioners</span>
              
             </a>
             <div class="sidebar-submenu">
               <ul>
                 <li>
-                  <a class="dropdown-item" style="font-weight: bold;">Meat Inspection</a>
-                  </a>
-                </li>
-                
-                <li>
-                  <a class="dropdown-item" style="font-weight: bold;">Livestock Movement</a>
-                  </a>
-                </li>
-              
-                <li>
-                  <a class="dropdown-item" style="font-weight: bold;">Disease Reports
-                  </a>
-            
-                </li>
-
-                <li>
-                  <a class="dropdown-item" style="font-weight: bold;">Artificial Insemination</a>
-                  </a>
-                </li>
-                <li>
-                  <a style="font-weight: bold;" href="#">Vaccination</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" style="font-weight: bold;">Staff Reports</a>
+                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'practitioner_record_view'%}" >Registered Practitioners</a>
                   </a>
                 </li>
             </ul>
-              
+          </div>
+        </li>
            
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="fa fa-shopping-cart"></i>
+              <span>Meat Inspection</span>
+             
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'slaughterhouse-view' %}">Slaugheter House</a>
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'daily-kills-view' %}">Daily Kills</a>
+                </li>
+            </ul>
+          </div>
+        </li>
+            <li class="sidebar-dropdown">
+              <a href="#">
+                <i class="fa fa-chart-line"></i>
+                <span>Livestock Movement</span>
+              </a>
+              <div class="sidebar-submenu">
+                <ul>
+                  
+                </ul>
+              </div>
+            </li>
+            <li class="sidebar-dropdown">
+              <a href="#">
+                <i class="fa fa-chart-line"></i>
+                <span>Disease Reports</span>
+              </a>
+              <div class="sidebar-submenu">
+                <ul>
+                
+                  <li>
+                    <a style="font-weight: bold;" href="{% url 'disease-report-view'%}">Disease Reports</a>
+                  </li>
+                </ul>
+              </div>
+            </li>
+            <li class="sidebar-dropdown">
+              <a href="#">
+                <i class="fa fa-chart-line"></i>
+                <span>Artificial Insemination</span>
+              </a>
+              <div class="sidebar-submenu">
+                <ul>
+                  <li>
+                    <a class="dropdown-item" style="font-weight: bold;" href="{% url 'ai_official' %}">Artificial Insemination</a>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </li>
+            <li class="sidebar-dropdown">
+              <a href="#">
+                <i class="fa fa-chart-line"></i>
+                <span>Vaccination</span>
+              </a>
+              <div class="sidebar-submenu">
+                <ul>
+                  <li>
+                    <a class="dropdown-item" style="font-weight: bold;" href="{% url 'vaccination-official' %}">Vaccination</a>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </li>
+            <li class="sidebar-dropdown">
+              <a href="#">
+                <i class="fa fa-chart-line"></i>
+                <span>Staff Reports</span>
+              </a>
+              <div class="sidebar-submenu">
+                <ul>
+                  <li>
+                    <a style="font-weight: bold;" href="#">Monthly Reports</a>
+                  </li>
+                  <li>
+                    <a style="font-weight: bold;" href="#">Quarterly Reports</a>
+                  </li>
+                  <li>
+                    <a style="font-weight: bold;" href="#">Annually Reports</a>
+                  </li>
+                </ul>
+              </div>
+            </li>
           <li class="">
             <a href="{%url 'logout'%}">
               <i class="fa fa-power-off" style="font-size:28px;color:red"></i>

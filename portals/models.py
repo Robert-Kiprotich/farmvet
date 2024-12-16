@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from user.models import *
 from datetime import timedelta, date
+from django.contrib import admin
 
 
 BREEDING_LEVEL_CHOICES = [
@@ -725,6 +726,10 @@ class ArtificialInsemination(models.Model):
 		('First','First'),
 		('Repeat','Repeat'),
 	]
+	SEMEN_TYPE=[
+		('Conventional','Conventional'),
+		('Sexed','Sexed'),
+	]
 	user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)
 	assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ai_records', limit_choices_to={'is_farmer': True})
 	farm_name = models.CharField(max_length=255)
@@ -739,6 +744,7 @@ class ArtificialInsemination(models.Model):
 	insemination_date=models.DateField()
 	insemination_time = models.TimeField()
 	insemination_status=models.CharField(max_length=20,choices=INSEMINATION_STATUS_CHOICES)
+	semen_type=models.CharField(max_length=20 ,choices=SEMEN_TYPE)
 	breed_used = models.CharField(max_length=255)
 	bull_name = models.CharField(max_length=255)
 	bull_reg_no = models.CharField(max_length=255)
@@ -1617,7 +1623,7 @@ class Slaughterhouse(models.Model):
         ('large_scale', 'Large Scale'),
         # Add other categories if needed
     ]
-    
+    user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)
     name = models.CharField(max_length=255)
     county = models.CharField(max_length=255)
     sub_county = models.CharField(max_length=255)
@@ -1708,40 +1714,41 @@ class Invoice(models.Model):
 		return f"Invoice {self.id} - {self.farmer_name}"
 
 class DailyKill(models.Model):
-    LIVESTOCK_CATEGORY_CHOICES = [
-        ('Cattle', 'Cattle'),
-        ('Sheep', 'Sheep'),
-        ('Goat', 'Goat'),
-        ('Pig', 'Pig'),
-        # Add more categories as needed
-    ]
+	LIVESTOCK_CATEGORY_CHOICES = [
+		('Cattle', 'Cattle'),
+		('Sheep', 'Sheep'),
+		('Goat', 'Goat'),
+		('Pig', 'Pig'),
+		# Add more categories as needed
+	]
 
-    CONDEMNATION_STATUS_CHOICES = [
-        ('Local Condemnation', 'Local Condemnation'),
-        ('Carcass Condemnation', 'Carcass Condemnation'),
-    ]
+	CONDEMNATION_STATUS_CHOICES = [
+		('Local Condemnation', 'Local Condemnation'),
+		('Carcass Condemnation', 'Carcass Condemnation'),
+	]
 
-    INSPECTOR_STATUS_CHOICES = [
-        ('Employed', 'Employed'),
-        ('Delegated', 'Delegated'),
-        ('Intern/Student', 'Intern/Student'),
-    ]
+	INSPECTOR_STATUS_CHOICES = [
+		('Employed', 'Employed'),
+		('Delegated', 'Delegated'),
+		('Intern/Student', 'Intern/Student'),
+	]
+	user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)	
+	assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='kills', limit_choices_to={'is_farmer': True})
+	date = models.DateField()
+	livestock_category = models.CharField(max_length=50, choices=LIVESTOCK_CATEGORY_CHOICES)
+	number_of_females_killed = models.PositiveIntegerField()
+	number_of_males_killed = models.PositiveIntegerField()
+	total_kills_per_day = models.PositiveIntegerField()
+	condemnation_done = models.BooleanField(default=False)
+	condemnation_status = models.CharField(max_length=50, choices=CONDEMNATION_STATUS_CHOICES, blank=True, null=True)
+	comment_by_inspector = models.TextField(blank=True, null=True)
+	inspector_name = models.CharField(max_length=100)
+	inspector_reg_number = models.CharField(max_length=50)
+	inspector_status = models.CharField(max_length=50, choices=INSPECTOR_STATUS_CHOICES)
 
-    date = models.DateField()
-    livestock_category = models.CharField(max_length=50, choices=LIVESTOCK_CATEGORY_CHOICES)
-    number_of_females_killed = models.PositiveIntegerField()
-    number_of_males_killed = models.PositiveIntegerField()
-    total_kills_per_day = models.PositiveIntegerField()
-    condemnation_done = models.BooleanField(default=False)
-    condemnation_status = models.CharField(max_length=50, choices=CONDEMNATION_STATUS_CHOICES, blank=True, null=True)
-    comment_by_inspector = models.TextField(blank=True, null=True)
-    inspector_name = models.CharField(max_length=100)
-    inspector_reg_number = models.CharField(max_length=50)
-    inspector_status = models.CharField(max_length=50, choices=INSPECTOR_STATUS_CHOICES)
+	def __str__(self):
+		return f"Daily Kill Record for {self.date} - {self.livestock_category}"
 
-    def __str__(self):
-        return f"Daily Kill Record for {self.date} - {self.livestock_category}"
-    
     
 class Question(models.Model):
     text = models.CharField(max_length=255)
@@ -1757,33 +1764,34 @@ class Choice(models.Model):
     def __str__(self):
         return self.text
 
-class UserAnswer(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE,default=1) 
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
+# class UserAnswer(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE,default=1) 
+#     question = models.ForeignKey(Question, on_delete=models.CASCADE)
+#     choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
 
-    def __str__(self):
-        return f"{self.user} - {self.question.text}"
+#     def __str__(self):
+#         return f"{self.user} - {self.question.text}"
     
     #tuutorials
     
 class Tutorial(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
     lesson = models.CharField(max_length=255)
-    url = models.URLField(max_length=200)
-    kvb_number = models.CharField(max_length=30)
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2)  # Changed to DecimalField
-    points = models.IntegerField()  # Changed to IntegerField
+    cpd_number = models.CharField(max_length=30)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    points = models.IntegerField()
     is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.lesson
-
 class Section(models.Model):
     lesson = models.ForeignKey(Tutorial, related_name='sections', on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
     content = models.TextField()
+    file = models.FileField(upload_to='uploads/')
+    is_active = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.lesson.lesson} - {self.title}"
@@ -1798,29 +1806,42 @@ class Comment(models.Model):
     def __str__(self):
         return f"Comment by {self.author.username} on {self.section.title}"
 
-class Questions(models.Model):
-    section = models.ForeignKey(Section, related_name='questions', on_delete=models.CASCADE)
-    text = models.CharField(max_length=255)
-    created_at = models.DateTimeField(auto_now_add=True)
+class CpdQuestions(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name="questions")
+    question_text = models.CharField(max_length=255)
 
     def __str__(self):
-        return f"{self.section.title} - {self.text}"
+        return self.question_text
 
-class Choices(models.Model):
-    question = models.ForeignKey(Questions, related_name='choices', on_delete=models.CASCADE)
-    text = models.CharField(max_length=100)
+
+class CpdChoices(models.Model):
+    question = models.ForeignKey(CpdQuestions, on_delete=models.CASCADE, related_name='choices')
+    choice_text = models.CharField(max_length=255)
     is_correct = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.text
+        return f"{self.choice_text} - {'Correct' if self.is_correct else 'Incorrect'}"
 
-class UserAnswers(models.Model):
+class QuizResult(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
+    section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name="results")
+    score = models.FloatField()
+    passed = models.BooleanField()
+    timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.question.text} - {self.choice.text}"
+        return f"{self.user} - {'Pass' if self.passed else 'Fail'} - {self.score}%"
+    
+
+    
+# class UserAnswers(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     question = models.ForeignKey(Question, on_delete=models.CASCADE)
+#     choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
+
+#     def __str__(self):
+#         return f"{self.user.username} - {self.question.text} - {self.choice.text}"
     
 class UserProgress(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -1830,3 +1851,212 @@ class UserProgress(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.section.title} - Score: {self.score}"
+    
+class LivestockExaminationRecord(models.Model):
+	LIVESTOCK_CATEGORIES = [
+		('Cattle', 'Cattle'),
+		('Sheep', 'Sheep'),
+		('Goat', 'Goat'),
+		('Poultry', 'Poultry'),
+		('None', 'None'),
+	]
+
+	REASONS_FOR_EXAMINATION = [
+		('Slaughter', 'Slaughter'),
+		('Breeding', 'Breeding'),
+		('Culling', 'Culling'),
+		('Disease Control', 'Disease Control'),
+		('For Sale', 'For Sale'),
+	]
+	user=models.ForeignKey(User, on_delete=models.CASCADE)
+	livestock_category = models.CharField(max_length=50, choices=LIVESTOCK_CATEGORIES)
+	other_category = models.CharField(max_length=100, blank=True, null=True)
+	age_of_animal = models.PositiveIntegerField()
+	breed = models.CharField(max_length=100)
+	sex_of_animal = models.CharField(max_length=10, choices=[('Male', 'Male'), ('Female', 'Female')])
+	number_of_animals = models.PositiveIntegerField()
+	origin_of_animal = models.CharField(max_length=100)
+	destination = models.CharField(max_length=100)
+	reason_for_examination = models.CharField(max_length=50, choices=REASONS_FOR_EXAMINATION)
+	recommendation = models.TextField()
+	owner_name = models.CharField(max_length=100)
+	owner_mobile_number = models.CharField(max_length=15)
+	veterinary_officer_in_charge = models.CharField(max_length=100)
+	registration_number = models.CharField(max_length=50)
+	veterinary_officer_mobile_number = models.CharField(max_length=15)
+	veterinary_officer_signature = models.TextField()
+
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	def __str__(self):
+		return f"{self.livestock_category} Examination Record - {self.owner_name}"
+class CalvingRecord(models.Model):
+	CALVING_PROCEDURES = [
+		('Normal', 'Normal'),
+		('Assisted', 'Assisted'),
+		('C-Section', 'C-Section'),
+	]
+
+	RAB_STATUSES = [
+		('Natural Expulsion', 'Natural Expulsion'),
+		('Manual Removal', 'Manual Removal'),
+	]
+
+	CALF_STATUS = [
+		('Live', 'Live'),
+		('Dead', 'Dead'),
+	]
+
+	REASONS_FOR_DEAD_FOETUS = [
+		('Delayed Labour', 'Delayed Labour'),
+		('Breech Presentation', 'Breech Presentation'),
+		('None', 'None'),
+	]
+	user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)	
+	assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='calving_report', limit_choices_to={'is_farmer': True})
+	date_of_calving = models.DateField()
+	insemination_date = models.DateField(blank=True, null=True)
+	days_to_calving_down = models.PositiveIntegerField(help_text="Number of days to calving down")
+	cow_name = models.CharField(max_length=100)
+	registration_number = models.CharField(max_length=50, blank=True, null=True)
+	calving_procedure = models.CharField(max_length=20, choices=CALVING_PROCEDURES)
+	rab_status = models.CharField(max_length=20, choices=RAB_STATUSES)
+	hours_for_natural_expulsion = models.PositiveIntegerField()
+	calf_sex = models.CharField(max_length=6, choices=[('Male', 'Male'), ('Female', 'Female')])
+	calf_status = models.CharField(max_length=10, choices=CALF_STATUS)
+	reason_for_dead_foetus = models.CharField(max_length=50, choices=REASONS_FOR_DEAD_FOETUS, blank=True, null=True)
+	comment = models.TextField(blank=True, null=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	def __str__(self):
+		return f"Calving Record for {self.cow_name} - {self.date_of_calving}"
+
+class AssessmentRecord(models.Model):
+	LIVESTOCK_CATEGORIES = [
+		('Cattle', 'Cattle'),
+		('Sheep', 'Sheep'),
+		('Goat', 'Goat'),
+		('Dog', 'Dog'),
+		('Cat', 'Cat'),
+		('Horse', 'Horse'),
+		('None', 'None'),
+	]
+
+	SEX_CHOICES = [
+		('Male', 'Male'),
+		('Female', 'Female'),
+	]
+
+	PLACE_OF_ASSESSMENT_CHOICES = [
+		('Farm', 'Farm'),
+		('Market', 'Market'),
+	]
+
+	REASON_FOR_ASSESSMENT_CHOICES = [
+		('Slaughter', 'Slaughter'),
+		('Breeding', 'Breeding'),
+		('Culling', 'Culling'),
+		('Disease Control', 'Disease Control'),
+		('Sales', 'Sales'),
+		('For Complaint', 'For Complaint'),
+		('Theft Cases', 'Theft Cases'),
+		('For Export', 'For Export'),
+	]
+	user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)	
+	assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='assesment_report', limit_choices_to={'is_farmer': True})
+	livestock_category = models.CharField(max_length=20, choices=LIVESTOCK_CATEGORIES)
+	other_category = models.CharField(max_length=50, blank=True, null=True)
+	date_of_assessment = models.DateField()
+	name_of_animal = models.CharField(max_length=100)
+	registration_number = models.CharField(max_length=50)
+	color_of_animal = models.CharField(max_length=50)
+	age_of_animal = models.PositiveIntegerField()  # Assuming age is in years
+	sex_of_animal = models.CharField(max_length=10, choices=SEX_CHOICES)
+	number_of_animals = models.PositiveIntegerField()
+	origin_of_animal = models.CharField(max_length=100)
+	place_of_assessment = models.CharField(max_length=20, choices=PLACE_OF_ASSESSMENT_CHOICES)
+	destination = models.CharField(max_length=100)
+	reason_for_assessment = models.CharField(max_length=50, choices=REASON_FOR_ASSESSMENT_CHOICES)
+	recommendation = models.TextField(blank=True, null=True)
+	owner_of_animal = models.CharField(max_length=100)
+	owner_mobile_number = models.CharField(max_length=15)
+	veterinary_practitioner_in_charge = models.CharField(max_length=100)
+	practitioner_registration_number = models.CharField(max_length=50)
+	practitioner_contact = models.CharField(max_length=15)
+	signature_and_stamp = models.CharField(max_length=100)  # Assuming signature and stamp will be an image
+
+	def __str__(self):
+		return f"{self.livestock_category} - {self.name_of_animal} ({self.date_of_assessment})"
+
+class MovementPermit(models.Model):
+	user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)	
+	assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='movement_permit', limit_choices_to={'is_farmer': True}, default=1)
+	date_of_permit = models.DateField()
+	sub_county_district = models.CharField(max_length=100)
+	ward_level = models.CharField(max_length=100)
+	authorized_by = models.CharField(max_length=100)
+	registration_number = models.CharField(max_length=50)
+	phone_number = models.CharField(max_length=15)
+	uploaded_permit = models.FileField(upload_to='movement_permits/')
+
+	def __str__(self):
+		return f"Permit {self.registration_number} - {self.date_of_permit}"
+
+class NoObjection(models.Model):
+	user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)	
+	assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='noobjection_form', limit_choices_to={'is_farmer': True}, default=1)
+	date_of_confirmation = models.DateField()
+	sub_county_district = models.CharField(max_length=100)
+	ward_level = models.CharField(max_length=100)
+	confirmed_by = models.CharField(max_length=100)
+	registration_number = models.CharField(max_length=50)
+	phone_number = models.CharField(max_length=15)
+	uploaded_no_objection_form = models.FileField(upload_to='no_objection_forms/')
+
+	def __str__(self):
+		return f"No Objection {self.registration_number} - {self.date_of_confirmation}"
+class MonthlyReport(models.Model):
+	user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)	
+	assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='monthly_report', limit_choices_to={'is_farmer': True}, default=1)
+	date_of_submission = models.DateField()
+	sub_county = models.CharField(max_length=100)
+	ward_level = models.CharField(max_length=100)
+	submitted_by = models.CharField(max_length=100)
+	registration_number = models.CharField(max_length=50)
+	phone_number = models.CharField(max_length=15)
+	uploaded_report = models.FileField(upload_to='monthly_reports/')
+
+	def __str__(self):
+		return f"Monthly Report - {self.date_of_submission} by {self.submitted_by}"
+
+class Practitioner(models.Model):
+    SPECIALIZATION_CHOICES = [
+        ('large_animals', 'Large Animals'),
+        ('small_animals', 'Small Animals'),
+    ]
+
+    VET_CATEGORY_CHOICES = [
+        ('surgeon', 'Surgeon'),
+        ('technologist', 'Technologist'),
+        ('technician', 'Technician'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
+    assigned_to = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='practitioner_record',
+        limit_choices_to={'is_farmer': True}, default=1
+    )
+    first_name = models.CharField(max_length=20)
+    last_name = models.CharField(max_length=20)
+    phone_number = models.CharField(max_length=20)
+    email = models.CharField(max_length=100)
+    county = models.CharField(max_length=30)
+    subcounty = models.CharField(max_length=30)
+    ward = models.CharField(max_length=30)
+    area_of_operation = models.CharField(max_length=30)
+    specialization = models.CharField(max_length=50, choices=SPECIALIZATION_CHOICES)
+    vet_category = models.CharField(max_length=50, choices=VET_CATEGORY_CHOICES)
+    registration_number = models.CharField(max_length=50)
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} - {self.specialization}"

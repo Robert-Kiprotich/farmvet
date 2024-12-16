@@ -34,7 +34,7 @@ class Farmer(models.Model):
 	
 class Official(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    county = models.CharField(max_length=50, unique=True)
+    county = models.CharField(max_length=50)
     sub_county = models.CharField(max_length=100)
     employment_number=models.CharField(max_length=100)
     designation=models.CharField(max_length=50)

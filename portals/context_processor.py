@@ -62,6 +62,8 @@ def choices(request):
         'TRANSPORT_CHOICES':Butcher.TRANSPORT_CHOICES,
         'SL_CATEGORY_CHOICES':Slaughterhouse.CATEGORY_CHOICES,
         'E_POSITION_CHOICES':Employee.POSITION_CHOICES,
+        'VET_CATEGORY':Practitioner.VET_CATEGORY_CHOICES,
+        'SPECIALIZATION':Practitioner.SPECIALIZATION_CHOICES
         
           
     }

@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'crispy_forms',
 
     # Django defaults
+     'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    
     
 ]
 
@@ -196,7 +198,7 @@ USE_L10N = True
 USE_TZ = True
 
 SITE_URL = 'https://soinvet.com'
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 STATIC_URL = '/static/'
 
@@ -206,8 +208,8 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR,'portals', 'static'),
 ]
 
-MEDIA_ROOT = os.path.join(BASE_DIR,'portals/media')
-MEDIA_URL = '/portals/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = '/media/'
 
 LOGIN_REDIRECT_URL = 'index'
 

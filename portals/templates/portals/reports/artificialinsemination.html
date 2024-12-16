@@ -161,7 +161,14 @@
                   {% endfor %}
               </select>
             </div>
-            
+            <div class="mb-3">
+              <label for="semen_type" class="form-label">Semen Type</label>
+              <select id="semen_type" name="semen_type" class="form-control" required>
+                <option value="" disabled selected>Select Semen Type</option>
+                <option value="Conventional">Conventional</option>
+                <option value="Sexed">Sexed</option>
+              </select>
+            </div>
             <div class="mb-3">
                 <label for="breed_used" class="form-label">Breed Used</label>
                 <input type="text" id="breed_used" name="breed_used" class="form-control" maxlength="255" required>
@@ -299,7 +306,6 @@
               <label for="sire_details" class="form-label">Sire Details</label>
               <textarea id="sire_details" name="sire_details" class="form-control editable-field" required></textarea>
           </div>
-          
          
           <div class="mb-3">
               <label for="no_of_repeats" class="form-label">Number of Repeats</label>
@@ -342,6 +348,14 @@
   </select>
 </div>
 <div class="mb-3">
+  <label for="semen_type" class="form-label">Semen Type</label>
+  <select id="semen_type" name="semen_type" class="form-control" required>
+    <option value="" disabled selected>Select Semen Type</option>
+    <option value="Conventional">Conventional</option>
+    <option value="Sexed">Sexed</option>
+  </select>
+</div>
+<div class="mb-3">
     <label for="breed_used" class="form-label">Breed Used</label>
     <input type="text" id="breed_used" name="breed_used" class="form-control editable-field" maxlength="255" required>
 </div>
@@ -361,25 +375,6 @@
     <input type="text" id="semen_source" name="semen_source" class="form-control editable-field" maxlength="255" required>
 </div>
 
-{% comment %} <div class="mb-3">
-    <label for="heat_sign_mtr_date" class="form-label">Heat Sign Monitoring Date</label>
-    <input type="date" id="heat_sign_mtr_date" name="heat_sign_mtr_date" class="form-control editable-field" required>
-</div>
-
-<div class="mb-3">
-    <label for="repeat_heat_date" class="form-label">Repeat Heat Date</label>
-    <input type="date" id="repeat_heat_date" name="repeat_heat_date" class="form-control editable-field" required>
-</div>
-
-<div class="mb-3">
-    <label for="first_pd_date" class="form-label">First Pregnancy Diagnosis Date</label>
-    <input type="date" id="first_pd_date" name="first_pd_date" class="form-control editable-field" required>
-</div>
-
-<div class="mb-3">
-    <label for="expected_delivery_date" class="form-label">Expected Delivery Date</label>
-    <input type="date" id="expected_delivery_date" name="expected_delivery_date" class="form-control editable-field" required>
-</div> {% endcomment %}
 
 <div class="mb-3">
     <label for="owners_name" class="form-label">Owner's Name</label>
@@ -873,6 +868,12 @@ $('#AiAddForm').submit(function(e) {
 {
   field: 'insemination_status',
   title: 'Insemination Status',
+  sortable: true,
+  align: 'center'
+},
+{
+  field: 'semen_type',
+  title: 'Semen Type',
   sortable: true,
   align: 'center'
 },

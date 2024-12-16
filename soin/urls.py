@@ -10,7 +10,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import views as auth_views
 app_name = 'portals'
 
+def debug_view(request, *args, **kwargs):
+    return HttpResponse(f"Args: {args}, Kwargs: {kwargs}")
+
 urlpatterns = [
+    path('debug/', debug_view, name='debug-view'),
     path('', include('vet.urls')),
     path('accounts/', include('allauth.urls')),
     path('admin/', admin.site.urls, name='admin-vet'),
@@ -37,9 +41,6 @@ urlpatterns = [
     path('official_portal/', portal_views.portal_official, name='official-portal'),
 
     
-   
-   
-   
    
 #################################FARMER  Urls######################################## 
    
@@ -227,6 +228,7 @@ urlpatterns = [
 
     # Artificial Insemination URLs
     path('ai/', portal_views.artificial, name='ai'),
+     path('ai-official/', portal_views.artificial_official_view, name='ai_official'),
     path('ai-view/', portal_views.artificial_view, name='ai-view'),
     path('artificial-insemination/create/', ArtificialInseminationCreate.as_view(), name='ai-create'),
     path('artificial-insemination/list/', ArtificialInseminationList.as_view(), name='ai-list'),
@@ -298,6 +300,7 @@ urlpatterns = [
 
     path('vaccination/', portal_views.vaccination, name='vaccination'),
     path('vaccination-view/', portal_views.vaccination_view, name='vaccination-view'),
+    path('vaccination_official/', portal_views.vaccination_official_view, name='vaccination-official'),
     path('vaccination-records/', VaccinationRecordList.as_view(), name='vaccination-record-list'),
     path('vaccination-records/create/', VaccinationRecordCreate.as_view(), name='vaccination-record-create'),
     path('vaccination-records/update/<int:pk>/', VaccinationRecordUpdate.as_view(), name='vaccination-record-update'),
@@ -342,6 +345,7 @@ urlpatterns = [
     path('disease-reports/delete/<int:pk>/', DiseaseReportDelete.as_view(), name='disease-report-delete'),
 
     path('slaughterhouse/', slaughterhouse, name='slaughterhouse'),
+    path('slaughterhouse_view/', slaughterhouse_view, name='slaughterhouse-view'),
     path('slaughterhouse/create/', SlaughterhouseCreate.as_view(), name='slaughterhouse_create'),
     path('slaughterhouse/list/', SlaughterhouseList.as_view(), name='slaughterhouse_list'),
     path('slaughterhouse/update/<int:pk>/', SlaughterhouseUpdate.as_view(), name='slaughterhouse_update'),
@@ -372,25 +376,82 @@ urlpatterns = [
     # questions
     path('quiz/', quiz, name='quiz'),
     path('questions/', QuestionListView.as_view(), name='question-list'),
-    path('submit-answer/', SubmitAnswerView.as_view(), name='submit-answer'),
+    #path('submit-answer/', SubmitAnswerView.as_view(), name='submit-answer'),
     path('cpd/', tutorial, name='cpd'),
     path('lessons/', lesson, name='lessons'),
     path('tutorials/create/', TutorialCreate.as_view(), name='tutorial-create'),
     path('tutorials/list/', TutorialList.as_view(), name='tutorial-list'),
     path('tutorials/update/<int:pk>/', TutorialUpdate.as_view(), name='tutorial-update'),
     path('tutorials/delete/<int:pk>/', TutorialDelete.as_view(), name='tutorial-delete'),
-    path('question/', QuestionListView.as_view(), name='question-list'),
-    path('question/<int:pk>/', QuestionDetailView.as_view(), name='question-detail'),
-    path('question/create/', QuestionCreateView.as_view(), name='question-create'),
-    
-    #path('section/<int:lesson_id>/', SectionList.as_view(), name='section-lists'),
+    path('questions/create/', QuestionCreateAPIView.as_view(), name='question-create'),
+    path('questions/<int:section_id>/', QuizView.as_view(), name='questions-list'),   
+    path('questions/submit/<int:section_id>/', QuizSubmit.as_view(), name='questions-submit'),
+    path('questions/res/', QuizResultList.as_view(), name='questions-res'),  
+    path('download/<int:section_id>/', download_file, name='download_file'),
+    path('questions/result/', result, name='questions-result'),
     
     path('sections/<int:lesson_id>/', SectionList.as_view(), name='section-list'),
     path('sections/comments/create/<int:section_id>/', CommentCreateView.as_view(), name='comment-create'),
     path('sections/comments/<int:section_id>/', CommentListView.as_view(), name='comment-list'),
     path('sections/create/', SectionCreate.as_view(), name='section-create'),
+    
+    path('examination/', livestock_examination, name='livestock-examination'),
+    path('livestock-examination/create/', LivestockExaminationCreate.as_view(), name='livestock-examination-create'),
+    path('livestock-examination/list/', LivestockExaminationList.as_view(), name='livestock-examination-list'),
+    path('livestock-examination/update/<int:pk>/', LivestockExaminationUpdate.as_view(), name='livestock-examination-update'),
+    path('livestock-examination/delete/<int:pk>/', LivestockExaminationDelete.as_view(), name='livestock-examination-delete'),
 
-    path('answers/', UserAnswerCreate.as_view(), name='user-answer-create'),
+    # Calving Record URLs
+    path('calving/', calving_record, name='calving-record'),
+    path('calving-record/create/', CalvingRecordCreate.as_view(), name='calving-record-create'),
+    path('calving-record/list/', CalvingRecordList.as_view(), name='calving-record-list'),
+    path('calving-record/update/<int:pk>/', CalvingRecordUpdate.as_view(), name='calving-record-update'),
+    path('calving-record/delete/<int:pk>/', CalvingRecordDelete.as_view(), name='calving-record-delete'),
+    
+    path('assesment/', assessment_record, name='assesment-record-page'),
+    path('assesment_official/', assessment_record_view, name='assesment-view'),
+    path('assesment-records/create/', AssessmentRecordCreate.as_view(), name='assesment-record-create'),
+    path('assesment-records/list/', AssessmentRecordList.as_view(), name='assesment-record-list'),
+    path('assesment-records/update/<int:pk>/', AssessmentRecordUpdate.as_view(), name='assesment-record-update'),
+    path('assesment-records/delete/<int:pk>/', AssessmentRecordDelete.as_view(), name='assesment-record-delete'),
+    
+    path('kills/', daily_kill_report, name='daily-kills'),
+    path('kills_view/', daily_kill_report_view, name='daily-kills-view'),
+    path('daily-kills/create/', DailyKillCreate.as_view(), name='daily_kill_create'),
+    path('daily-kills/list/', DailyKillList.as_view(), name='daily-kills-list'),
+    path('daily-kills/update/<int:pk>/', DailyKillUpdate.as_view(), name='daily_kill_update'),
+    path('daily-kills/delete/<int:pk>/', DailyKillDelete.as_view(), name='daily_kill_delete'),
+    
+    path('movement-permit/', movement_permit_report, name='movement-permit-report'),
+    path('movement-permit_report/', movement_permit_report_view, name='movement-permit-view'),
+    path('movement-permits/create/', MovementPermitCreate.as_view(), name='movement_permit_create'),
+    path('movement-permits/', MovementPermitList.as_view(), name='movement-permit-list'),
+    path('movement-permits/<int:pk>/update/', MovementPermitUpdate.as_view(), name='movement_permit_update'),
+    path('movement-permits/<int:pk>/delete/', MovementPermitDelete.as_view(), name='movement_permit_delete'),
+
+    
+    path('no_objections/', no_objection_report, name='no_objection_report'),
+    path('no_objections/create/', NoObjectionCreate.as_view(), name='no_objection_create'),
+    path('no_objections/list/', NoObjectionList.as_view(), name='no-objection-list'),
+    path('no_objections/<int:pk>/update/', NoObjectionUpdate.as_view(), name='no_objection_update'),
+    path('no_objections/<int:pk>/delete/',NoObjectionDelete.as_view(), name='no_objection_delete'),
+
+    
+    path('monthly-report/', monthly_report, name='monthly_report'),
+    path('monthly-reports/create/', MonthlyReportCreate.as_view(), name='monthly_report_create'),
+    path('monthly-reports/', MonthlyReportList.as_view(), name='monthly-report-list'),
+    path('monthly-reports/<int:pk>/update/', MonthlyReportUpdate.as_view(), name='monthly_report_update'),
+    path('monthly-reports/<int:pk>/delete/', MonthlyReportDelete.as_view(), name='monthly_report_delete'),
+
+    path('practitioner/record/', practitioner_record, name='practitioner_record'),
+    path('practitioner/record/view/', practitioner_record_view, name='practitioner_record_view'),
+    path('practitioner/create/', PractitionerCreate.as_view(), name='practitioner_create'),
+    path('practitioner/list/', PractitionerList.as_view(), name='practitioner_list'),
+    path('practitioner/update/<int:pk>/', PractitionerUpdate.as_view(), name='practitioner_update'),
+    path('practitioner/delete/<int:pk>/', PractitionerDelete.as_view(), name='practitioner_delete'),
+
+
+    #path('answers/', UserAnswerCreate.as_view(), name='user-answer-create'),
 
 ]
 if  not settings.DEBUG:
