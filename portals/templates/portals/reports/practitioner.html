@@ -87,12 +87,14 @@
               {% csrf_token %}
               <input type="hidden" id="id"  name="id" >
               <div class="mb-3">
-                <label for="assigned_to" class="form-label">Assigned To</label>
-                <select name="assigned_to" id="assigned_to" class="form-control">
-                  {% for farmer in all_farmers %}
-                      <option value="{{ farmer.username }}">{{ farmer.username }}</option>
-                  {% endfor %}
-              </select>
+                <div class="mb-3">
+                  <label for="assigned_to" class="form-label">Assign To Official</label>
+                  <select name="assigned_to_official" id="assigned_to_official" class="form-control">
+                    {% for official in all_officials %}
+                        <option value="{{ official.username }}">{{ official.username }}</option>
+                    {% endfor %}
+                </select>
+              </div>
             </div>
             <div class="mb-3">
                 <label for="first_name" class="form-label">First Name</label>
@@ -173,10 +175,10 @@
             {% csrf_token %}
             <input type="hidden" id="id" name="id">
             <div class="mb-3">
-              <label for="assigned_to" class="form-label">Assigned To</label>
-              <select name="assigned_to" id="assigned_to" class="form-control">
-                {% for farmer in all_farmers %}
-                    <option value="{{ farmer.username }}">{{ farmer.username }}</option>
+              <label for="assigned_to" class="form-label">Assign To Official</label>
+              <select name="assigned_to_official" id="assigned_to_official" class="form-control">
+                {% for official in all_officials %}
+                    <option value="{{ official.username }}">{{ official.username }}</option>
                 {% endfor %}
             </select>
           </div>
@@ -563,7 +565,7 @@ $('#practitionerAddForm').submit(function(e) {
             valign: 'middle'
           },
           {
-            field: 'assigned_to',
+            field: 'assigned_to_official',
             title: 'Assigned To',
             sortable: true,
             align: 'center'

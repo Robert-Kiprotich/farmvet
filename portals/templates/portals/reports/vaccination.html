@@ -87,12 +87,26 @@
               {% csrf_token %}
               <input type="hidden" id="id"  name="id" >
               <div class="mb-3">
-                <label for="assigned_to" class="form-label">Assigned To</label>
+                <label for="assigned_to" class="form-label">Assigned To Farmer </label>
                 <select name="assigned_to" id="assigned_to" class="form-control">
+                  <option value="" disabled selected>Select a farmer</option>
+                  
                   {% for farmer in all_farmers %}
                       <option value="{{ farmer.username }}">{{ farmer.username }}</option>
                   {% endfor %}
               </select>
+            </div>
+              <div class="mb-3">
+
+                <label for="assigned_to" class="form-label">Assign To Official</label>
+                <select name="assigned_to_official" id="assigned_to_official" class="form-control">
+                  <option value="" disabled selected>Select Official</option>
+                  
+                  {% for official in all_officials %}
+                      <option value="{{ official.username }}">{{ official.username }}</option>
+                  {% endfor %}
+              </select>
+            </div>
               <div class="form-group">
                 <label for="species_targeted">Species Targeted</label>
                 <select class="form-control" id="species_targeted" name="species_targeted">
@@ -142,10 +156,17 @@
             </div>
             
             <div class="form-group">
-                <label for="vaccination_of">Vaccination Of</label>
-                <input type="text" class="form-control" id="vaccination_of" name="vaccination_of">
-            </div>
-            
+              <label for="vaccination_of">Vaccination Of</label>
+              <select class="form-control" id="vaccination_of" name="vaccination_of">
+                  {% for value, display in DISEASE_CHOICES %}
+                      <option value="{{ value }}">{{ display }}</option>
+                  {% endfor %}
+              </select>
+          </div>
+            <div class="form-group">
+              <label for="other_disease">Other Disease Vaccinated</label>
+              <input type="text" class="form-control editable-field" id="other_disease" name="other_disease">
+          </div>
             <div class="form-group">
                 <label for="vaccines_used">Vaccines Used</label>
                 <input type="text" class="form-control" id="vaccines_used" name="vaccines_used">
@@ -155,6 +176,14 @@
                 <label for="batch_number">Batch Number</label>
                 <input type="text" class="form-control" id="batch_number" name="batch_number">
             </div>
+            <div class="form-group">
+              <label for="dosage">Dosage</label>
+              <input type="text" class="form-control" id="dosage" name="dosage">
+          </div>
+          <div class="form-group">
+            <label for="expiry_date">Expiry Date</label>
+            <input type="date" class="form-control" id="expiry_date" name="expiry_date">
+        </div>
             
             <div class="form-group">
                 <label for="date_of_vaccination">Date of Vaccination</label>
@@ -176,7 +205,7 @@
             </div>
             
             <div class="form-group">
-                <label for="name_of_rash">Name of Rash</label>
+                <label for="name_of_rash">Name of Crush</label>
                 <input type="text" class="form-control" id="name_of_rash" name="name_of_rash">
             </div>
             
@@ -198,7 +227,14 @@
                 <label for="name_of_owner">Name of Owner</label>
                 <input type="text" class="form-control" id="name_of_owner" name="name_of_owner">
             </div>
-            
+            <div class="form-group">
+              <label for="sub_county">Sub County</label>
+              <input type="text" class="form-control editable-field" id="sub_county" name="sub_county">
+          </div>
+          <div class="form-group">
+            <label for="ward">Ward</label>
+            <input type="text" class="form-control editable-field" id="ward" name="ward">
+        </div>
             <div class="form-group">
                 <label for="village">Village</label>
                 <input type="text" class="form-control" id="village" name="village">
@@ -225,14 +261,11 @@
             </div>
             
             <div class="form-group">
-                <label for="signature">Signature</label>
+                <label for="signature">Signature & Stamp</label>
                 <textarea class="form-control" id="signature" name="signature"></textarea>
             </div>
             
-            <div class="form-group">
-                <label for="stamp">Stamp</label>
-                <textarea class="form-control" id="stamp" name="stamp"></textarea>
-            </div>
+           
             
         
             <div class="modal-footer">
@@ -262,10 +295,21 @@
             {% csrf_token %}
             <input type="hidden" id="id" name="id">
             <div class="mb-3">
-              <label for="assigned_to" class="form-label">Assigned To</label>
+              <label for="assigned_to" class="form-label">Assigned To Farmer</label>
               <select name="assigned_to" id="assigned_to" class="form-control">
+                <option value="" disabled selected>Select a farmer</option>
                 {% for farmer in all_farmers %}
                     <option value="{{ farmer.username }}">{{ farmer.username }}</option>
+                {% endfor %}
+            </select>
+          </div>
+          
+            <div class="mb-3">
+              <label for="assigned_to" class="form-label">Assign To Official</label>
+              <select name="assigned_to_official" id="assigned_to_official" class="form-control">
+                <option value="" disabled selected>Select Official</option>
+                {% for official in all_officials %}
+                    <option value="{{ official.username }}">{{ official.username }}</option>
                 {% endfor %}
             </select>
           </div>
@@ -318,9 +362,17 @@
         </div>
         
         <div class="form-group">
-            <label for="vaccination_of">Vaccination Of</label>
-            <input type="text" class="form-control editable-field" id="vaccination_of" name="vaccination_of">
-        </div>
+          <label for="vaccination_of">Vaccination Type</label>
+          <select class="form-control" id="vaccination_of" name="vaccination_of">
+              {% for value, display in DISEASE_CHOICES %}
+                  <option value="{{ value }}">{{ display }}</option>
+              {% endfor %}
+          </select>
+      </div>
+        <div class="form-group">
+          <label for="other_disease">Other Disease Vaccinated</label>
+          <input type="text" class="form-control editable-field" id="other_disease" name="other_disease">
+      </div>
         
         <div class="form-group">
             <label for="vaccines_used">Vaccines Used</label>
@@ -331,7 +383,14 @@
             <label for="batch_number">Batch Number</label>
             <input type="text" class="form-control editable-field" id="batch_number" name="batch_number">
         </div>
-        
+        <div class="form-group">
+          <label for="dosage">Dosage</label>
+          <input type="text" class="form-control" id="dosage" name="dosage">
+      </div>
+      <div class="form-group">
+        <label for="expiry_date">Expiry Date</label>
+        <input type="text" class="form-control" id="expiry_date" name="expiry_date">
+    </div>
         <div class="form-group">
             <label for="date_of_vaccination">Date of Vaccination</label>
             <input type="date" class="form-control editable-field" id="date_of_vaccination" name="date_of_vaccination">
@@ -352,7 +411,7 @@
         </div>
         
         <div class="form-group">
-            <label for="name_of_rash">Name of Rash</label>
+            <label for="name_of_rash">Name of Crush</label>
             <input type="text" class="form-control editable-field" id="name_of_rash" name="name_of_rash">
         </div>
         
@@ -374,7 +433,14 @@
             <label for="name_of_owner">Name of Owner</label>
             <input type="text" class="form-control editable-field" id="name_of_owner" name="name_of_owner">
         </div>
-        
+        <div class="form-group">
+          <label for="sub_county">Sub County</label>
+          <input type="text" class="form-control editable-field" id="sub_county" name="sub_county">
+      </div>
+      <div class="form-group">
+        <label for="ward">Ward</label>
+        <input type="text" class="form-control editable-field" id="ward" name="ward">
+    </div>
         <div class="form-group">
             <label for="village">Village</label>
             <input type="text" class="form-control editable-field" id="village" name="village">
@@ -401,14 +467,11 @@
         </div>
         
         <div class="form-group">
-            <label for="signature">Signature</label>
+            <label for="signature">Signature & Stamp</label>
             <textarea class="form-control editable-field" id="signature" name="signature"></textarea>
         </div>
         
-        <div class="form-group">
-            <label for="stamp">Stamp</label>
-            <textarea class="form-control editable-field" id="stamp" name="stamp"></textarea>
-        </div>
+        
       
           <div class="modal-footer">
               <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -602,7 +665,13 @@ $('#vaccinationAddForm').submit(function(e) {
             console.log('Response:', xhr.responseText);
 
             // Optionally, you can display the error in a modal or alert
-            alert('Error: ' + xhr.responseText);
+            $('#vaccinationAddModal').modal('hide');
+            $('#errorModalBody').html('<p>' + xhr.responseText + '</p>');
+            $('#statusErrorsModal').modal('show');
+            $('#errorButton').click(function() {
+
+            })
+            //alert('Error: ' + xhr.responseText);
         }
     });
 });
@@ -762,6 +831,12 @@ $('#vaccinationAddForm').submit(function(e) {
             sortable: true,
             align: 'center'
           },
+          {
+            field: 'assigned_to_official',
+            title: 'Gov Official Name',
+            sortable: true,
+            align: 'center'
+          },
          
           {
     field: 'species_targeted',
@@ -818,6 +893,12 @@ $('#vaccinationAddForm').submit(function(e) {
     align: 'center'
   },
   {
+    field: 'other_disease',
+    title: 'Other Disease Vaccinated',
+    sortable: true,
+    align: 'center'
+  },
+  {
     field: 'vaccines_used',
     title: 'Vaccines Used',
     sortable: true,
@@ -826,6 +907,18 @@ $('#vaccinationAddForm').submit(function(e) {
   {
     field: 'batch_number',
     title: 'Batch Number',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'dosage',
+    title: 'Dosage',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'expiry_date',
+    title: 'Expiry Date',
     sortable: true,
     align: 'center'
   },
@@ -878,6 +971,18 @@ $('#vaccinationAddForm').submit(function(e) {
     align: 'center'
   },
   {
+    field: 'sub_county',
+    title: 'Sub County',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'ward',
+    title: 'Ward',
+    sortable: true,
+    align: 'center'
+  },
+  {
     field: 'village',
     title: 'Village',
     sortable: true,
@@ -909,16 +1014,11 @@ $('#vaccinationAddForm').submit(function(e) {
   },
   {
     field: 'signature',
-    title: 'Signature',
+    title: 'Signature & Stamp',
     sortable: true,
     align: 'center'
   },
-  {
-    field: 'stamp',
-    title: 'Stamp',
-    sortable: true,
-    align: 'center'
-  },
+  
           {
             field: 'operate',
             title: 'Item Operate',
@@ -1008,6 +1108,7 @@ $('#vaccinationAddForm').submit(function(e) {
   <script src="{% static 'portals/assets/js/core/bootstrap.min.js' %}"></script>
   <script src="{% static 'portals/assets/js/main.js' %}"></script>
   <script src="{% static 'portals/assets/js/scripts.js' %}"></script>
+  <script src="{% static 'portals/assets/js/modal.js' %}"></script>
   
   
   <!--  Notifications Plugin    -->

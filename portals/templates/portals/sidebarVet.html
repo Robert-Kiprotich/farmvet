@@ -78,8 +78,6 @@
                   <a class="dropdown-item" style="font-weight: bold;" href="{% url 'clinical'%}">Clinical Records</a>
                   </a>
                 </li>
-                
-                
                 <li>
                   <a class="dropdown-item" style="font-weight: bold;" href="{% url 'consultation'%}">Farm Consultation Records</a>
                   </a>
@@ -96,22 +94,14 @@
                   <a class="dropdown-item" style="font-weight: bold;" href="{% url 'postmortem'%}">Post Mortem Records</a>
                   </a>
                 </li>
-                <li>
-                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'livestock-examination' %}">Livestock Examination</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'calving-record' %}">Calving</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'assesment-record-page' %}">Assessment</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'daily-kills' %}">Daily Kills</a>
-                </li>
                 
                 <li>
-                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'monthly_report' %}">Monthly Report</a>
+                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'assesment-record-page' %}">Livestock Examination</a>
                 </li>
+               
+                
+               
+              
                 
                 <li class="sidebar-dropdown">
                   <a href="#" style="font-weight: bold;">
@@ -160,7 +150,20 @@
               </ul>
             </div>
           </li>
-          
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="fa fa-chart-line"></i>
+              <span>Practitioner</span>
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a style="font-weight: bold;" href="{% url 'practitioner_record'%}">Register</a>
+                </li>
+                
+              </ul>
+            </div>
+          </li>
           <li class="sidebar-dropdown">
             <a href="#">
               <i class="fa fa-chart-line"></i>
@@ -293,7 +296,7 @@
                   <a style="font-weight: bold;" href="{% url 'butcher' %}">Butchers Details</a>
                 </li>
                 <li>
-                  <a style="font-weight: bold;" href="">Daily Kills</a>
+                  <a style="font-weight: bold;" href="{% url 'daily-kills' %}">Daily Kills</a>
                 </li>
               </ul>
             </div>
@@ -339,31 +342,19 @@
             <div class="sidebar-submenu">
               <ul>
                 <li>
-                  <a style="font-weight: bold;" href="#">Monthly Report</a>
+                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'monthly_report' %}">Monthly Report</a>
+                </a>
                 </li>
                 <li>
-                  <a style="font-weight: bold;" href="#">Quarterly Report</a>
+                  <a style="font-weight: bold;" href="{% url 'quarterly_report' %}">Quarterly Report</a>
                 </li>
                 <li>
-                  <a style="font-weight: bold;" href="#">Annual Report</a>
+                  <a style="font-weight: bold;" href="{% url 'yearly_report' %}">Annual Report</a>
                 </li>
               </ul>
             </div>
           </li>
-          <li class="sidebar-dropdown">
-            <a href="#">
-              <i class="fa fa-chart-line"></i>
-              <span>Practitioner</span>
-            </a>
-            <div class="sidebar-submenu">
-              <ul>
-                <li>
-                  <a style="font-weight: bold;" href="{% url 'practitioner_record'%}">Register</a>
-                </li>
-                
-              </ul>
-            </div>
-          </li>
+          
           
           <li class="sidebar-dropdown">
             <a href="#">

@@ -141,7 +141,7 @@
       data-page-list="[10, 25, 50, 100, all]"
       data-show-footer="true"
       data-side-pagination="server"
-      data-url="{% url 'livestock_incident_list' %}"
+      data-url="{% url 'disease-report-list' %}"
       data-response-handler="responseHandler">
     </table>
     <script>
@@ -272,44 +272,29 @@ const csrftoken = getCookie('csrftoken');
             field: 'livestock_category',
             title: 'Livestock Category',
             sortable: true,
-            align: 'center',
-           
+            align: 'center'
           },
           {
-            field: 'other_livestock',
-            title: 'Other Livestock',
+            field: 'other_livestock_category',
+            title: 'Other Livestock Category',
             sortable: true,
             align: 'center'
           },
           {
-            field: 'name_of_animal',
-            title: 'Name of Animal',
+            field: 'number_of_animals_affected',
+            title: 'Number of Animals Affected',
             sortable: true,
             align: 'center'
           },
           {
-            field: 'registration_number',
-            title: 'Registration Number',
+            field: 'sex_of_animals_affected',
+            title: 'Sex of Animals Affected',
             sortable: true,
             align: 'center'
           },
           {
-            field: 'age_of_animal',
-            title: 'Age of Animal',
-            sortable: true,
-            align: 'center',
-            
-          },
-          {
-            field: 'sex_of_animal',
-            title: 'Sex of Animal',
-            sortable: true,
-            align: 'center',
-            
-          },
-          {
-            field: 'history_of_animal',
-            title: 'History of Animal',
+            field: 'age_of_animals_affected',
+            title: 'Age of Animals Affected',
             sortable: true,
             align: 'center'
           },
@@ -320,50 +305,50 @@ const csrftoken = getCookie('csrftoken');
             align: 'center'
           },
           {
-            field: 'type_of_sample_collected',
-            title: 'Type of Sample Collected',
-            sortable: true,
-            align: 'center',
-            
-          },
-          {
-            field: 'date_of_sampling',
-            title: 'Date of Sampling',
-            sortable: true,
-            align: 'center',
-            formatter: function(value, row) {
-              return moment(value).format('DD-MM-YYYY');
-            }
-          },
-          {
-            field: 'sample_storage_condition',
-            title: 'Sample Storage Condition',
+            field: 'number_of_dead_animals',
+            title: 'Number of Dead Animals',
             sortable: true,
             align: 'center'
           },
           {
-            field: 'means_of_transportation',
-            title: 'Means of Transportation',
+            field: 'propose_control_measures',
+            title: 'Proposed Control Measures',
             sortable: true,
-            align: 'center',
-           
+            align: 'center'
           },
           {
-            field: 'sample_rating',
-            title: 'Sample Rating',
+            field: 'sample_taken_to_lab',
+            title: 'Sample Taken to Lab',
             sortable: true,
-            align: 'center',
-           
+            align: 'center'
+          },
+          {
+            field: 'tentative_diagnosis',
+            title: 'Tentative Diagnosis',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'village_disease_occurred',
+            title: 'Village Disease Occurred',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'sub_county',
+            title: 'Sub County',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'county',
+            title: 'County',
+            sortable: true,
+            align: 'center'
           },
           {
             field: 'owner_name',
             title: 'Owner Name',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'owner_village',
-            title: 'Owner Village',
             sortable: true,
             align: 'center'
           },
@@ -403,6 +388,7 @@ const csrftoken = getCookie('csrftoken');
             sortable: true,
             align: 'center'
           },
+          
         ],
         [
         ]

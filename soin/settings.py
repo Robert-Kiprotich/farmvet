@@ -76,6 +76,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'portals.context_processor.all_farmers',
+                'portals.context_processor.all_officials',
                 'portals.context_processor.choices',
                 
             ],

@@ -87,10 +87,10 @@
               {% csrf_token %}
               <input type="hidden" id="id"  name="id">
               <div class="mb-3">
-                <label for="assigned_to" class="form-label">Assigned To</label>
-                <select name="assigned_to" id="assigned_to" class="form-control">
-                  {% for farmer in all_farmers %}
-                      <option value="{{ farmer.username }}">{{ farmer.username }}</option>
+                <label for="assigned_to_official" class="form-label">Assigned To Official</label>
+                <select name="assigned_to_official" id="assigned_to_official" class="form-control">
+                  {% for official in all_officials %}
+                      <option value="{{ official.username }}">{{ official.username }}</option>
                   {% endfor %}
               </select>
             </div>
@@ -202,13 +202,10 @@
 
            
             <div class="form-group">
-                <label for="signature">Signature</label>
+                <label for="signature">Signature & Stamp</label>
                 <input type="text" class="form-control" id="signature" name="signature">
             </div>
-            <div class="form-group">
-                <label for="stamp">Stamp</label>
-                <input type="text" class="form-control" id="stamp" name="stamp">
-            </div>
+            
 
             <div class="modal-footer">
                 <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -236,118 +233,125 @@
             {% csrf_token %}
             <input type="hidden" id="id" name="id">
             <div class="mb-3">
-              <label for="assigned_to" class="form-label">Assigned To</label>
-              <select name="assigned_to" id="assigned_to" class="form-control">
-                {% for farmer in all_farmers %}
-                    <option value="{{ farmer.username }}">{{ farmer.username }}</option>
+              <label for="assigned_to_official" class="form-label">Assigned To Official</label>
+              <select name="assigned_to_official" id="assigned_to_official" class="form-control">
+                {% for official in all_officials %}
+                    <option value="{{ official.username }}">{{ official.username }}</option>
                 {% endfor %}
             </select>
           </div>
           <div class="form-group">
             <label for="livestock_category">Livestock Category</label>
-            <select class="form-control editable-field" id="livestock_category" name="livestock_category">
+            <select class="form-control" id="livestock_category" name="livestock_category">
                 {% for value, label in LIVESTOCK_CATEGORY_CHOICES %}
                     <option value="{{ value }}">{{ label }}</option>
                 {% endfor %}
             </select>
         </div>
-        
-        <!-- Other Livestock Category -->
-        <div class="form-group">
-            <label for="other_livestock_category">Other Livestock Category</label>
-            <input type="text" class="form-control editable-field" id="other_livestock_category" name="other_livestock_category" placeholder="Other Livestock Category">
-        </div>
-        
-        <!-- Number of animals affected -->
-        <div class="form-group">
-            <label for="number_of_animals_affected">Number of Animals Affected</label>
-            <input type="number" class="form-control editable-field" id="number_of_animals_affected" name="number_of_animals_affected">
-        </div>
-        
-        <div class="form-group">
-            <label for="age_of_animals">Age of the Animals</label>
-            <select class="form-control editable-field" id="age_of_animals" name="age_of_animals">
+          
+          <!-- Other Livestock Category -->
+          <div class="form-group">
+              <label for="other_livestock_category">Other Livestock Category</label>
+              <input type="text" class="form-control" id="other_livestock_category" name="other_livestock_category" placeholder="Other Livestock Category">
+          </div>
+
+          <!-- Number of animals affected -->
+          <div class="form-group">
+              <label for="number_of_animals_affected">Number of Animals Affected</label>
+              <input type="number" class="form-control" id="number_of_animals_affected" name="number_of_animals_affected">
+          </div>
+         
+
+          <div class="form-group">
+            <label for="age_of_animals_affected">Age of the Animals</label>
+            <select class="form-control" id="age_of_animals_affected" name="age_of_animals_affected">
                 {% for value, label in AGE_CHOICES %}
                     <option value="{{ value }}">{{ label }}</option>
                 {% endfor %}
             </select>
         </div>
-        
+
         <div class="form-group">
-            <label for="sex_of_animals_affected">Sex of the Animals Affected</label>
-            <select class="form-control editable-field" id="sex_of_animals_affected" name="sex_of_animals_affected">
-                {% for value, label in SEX_CHOICES %}
-                    <option value="{{ value }}">{{ label }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        
-        <!-- Clinical signs of disease -->
-        <div class="form-group">
-            <label for="clinical_signs">Clinical Signs of the Disease</label>
-            <textarea class="form-control editable-field" id="clinical_signs" name="clinical_signs" rows="3"></textarea>
-        </div>
-        <div class="form-group">
-          <label for="propose_control_measures">Propose Control Measures</label>
-          <textarea class="form-control editable-field" id="propose_control_measures" name="propose_control_measures" rows="3"></textarea>
+          <label for="sex_of_animals_affected">Sex of the Animals Affected</label>
+          <select class="form-control" id="sex_of_animals_affected" name="sex_of_animals_affected">
+              {% for value, label in SEX_CHOICES %}
+                  <option value="{{ value }}">{{ label }}</option>
+              {% endfor %}
+          </select>
       </div>
-        <div class="form-group">
-          <label for="number_of_dead_animals">Number of Animals Affected</label>
-          <input type="number" class="form-control" id="number_of_dead_animals" name="number_of_dead_animals">
-      </div>
-        <div class="form-group">
+
+          <!-- Clinical signs of disease -->
+          <div class="form-group">
+              <label for="clinical_signs">Clinical Signs of the Disease</label>
+              <textarea class="form-control" id="clinical_signs" name="clinical_signs" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="propose_control_measures">Propose Control Measures</label>
+            <textarea class="form-control" id="propose_control_measures" name="propose_control_measures" rows="3"></textarea>
+        </div>
+          <div class="form-group">
+            <label for="number_of_dead_animals">Number of Animals Affected</label>
+            <input type="number" class="form-control" id="number_of_dead_animals" name="number_of_dead_animals">
+        </div>
+          <div class="form-group">
             <label for="sample_taken_to_lab">Sample Taken to Lab</label>
-            <select class="form-control editable-field" id="sample_taken_to_lab" name="sample_taken_to_lab">
+            <select class="form-control" id="sample_taken_to_lab" name="sample_taken_to_lab">
                 {% for value, label in YES_NO_CHOICES %}
                     <option value="{{ value }}">{{ label }}</option>
                 {% endfor %}
             </select>
         </div>
-        
-        <!-- Tentative diagnosis -->
-        <div class="form-group">
-            <label for="tentative_diagnosis">Tentative Diagnosis</label>
-            <input type="text" class="form-control editable-field" id="tentative_diagnosis" name="tentative_diagnosis">
-        </div>
-        
-        <!-- Location fields -->
-        <div class="form-group">
-            <label for="village_disease_occurred">Village</label>
-            <input type="text" class="form-control editable-field" id="village_disease_occurred" name="village_disease_occurred">
-        </div>
-        <div class="form-group">
-            <label for="sub_county">Sub-County</label>
-            <input type="text" class="form-control editable-field" id="sub_county" name="sub_county">
-        </div>
-        <div class="form-group">
-            <label for="county">County</label>
-            <input type="text" class="form-control editable-field" id="county" name="county">
-        </div>
-        
-        <!-- Owner Information -->
-        <div class="form-group">
-            <label for="owner_name">Owner's Name</label>
-            <input type="text" class="form-control editable-field" id="owner_name" name="owner_name">
-        </div>
-        <div class="form-group">
-            <label for="owner_mobile_number">Owner's Mobile Number</label>
-            <input type="tel" class="form-control editable-field" id="owner_mobile_number" name="owner_mobile_number">
-        </div>
-        
-        <!-- Vet Information -->
-        <div class="form-group">
-            <label for="vet_in_charge_name">Vet In-Charge Name</label>
-            <input type="text" class="form-control editable-field" id="vet_in_charge_name" name="vet_in_charge_name">
-        </div>
-        <div class="form-group">
-            <label for="vet_registration_number">Vet Registration Number</label>
-            <input type="text" class="form-control editable-field" id="vet_registration_number" name="vet_registration_number">
-        </div>
-        <div class="form-group">
-            <label for="vet_mobile_number">Vet Mobile Number</label>
-            <input type="tel" class="form-control editable-field" id="vet_mobile_number" name="vet_mobile_number">
-        </div>
-        
+
+          <!-- Tentative diagnosis -->
+          <div class="form-group">
+              <label for="tentative_diagnosis">Tentative Diagnosis</label>
+              <input type="text" class="form-control" id="tentative_diagnosis" name="tentative_diagnosis">
+          </div>
+
+          <!-- Location fields -->
+          <div class="form-group">
+              <label for="village_disease_occurred">Village</label>
+              <input type="text" class="form-control" id="village_disease_occurred" name="village_disease_occurred">
+          </div>
+          <div class="form-group">
+              <label for="sub_county">Sub-County</label>
+              <input type="text" class="form-control" id="sub_county" name="sub_county">
+          </div>
+          <div class="form-group">
+              <label for="county">County</label>
+              <input type="text" class="form-control" id="county" name="county">
+          </div>
+
+          <!-- Owner Information -->
+          <div class="form-group">
+              <label for="owner_name">Owner's Name</label>
+              <input type="text" class="form-control" id="owner_name" name="owner_name">
+          </div>
+          <div class="form-group">
+              <label for="owner_mobile_number">Owner's Mobile Number</label>
+              <input type="tel" class="form-control" id="owner_mobile_number" name="owner_mobile_number">
+          </div>
+
+          <!-- Vet Information -->
+          <div class="form-group">
+              <label for="vet_in_charge_name">Vet In-Charge Name</label>
+              <input type="text" class="form-control" id="vet_in_charge_name" name="vet_in_charge_name">
+          </div>
+          <div class="form-group">
+              <label for="vet_registration_number">Vet Registration Number</label>
+              <input type="text" class="form-control" id="vet_registration_number" name="vet_registration_number">
+          </div>
+          <div class="form-group">
+              <label for="vet_mobile_number">Vet Mobile Number</label>
+              <input type="tel" class="form-control" id="vet_mobile_number" name="vet_mobile_number">
+          </div>
+
+         
+          <div class="form-group">
+              <label for="signature">Signature & Stamp</label>
+              <input type="text" class="form-control" id="signature" name="signature">
+          </div>
+          
           <div class="modal-footer">
               <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
               <button type="" id="submitdreport" class="btn btn-primary">Save</button>
@@ -694,8 +698,8 @@ $('#dreportAddForm').submit(function(e) {
             valign: 'middle'
           },
           {
-            field: 'assigned_to',
-            title: 'Farmer Name',
+            field: 'assigned_to_official',
+            title: 'Official Name',
             sortable: true,
             align: 'center'
           },
@@ -809,16 +813,11 @@ $('#dreportAddForm').submit(function(e) {
           },
           {
             field: 'signature',
-            title: 'Signature',
+            title: 'Signature & Stamp',
             sortable: true,
             align: 'center'
           },
-          {
-            field: 'stamp',
-            title: 'Stamp',
-            sortable: true,
-            align: 'center'
-          },
+          
           {
             field: 'operate',
             title: 'Item Operate',

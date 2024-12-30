@@ -87,6 +87,15 @@
               {% csrf_token %}
               <input type="hidden" id="id"  name="id" >
               <div class="mb-3">
+                <div class="mb-3">
+                  <label for="assigned_to" class="form-label">Assign To Official</label>
+                  <select name="assigned_to_official" id="assigned_to_official" class="form-control">
+                    {% for official in all_officials %}
+                        <option value="{{ official.username }}">{{ official.username }}</option>
+                    {% endfor %}
+                </select>
+              </div>
+              <div class="mb-3">
                 <label for="name" class="form-label">Slaughterhouse Name</label>
                 <input type="text" class="form-control" id="name" name="name">
             </div>
@@ -176,6 +185,15 @@
           <form id="pregEditForm">
             {% csrf_token %}
             <input type="hidden" id="id" name="id">
+            <div class="mb-3">
+              <div class="mb-3">
+                <label for="assigned_to" class="form-label">Assign To Official</label>
+                <select name="assigned_to_official" id="assigned_to_official" class="form-control">
+                  {% for official in all_officials %}
+                      <option value="{{ official.username }}">{{ official.username }}</option>
+                  {% endfor %}
+              </select>
+            </div>
             <div class="mb-3">
                 <label for="name" class="form-label">Slaughterhouse Name</label>
                 <input type="text" class="form-control" id="name" name="name">
@@ -587,6 +605,13 @@ $('#pregAddForm').submit(function(e) {
             align: 'center',
             valign: 'middle'
           },
+          {
+            field:'assigned_to_official',
+            title:'Official'
+            checkbox:'true',
+            rowspan:2,
+            align:'center',
+          }
           {
             field: 'name',
             title: 'Slaughterhouse Name',

@@ -339,16 +339,57 @@ class DewormingSerializer(serializers.ModelSerializer):
 
 class ArtificialInseminationSerializer(serializers.ModelSerializer):
     assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+    assigned_to_official = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
 
     class Meta:
         model = ArtificialInsemination
-        fields = ['id','user','assigned_to','farm_name', 'cow_name', 'reg_no', 'dam_details', 'sire_details', 
-                   'no_of_repeats', 'abortion_status', 'time_of_heat_sign', 'date_of_heat_sign','insemination_date',
-                  'insemination_time','insemination_status','semen_type','breed_used', 'bull_name', 'bull_reg_no', 'semen_source', 'heat_sign_mtr_date',
-                  'repeat_heat_date', 'first_pd_date', 'expected_delivery_date', 'owners_name', 'village', 'contact',
-                  'vet_name', 'vet_reg_no', 'vet_contact', 'signature', 'stamp']
-        read_only_fields=['heat_sign_mtr_date','repeat_heat_date','first_pd_date','expected_delivery_date']
-        
+        fields = [
+            'id', 'user', 'assigned_to', 'assigned_to_official', 'farm_name', 'cow_name', 'reg_no', 'dam_details',
+            'sire_details', 'no_of_repeats', 'abortion_status', 'time_of_heat_sign', 'date_of_heat_sign',
+            'insemination_date', 'insemination_time', 'insemination_status', 'semen_type', 'breed_used', 'bull_name',
+            'bull_reg_no', 'semen_source', 'heat_sign_mtr_date', 'repeat_heat_date', 'first_pd_date',
+            'expected_delivery_date', 'owners_name', 'sub_county', 'ward', 'village', 'contact','provided_by','vet_name',
+            'vet_reg_no', 'vet_contact', 'signature_stamp'
+        ]
+        read_only_fields = ['heat_sign_mtr_date', 'repeat_heat_date', 'first_pd_date', 'expected_delivery_date']
+
+    def validate(self, data):
+        """
+        Automatically set `assigned_to` and `assigned_to_official` to None if they match the authenticated user.
+        """
+        user = self.context['request'].user
+
+        if 'assigned_to' in data and data['assigned_to'].username == user.username:
+            data['assigned_to'] = None
+
+        if 'assigned_to_official' in data and data['assigned_to_official'].username == user.username:
+            data['assigned_to_official'] = None
+
+        return data
+
+    def to_representation(self, instance):
+        """
+        Customize the representation to replace null values with 'None' labels.
+        """
+        representation = super().to_representation(instance)
+        if representation['assigned_to'] is None:
+            representation['assigned_to'] = "None"
+        if representation['assigned_to_official'] is None:
+            representation['assigned_to_official'] = "None"
+        return representation
+
+    def create(self, validated_data):
+        """
+        Handle creation of a new ArtificialInsemination record.
+        """
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        """
+        Handle updates to an existing ArtificialInsemination record.
+        """
+        return super().update(instance, validated_data)
+
 class PregnancyDiagnosisSerializer(serializers.ModelSerializer):
     assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
     class Meta:
@@ -529,12 +570,15 @@ class LivestockIncidentSerializer(serializers.ModelSerializer):
         ]
 class VaccinationRecordSerializer(serializers.ModelSerializer):
     assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+    assigned_to_official = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+
     class Meta:
         model = VaccinationRecord
         fields = [
             'id',
             'user',
             'assigned_to',
+            'assigned_to_official',
             'species_targeted',
             'other_species',
             'number_of_animals_vaccinated',
@@ -544,8 +588,11 @@ class VaccinationRecordSerializer(serializers.ModelSerializer):
             'color_of_animal',
             'other_description',
             'vaccination_of',
+            'other_disease',
             'vaccines_used',
             'batch_number',
+            'dosage',
+            'expiry_date',
             'date_of_vaccination',
             'vaccination_type',
             'next_date_of_vaccination',
@@ -553,15 +600,52 @@ class VaccinationRecordSerializer(serializers.ModelSerializer):
             'village_vaccination_done',
             'nature_of_vaccination_program',
             'name_of_owner',
+            'sub_county',
+            'ward',
             'village',
             'contact',
             'name_of_vet_incharge',
             'registration_number',
             'mobile_number',
             'signature',
-            'stamp'
+            
         ]
 
+    # def validate(self, data):
+    #     """
+    #     Automatically set `assigned_to` and `assigned_to_official` to None if they match the authenticated user.
+    #     """
+    #     user = self.context['request'].user
+        
+    #     if 'assigned_to' in data and data['assigned_to'].username == user.username:
+    #         data['assigned_to'] = None
+        
+    #     if 'assigned_to_official' in data and data['assigned_to_official'].username == user.username:
+    #         data['assigned_to_official'] = None
+        
+    #     return data
+
+    # def to_representation(self, instance):
+    #     representation = super().to_representation(instance)
+    #     # Replace null with a custom label
+    #     if representation['assigned_to'] is None:
+    #         representation['assigned_to'] = "None"
+    #     if representation['assigned_to_official'] is None:
+    #         representation['assigned_to_official'] = "None"
+    #     return representation
+
+    # def create(self, validated_data):
+    #     """
+    #     Handle creation of a new VaccinationRecord.
+    #     """
+    #     return super().create(validated_data)
+
+    # def update(self, instance, validated_data):
+    #     """
+    #     Handle updates to an existing VaccinationRecord.
+    #     """
+    #     return super().update(instance, validated_data)
+    
 class PostMortemRecordSerializer(serializers.ModelSerializer):
     assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
     class Meta:
@@ -653,13 +737,15 @@ class DiarySerializer(serializers.ModelSerializer):
         fields = ['id','user', 'date','time_of_event', 'main_activity', 'client_contact', 'remarks']
         
 class DiseaseReportSerializer(serializers.ModelSerializer):
-    assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+    #assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+    assigned_to_official = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+
     class Meta:
         model = DiseaseReport
         fields = [
             'id',
             'user',
-            'assigned_to',
+            'assigned_to_official',
             'livestock_category',
             'other_livestock_category',
             'number_of_animals_affected',
@@ -679,18 +765,21 @@ class DiseaseReportSerializer(serializers.ModelSerializer):
             'vet_registration_number',
             'vet_mobile_number',
             'signature',
-            'stamp',
+           
         ]
         
 
 # Slaughterhouse Serializer
 class SlaughterhouseSerializer(serializers.ModelSerializer):
+    assigned_to_official = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+
     class Meta:
         model = Slaughterhouse
         fields = [
             'id',
             'user', 
             'name', 
+            'assigned_to_official',
             'county', 
             'sub_county', 
             'location', 
@@ -889,14 +978,15 @@ class CalvingRecordSerializer(serializers.ModelSerializer):
             'created_at',
         ]
 class AssessmentRecordSerializer(serializers.ModelSerializer):
-    assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+    assigned_to_official = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+
 
     class Meta:
         model = AssessmentRecord
         fields = [
             'id',
             'user',
-            'assigned_to',
+            'assigned_to_official',
             'livestock_category',
             'other_category',
             'date_of_assessment',
@@ -920,14 +1010,15 @@ class AssessmentRecordSerializer(serializers.ModelSerializer):
         ]
         
 class DailyKillSerializer(serializers.ModelSerializer):
-    assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+    assigned_to_official = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+    
 
     class Meta:
         model = DailyKill
         fields = [
             'id',
             'user',
-            'assigned_to',
+            'assigned_to_official',
             'date',
             'livestock_category',
             'number_of_females_killed',
@@ -941,45 +1032,66 @@ class DailyKillSerializer(serializers.ModelSerializer):
             'inspector_status',
         ]
 class MovementPermitSerializer(serializers.ModelSerializer):
-    assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+    assigned_to_official = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
 
  # Displays assigned_to as a string
     class Meta:
         model = MovementPermit
         fields = [
-            'id', 'user', 'assigned_to', 'date_of_permit', 'sub_county_district',
+            'id', 'user', 'assigned_to_official', 'date_of_permit', 'sub_county_district',
             'ward_level', 'authorized_by', 'registration_number', 'phone_number',
             'uploaded_permit'
         ]
 
 
 class NoObjectionSerializer(serializers.ModelSerializer):
-    assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+    assigned_to_official = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
 
 
     class Meta:
         model = NoObjection
         fields = [
-            'id', 'user', 'assigned_to', 'date_of_confirmation', 'sub_county_district',
+            'id', 'user', 'assigned_to_official', 'date_of_confirmation', 'sub_county_district',
             'ward_level', 'confirmed_by', 'registration_number', 'phone_number',
             'uploaded_no_objection_form'
         ]
 
 
 class MonthlyReportSerializer(serializers.ModelSerializer):
-    assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+    assigned_to_official = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
 
 
     class Meta:
         model = MonthlyReport
         fields = [
-            'id', 'user', 'assigned_to', 'date_of_submission', 'sub_county',
+            'id', 'user', 'assigned_to_official', 'date_of_submission', 'sub_county',
             'ward_level', 'submitted_by', 'registration_number', 'phone_number',
             'uploaded_report'
         ]
-        
+class QuarterlyReportSerializer(serializers.ModelSerializer):
+    assigned_to_official = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+
+
+    class Meta:
+        model = QuarterlyReport
+        fields = [
+            'id', 'user', 'assigned_to_official', 'date_of_submission', 'sub_county',
+            'ward_level', 'submitted_by', 'registration_number', 'phone_number',
+            'uploaded_report'
+        ] 
+class YearlyReportSerializer(serializers.ModelSerializer):
+    assigned_to_official = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+
+
+    class Meta:
+        model = YearlyReport
+        fields = [
+            'id', 'user', 'assigned_to_official', 'date_of_submission', 'sub_county',
+            'ward_level', 'submitted_by', 'registration_number', 'phone_number',
+            'uploaded_report'
+        ]      
 class PractitionerSerializer(serializers.ModelSerializer):
-    assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+    assigned_to_official = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
 
 
     class Meta:
@@ -987,7 +1099,7 @@ class PractitionerSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'user',
-            'assigned_to',
+            'assigned_to_official',
             'first_name',
             'last_name',
             'phone_number',

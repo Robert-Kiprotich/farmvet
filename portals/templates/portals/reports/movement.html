@@ -86,14 +86,15 @@
             <form   id="moveAddForm" enctype="multipart/form-data" >
               {% csrf_token %}
               <input type="hidden" id="id"  name="id" >
-              <div class="mb-3">
-                <label for="assigned_to" class="form-label">Assigned To</label>
-                <select name="assigned_to" id="assigned_to" class="form-control">
-                  {% for farmer in all_farmers %}
-                      <option value="{{ farmer.username }}">{{ farmer.username }}</option>
-                  {% endfor %}
-              </select>
-            </div>
+              
+                <div class="mb-3">
+                  <label for="assigned_to" class="form-label">Assign To Official</label>
+                  <select name="assigned_to_official" id="assigned_to_official" class="form-control">
+                    {% for official in all_officials %}
+                        <option value="{{ official.username }}">{{ official.username }}</option>
+                    {% endfor %}
+                </select>
+              </div>
             <div class="mb-3">
                 <label for="date_of_permit" class="form-label">Date of Permit</label>
                 <input type="date" id="date_of_permit" name="date_of_permit" class="form-control" required>
@@ -153,14 +154,15 @@
           <form id="moveEditForm">
             {% csrf_token %}
             <input type="hidden" id="id" name="id">
-            <div class="mb-3">
-              <label for="assigned_to" class="form-label">Assigned To</label>
-              <select name="assigned_to" id="assigned_to" class="form-control">
-                {% for farmer in all_farmers %}
-                    <option value="{{ farmer.username }}">{{ farmer.username }}</option>
-                {% endfor %}
-            </select>
-          </div>
+            
+              <div class="mb-3">
+                <label for="assigned_to" class="form-label">Assign To Official</label>
+                <select name="assigned_to_official" id="assigned_to_official" class="form-control">
+                  {% for official in all_officials %}
+                      <option value="{{ official.username }}">{{ official.username }}</option>
+                  {% endfor %}
+              </select>
+            </div>
           <div class="mb-3">
             <label for="date_of_permit" class="form-label">Date of Permit</label>
             <input type="date" id="date_of_permit" name="date_of_permit" class="form-control" required>
@@ -394,6 +396,7 @@ $('#moveAddForm').submit(function(e) {
         }
     });
 });
+
      function operateFormatter(value, row, index) {
         return [
           '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
@@ -544,7 +547,7 @@ $('#moveAddForm').submit(function(e) {
             valign: 'middle'
           },
           {
-            field: 'assigned_to',
+            field: 'assigned_to_official',
             title: 'Farmer Name',
             sortable: true,
             align: 'center'
@@ -594,8 +597,13 @@ $('#moveAddForm').submit(function(e) {
             sortable: true,
             align: 'center',
             formatter: function (value, row) {
-              return `<a href="${value}" target="_blank">View File</a>`;
-            }
+              // Construct the dynamic URL for streaming the file
+              const permitId = row.id;  // Assuming the 'id' of the row corresponds to the 'MovementPermit' ID
+              const streamUrl = `/movement-permits/stream/${permitId}/`;
+      
+              // Return the HTML for the "View File" link that points to the stream URL
+              return `<a href="${streamUrl}" target="_blank">View File</a>`;
+          }
           },
          
           {

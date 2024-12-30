@@ -86,7 +86,12 @@
               </a>
               <div class="sidebar-submenu">
                 <ul>
-                  
+                  <li>
+                    <a class="dropdown-item" style="font-weight: bold;" href="{% url 'movement-permit-view' %}">Movement Permit</a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" style="font-weight: bold;" href="{% url 'movement-permit-view' %}">Movement Permit</a>
+                  </li>
                 </ul>
               </div>
             </li>
@@ -140,13 +145,13 @@
               <div class="sidebar-submenu">
                 <ul>
                   <li>
-                    <a style="font-weight: bold;" href="#">Monthly Reports</a>
+                    <a style="font-weight: bold;"  href="{% url 'monthly_report_official' %}">Monthly Reports</a>
                   </li>
                   <li>
-                    <a style="font-weight: bold;" href="#">Quarterly Reports</a>
+                    <a style="font-weight: bold;" href="{% url 'quarterly_report_view' %}">Quarterly Reports</a>
                   </li>
                   <li>
-                    <a style="font-weight: bold;" href="#">Annually Reports</a>
+                    <a style="font-weight: bold;" href="{% url 'yearly_report_view' %}">Annually Reports</a>
                   </li>
                 </ul>
               </div>

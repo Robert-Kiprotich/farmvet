@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block content %}
-{% include 'portals/sidebarFarmer.html' %}
+{% include 'portals/sidebarOfficial.html' %}
 <main class="page-content">
 <div class="container-fluid">
       <!-- Navbar -->
@@ -64,7 +64,7 @@
           <div class="col-md-12">
             <div class="card">
               <div class="card-header">
-<h4 class="">Vaccination Records</h4>
+<h4 class="">Quarterly Report</h4>
     <!-- Content Wrapper. Contains page content -->
     <div class="px-5 my-1 text-center">
     </div>
@@ -75,7 +75,7 @@
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
           <h2 class="text-center">Veterinary Professional Services</h2>
-       <h3 class="text-center">Vaccination Records </h3>
+       <h3 class="text-center">Quarterly Report </h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -141,7 +141,7 @@
       data-page-list="[10, 25, 50, 100, all]"
       data-show-footer="true"
       data-side-pagination="server"
-      data-url="{% url 'vaccination-record-list' %}"
+      data-url="{% url 'quarterly-report-list' %}"
       data-response-handler="responseHandler">
     </table>
     <script>
@@ -268,154 +268,30 @@ const csrftoken = getCookie('csrftoken');
             align: 'center',
             valign: 'middle'
           },
-            
           {
-            field: 'species_targeted',
-            title: 'Species Targeted',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'other_species',
-            title: 'Other Species',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'number_of_animals_vaccinated',
-            title: 'Number of Animals Vaccinated',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'age_of_animal',
-            title: 'Age of Animal',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'sex_of_animal',
-            title: 'Sex of Animal',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'breed_of_animal',
-            title: 'Breed of Animal',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'color_of_animal',
-            title: 'Color of Animal',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'other_description',
-            title: 'Other Description',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'vaccination_of',
-            title: 'Vaccination Of',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'other_disease',
-            title: 'Other Disease Vaccinated',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'vaccines_used',
-            title: 'Vaccines Used',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'batch_number',
-            title: 'Batch Number',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'dosage',
-            title: 'Dosage',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'expiry_date',
-            title: 'Expiry Date',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'date_of_vaccination',
-            title: 'Date of Vaccination',
+            field: 'date_of_submission',
+            title: 'Date of Submission',
             sortable: true,
             align: 'center',
-            formatter: function (value, row) {
-              return moment(value).format('DD-MM-YYYY');
+            formatter: function (value) {
+              return moment(value).format('DD-MM-YYYY'); // Formatting the date
             }
           },
           {
-            field: 'vaccination_type',
-            title: 'Vaccination Type',
+            field: 'sub_county',
+            title: 'Sub-County',
             sortable: true,
             align: 'center'
           },
           {
-            field: 'next_date_of_vaccination',
-            title: 'Next Date of Vaccination',
-            sortable: true,
-            align: 'center',
-            formatter: function (value, row) {
-              return moment(value).format('DD-MM-YYYY');
-            }
-          },
-          {
-            field: 'name_of_rash',
-            title: 'Name of Rash',
+            field: 'ward_level',
+            title: 'Ward Level',
             sortable: true,
             align: 'center'
           },
           {
-            field: 'village_vaccination_done',
-            title: 'Village Vaccination Done',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'nature_of_vaccination_program',
-            title: 'Nature of Vaccination Program',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'name_of_owner',
-            title: 'Name of Owner',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'village',
-            title: 'Village',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'contact',
-            title: 'Contact',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'name_of_vet_incharge',
-            title: 'Name of Vet Incharge',
+            field: 'submitted_by',
+            title: 'Submitted By',
             sortable: true,
             align: 'center'
           },
@@ -426,17 +302,19 @@ const csrftoken = getCookie('csrftoken');
             align: 'center'
           },
           {
-            field: 'mobile_number',
-            title: 'Mobile Number',
+            field: 'phone_number',
+            title: 'Phone Number',
             sortable: true,
             align: 'center'
           },
-          {
-            field: 'signature',
-            title: 'Signature',
+          /*{
+            field: 'uploaded_report',
+            title: 'Uploaded Report',
             sortable: true,
-            align: 'center'
-          },
+            align: 'center',
+           
+          },*/
+          
           {
             field: 'stamp',
             title: 'Stamp',

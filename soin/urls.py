@@ -428,6 +428,7 @@ urlpatterns = [
     path('movement-permits/', MovementPermitList.as_view(), name='movement-permit-list'),
     path('movement-permits/<int:pk>/update/', MovementPermitUpdate.as_view(), name='movement_permit_update'),
     path('movement-permits/<int:pk>/delete/', MovementPermitDelete.as_view(), name='movement_permit_delete'),
+    path('movement-permits/stream/<int:permit_id>/', MovementPermitList.as_view(), name='permit_view'),
 
     
     path('no_objections/', no_objection_report, name='no_objection_report'),
@@ -438,6 +439,7 @@ urlpatterns = [
 
     
     path('monthly-report/', monthly_report, name='monthly_report'),
+    path('monthly-report-official/', monthly_report_view, name='monthly_report_official'),
     path('monthly-reports/create/', MonthlyReportCreate.as_view(), name='monthly_report_create'),
     path('monthly-reports/', MonthlyReportList.as_view(), name='monthly-report-list'),
     path('monthly-reports/<int:pk>/update/', MonthlyReportUpdate.as_view(), name='monthly_report_update'),
@@ -450,6 +452,20 @@ urlpatterns = [
     path('practitioner/update/<int:pk>/', PractitionerUpdate.as_view(), name='practitioner_update'),
     path('practitioner/delete/<int:pk>/', PractitionerDelete.as_view(), name='practitioner_delete'),
 
+    path('quarterly-report/', quarterly_report, name='quarterly_report'),
+    path('quarterly-report/view/', quarterly_report_view, name='quarterly_report_view'),
+
+    path('quarterly-report/create/', QuarterlyReportCreate.as_view(), name='quarterly-report-create'),
+    path('quarterly-report/list/', QuarterlyReportList.as_view(), name='quarterly-report-list'),
+    path('quarterly-report/<int:pk>/update/', QuarterlyReportUpdate.as_view(), name='quarterly-report-update'),
+    path('quarterly-report/<int:pk>/delete/', QuarterlyReportDelete.as_view(), name='quarterly-report-delete'),
+    
+    path('yearly-report/', yearly_report, name='yearly_report'),
+    path('yearly-report/view/', yearly_report_view, name='yearly_report_view'),
+    path('yearly-report/create/', YearlyReportCreate.as_view(), name='yearly-report-create'),
+    path('yearly-report/list/', YearlyReportList.as_view(), name='yearly-report-list'),
+    path('yearly-report/<int:pk>/update/', YearlyReportUpdate.as_view(), name='yearly-report-update'),
+    path('yearly-report/<int:pk>/delete/', YearlyReportDelete.as_view(), name='yearly-report-delete'),
 
     #path('answers/', UserAnswerCreate.as_view(), name='user-answer-create'),
 

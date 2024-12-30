@@ -5,6 +5,10 @@ def all_farmers(request):
     User = get_user_model()
     farmers = User.objects.filter(is_farmer=True).order_by('first_name')
     return {'all_farmers': farmers}
+def all_officials(request):
+    User = get_user_model()
+    officials = User.objects.filter(is_official=True).order_by('first_name')
+    return {'all_officials': officials}
 
 def choices(request):
     return {
@@ -63,7 +67,8 @@ def choices(request):
         'SL_CATEGORY_CHOICES':Slaughterhouse.CATEGORY_CHOICES,
         'E_POSITION_CHOICES':Employee.POSITION_CHOICES,
         'VET_CATEGORY':Practitioner.VET_CATEGORY_CHOICES,
-        'SPECIALIZATION':Practitioner.SPECIALIZATION_CHOICES
+        'SPECIALIZATION':Practitioner.SPECIALIZATION_CHOICES,
+        'DISEASE_CHOICES':VaccinationRecord.DISEASE_CHOICES
         
           
     }

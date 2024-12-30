@@ -86,14 +86,17 @@
             <form id="killsAddForm" >
               {% csrf_token %}
               <input type="hidden" id="id"  name="id" >
-              <div class="mb-3">
-                <label for="assigned_to" class="form-label">Assigned To</label>
-                <select name="assigned_to" id="assigned_to" class="form-control">
-                  {% for farmer in all_farmers %}
-                      <option value="{{ farmer.username }}">{{ farmer.username }}</option>
-                  {% endfor %}
-              </select>
-            </div>
+              
+            <div class="mb-3">
+              <label for="assigned_to" class="form-label">Assign To Official</label>
+              <select name="assigned_to_official" id="assigned_to_official" class="form-control">
+                <option value="" disabled selected>Select Official</option>
+               
+                {% for official in all_officials %}
+                    <option value="{{ official.username }}">{{ official.username }}</option>
+                {% endfor %}
+            </select>
+          </div>  
             <div class="mb-3">
                 <label for="date" class="form-label">Date</label>
                 <input type="date" id="date" name="date" class="form-control" required>
@@ -189,14 +192,18 @@
           <form id="killsEditForm">
             {% csrf_token %}
             <input type="hidden" id="id" name="id">
-            <div class="mb-3">
-              <label for="assigned_to" class="form-label">Assigned To</label>
-              <select name="assigned_to" id="assigned_to" class="form-control">
-                {% for farmer in all_farmers %}
-                    <option value="{{ farmer.username }}">{{ farmer.username }}</option>
-                {% endfor %}
-            </select>
-          </div>
+            
+          <div class="mb-3">
+
+            <label for="assigned_to" class="form-label">Assign To Official</label>
+            <select name="assigned_to_official" id="assigned_to_official" class="form-control">
+              <option value="" disabled selected>Select Official</option>
+             
+              {% for official in all_officials %}
+                  <option value="{{ official.username }}">{{ official.username }}</option>
+              {% endfor %}
+          </select>
+        </div>  
           <div class="mb-3">
             <label for="date" class="form-label">Date</label>
             <input type="date" id="date" name="date" class="form-control" required>
@@ -612,8 +619,8 @@ $('#killsAddForm').submit(function(e) {
             valign: 'middle'
           },
           {
-            field: 'assigned_to',
-            title: 'Farmer Name',
+            field: 'assigned_to_official',
+            title: 'Official Name',
             sortable: true,
             align: 'center'
           },

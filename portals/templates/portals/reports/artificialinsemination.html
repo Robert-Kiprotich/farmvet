@@ -87,13 +87,26 @@
               {% csrf_token %}
               <input type="hidden" id="id"  name="id" >
               <div class="mb-3">
-                <label for="assigned_to" class="form-label">Assigned To</label>
+                <label for="assigned_to" class="form-label">Assigned To Farmer </label>
                 <select name="assigned_to" id="assigned_to" class="form-control">
+                  <option value="" disabled selected>Select a farmer</option>
+                 
                   {% for farmer in all_farmers %}
                       <option value="{{ farmer.username }}">{{ farmer.username }}</option>
                   {% endfor %}
               </select>
-            </div>       
+            </div>
+              <div class="mb-3">
+
+                <label for="assigned_to" class="form-label">Assign To Official</label>
+                <select name="assigned_to_official" id="assigned_to_official" class="form-control">
+                  <option value="" disabled selected>Select Official</option>
+                 
+                  {% for official in all_officials %}
+                      <option value="{{ official.username }}">{{ official.username }}</option>
+                  {% endfor %}
+              </select>
+            </div>  
               <div class="mb-3">
                 <label for="farm_name" class="form-label">Farm Name</label>
                 <input type="text" id="farm_name" name="farm_name" class="form-control editable-field" maxlength="255" required>
@@ -180,7 +193,7 @@
             </div>
             
             <div class="mb-3">
-                <label for="bull_reg_no" class="form-label">Bull Registration Number</label>
+                <label for="bull_reg_no" class="form-label">Bull Code</label>
                 <input type="text" id="bull_reg_no" name="bull_reg_no" class="form-control" maxlength="255" required>
             </div>
             
@@ -213,7 +226,16 @@
                 <label for="owners_name" class="form-label">Owner's Name</label>
                 <input type="text" id="owners_name" name="owners_name" class="form-control" maxlength="255" required>
             </div>
+            <div class="mb-3">
+              <label for="sub_county" class="form-label">Sub County</label>
+              <input type="text" id="sub_county" name="sub_county" class="form-control editable-field" maxlength="255" required>
+            </div>
+            <div class="mb-3">
+              <label for="ward" class="form-label">Ward</label>
+              <input type="text" id="ward" name="ward" class="form-control editable-field" maxlength="255" required>
+            </div>
             
+      
             <div class="mb-3">
                 <label for="village" class="form-label">Village</label>
                 <input type="text" id="village" name="village" class="form-control" maxlength="255" required>
@@ -223,31 +245,31 @@
                 <label for="contact" class="form-label">Contact</label>
                 <input type="text" id="contact" name="contact" class="form-control" maxlength="15" required>
             </div>
-            
             <div class="mb-3">
-                <label for="vet_name" class="form-label">Veterinarian Name</label>
+              <label for="contact" class="form-label">Services Provided By</label>
+              <input type="text" id="provided_by" name="provided_by" class="form-control"  required>
+          </div>
+            <div class="mb-3">
+                <label for="vet_name" class="form-label">Practitioner Name</label>
                 <input type="text" id="vet_name" name="vet_name" class="form-control" maxlength="255" required>
             </div>
             
             <div class="mb-3">
-                <label for="vet_reg_no" class="form-label">Veterinarian Registration Number</label>
+                <label for="vet_reg_no" class="form-label">Practitioner Reg Number</label>
                 <input type="text" id="vet_reg_no" name="vet_reg_no" class="form-control" maxlength="255" required>
             </div>
             
             <div class="mb-3">
-                <label for="vet_contact" class="form-label">Veterinarian Contact</label>
+                <label for="vet_contact" class="form-label">Practitioner Contact</label>
                 <input type="text" id="vet_contact" name="vet_contact" class="form-control" maxlength="15" required>
             </div>
             
             <div class="mb-3">
-                <label for="signature" class="form-label">Signature</label>
-                <textarea id="signature" name="signature" class="form-control"></textarea>
+                <label for="signature" class="form-label">Signature & Stamp</label>
+                <textarea id="signature_stamp" name="signature_stamp" class="form-control"></textarea>
             </div>
             
-            <div class="mb-3">
-                <label for="stamp" class="form-label">Stamp</label>
-                <textarea id="stamp" name="stamp" class="form-control"></textarea>
-            </div>
+            
         
             <div class="modal-footer">
                 <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -275,13 +297,25 @@
             {% csrf_token %}
             <input type="hidden" id="id" name="id">
             <div class="mb-3">
-              <label for="assigned_to" class="form-label">Assigned To</label>
+              <label for="assigned_to" class="form-label">Assigned To Farmer(Optional) </label>
               <select name="assigned_to" id="assigned_to" class="form-control">
+                <option value="" disabled selected>Select a farmer</option>
+                <option value="{{request.user.username}}">None</option>
                 {% for farmer in all_farmers %}
                     <option value="{{ farmer.username }}">{{ farmer.username }}</option>
                 {% endfor %}
             </select>
-          </div>       
+          </div>
+            <div class="mb-3">
+              <label for="assigned_to" class="form-label">Assign To Official(Optional)</label>
+              <select name="assigned_to_official" id="assigned_to_official" class="form-control">
+                <option value="" disabled selected>Select Official</option>
+                <option value="{{request.user.username}}">None</option>
+                {% for official in all_officials %}
+                    <option value="{{ official.username }}">{{ official.username }}</option>
+                {% endfor %}
+            </select>
+          </div>      
             <div class="mb-3">
               <label for="farm_name" class="form-label">Cow Name</label>
               <input type="text" id="farm_name" name="farm_name" class="form-control editable-field" maxlength="255" required>
@@ -366,7 +400,7 @@
 </div>
 
 <div class="mb-3">
-    <label for="bull_reg_no" class="form-label">Bull Registration Number</label>
+    <label for="bull_reg_no" class="form-label">Bull Code</label>
     <input type="text" id="bull_reg_no" name="bull_reg_no" class="form-control editable-field" maxlength="255" required>
 </div>
 
@@ -380,6 +414,14 @@
     <label for="owners_name" class="form-label">Owner's Name</label>
     <input type="text" id="owners_name" name="owners_name" class="form-control editable-field" maxlength="255" required>
 </div>
+<div class="mb-3">
+  <label for="sub_county" class="form-label">Sub County</label>
+  <input type="text" id="sub_county" name="sub_county" class="form-control editable-field" maxlength="255" required>
+</div>
+<div class="mb-3">
+  <label for="ward" class="form-label">Ward</label>
+  <input type="text" id="ward" name="ward" class="form-control editable-field" maxlength="255" required>
+</div>
 
 <div class="mb-3">
     <label for="village" class="form-label">Village</label>
@@ -390,31 +432,31 @@
     <label for="contact" class="form-label">Contact</label>
     <input type="text" id="contact" name="contact" class="form-control editable-field" maxlength="15" required>
 </div>
-
 <div class="mb-3">
-    <label for="vet_name" class="form-label">Veterinarian Name</label>
+  <label for="contact" class="form-label">Services Provided By</label>
+  <input type="text" id="provided_by" name="provided_by" class="form-control editable-field" maxlength="15" required>
+</div>
+<div class="mb-3">
+    <label for="vet_name" class="form-label">Practitioner Name</label>
     <input type="text" id="vet_name" name="vet_name" class="form-control editable-field" maxlength="255" required>
 </div>
 
 <div class="mb-3">
-    <label for="vet_reg_no" class="form-label">Veterinarian Registration Number</label>
+    <label for="vet_reg_no" class="form-label">Practitioner Registration Number</label>
     <input type="text" id="vet_reg_no" name="vet_reg_no" class="form-control editable-field" maxlength="255" required>
 </div>
 
 <div class="mb-3">
-    <label for="vet_contact" class="form-label">Veterinarian Contact</label>
+    <label for="vet_contact" class="form-label">Practitioner Contact</label>
     <input type="text" id="vet_contact" name="vet_contact" class="form-control editable-field" maxlength="15" required>
 </div>
 
 <div class="mb-3">
-    <label for="signature" class="form-label">Signature</label>
-    <textarea id="signature" name="signature" class="form-control editable-field"></textarea>
+    <label for="signature" class="form-label">Signature & Stamp</label>
+    <textarea id="signature_stamp" name="signature_stamp" class="form-control editable-field"></textarea>
 </div>
 
-<div class="mb-3">
-    <label for="stamp" class="form-label">Stamp</label>
-    <textarea id="stamp" name="stamp" class="form-control editable-field"></textarea>
-</div>
+
 
           <div class="modal-footer">
               <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -622,14 +664,14 @@ $('#AiAddForm').submit(function(e) {
     $('#errorModalBody').html('<p>' + errorMessage + '</p>');
     $('#statusErrorsModal').modal('show');
     
-    $('#errorButton').click(function() {
-      setTimeout(function() {
-        window.location.reload();
-      }, 500);  
-    });
-  });
-  
+   
 });
+$('#errorButton').click(function() {
+  $('#statusErrorsModal').modal('hide');
+});
+
+});
+
      function operateFormatter(value, row, index) {
         return [
           '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
@@ -659,68 +701,67 @@ $('#AiAddForm').submit(function(e) {
 
     // Populate form fields after the modal is shown (ensures elements exist)
     $('#AiEditModal').on('shown.bs.modal', function () {
-      const formFields = $('#AiEditModal .editable-field');
+    const formFields = $('#AiEditModal .editable-field');
 
-      formFields.each(function(i, field) {
-    const fieldName = $(field).attr('name');
-    const fieldValue = row[fieldName];
+    formFields.each(function (i, field) {
+        const fieldName = $(field).attr('name');
+        const fieldValue = row[fieldName]; // Assuming `row` contains the current data.
 
-    if ($(field).is('select')) {
-        
-        $(field).val(fieldValue || ''); 
-    } else {
-
-        $(field).val(fieldValue || ''); 
-    }
+        if ($(field).is('select')) {
+            // For dropdowns, ensure the correct value is selected
+            $(field).val(fieldValue || '').change();
+        } else {
+            // For other input fields
+            $(field).val(fieldValue || '');
+        }
+    });
 });
+
+// Close modal on cancel buttons
+$('#cancel, #canceless').on('click', function () {
+    $('#AiEditModal').modal('hide');
+});
+
+// Handle form submission
+$('#submitAi').on('click', function (e) {
+    e.preventDefault(); // Prevent the default form submission behavior
+
+    const formFields = $('#AiEditModal .editable-field');
+
+    // Update the `row` object with the form field values
+    formFields.each(function (i, field) {
+        const fieldName = $(field).attr('name');
+        const fieldValue = $(field).val();
+        row[fieldName] = fieldValue; // Assuming `row` is defined in the scope
     });
 
-    $('#cancel').click(function() {
-      $('#AiEditModal').modal('hide');
-    });
-    $('#canceless').click(function() {
-      $('#AiEditModal').modal('hide');
-    });
+    // Send the data to the server using fetch API
+    fetch(`/artificial-insemination/update/${row.id}/`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken, // Ensure `csrftoken` is defined
+        },
+        body: JSON.stringify(row),
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Success:', data);
 
-    e.preventDefault();
+            // Show the success modal
+            $('#AiEditModal').modal('hide');
+            $('#statusSuccessModal').modal('show');
 
-    
-    $('#submitAi').on('click', function () {
-  const formFields = $('#AiEditModal .editable-field');
-
-  formFields.each(function (i, field) {
-    const fieldName = $(field).attr('name');
-    const fieldValue = $(field).val();
-
-    row[fieldName] = fieldValue; 
-  });
-   
-  fetch(`/artificial-insemination/update/${row.id}/`, {
-    method: 'PATCH',
-    headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrftoken
-    },
-    body: JSON.stringify(row)
-})
-.then(response => response.json())
-.then(data => {
-  console.log('Success:', data);
-  
-  // Show the success modal
-  $('#statusSuccessModal').modal('show');
-
-  // Wait for the modal to be fully shown before reloading
-  $('#statusSuccessModal').on('shown.bs.modal', function () {
-      setTimeout(() => {
-          window.location.reload();
-      }, 1000); // 1000ms = 1 second
-  });
-})
-.catch(error => console.error('Error:', error));
-    });
-
-  },
+            // Reload the page after the success modal is shown
+            $('#statusSuccessModal').on('shown.bs.modal', function () {
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000); // 1 second delay
+            });
+        })
+        .catch(error => console.error('Error:', error));
+});
+        },
         'click .remove': function (e, value, row, index) {
     // Send an AJAX request to the Django backend to delete the record
     $.ajax({
@@ -783,7 +824,13 @@ $('#AiAddForm').submit(function(e) {
           },
 {
   field: 'assigned_to',
-  title: 'Assigned To',
+  title: 'Farm Name',
+  sortable: true,
+  align: 'center'
+},
+{
+  field: 'assigned_to_official',
+  title: 'Official',
   sortable: true,
   align: 'center'
 },
@@ -864,6 +911,9 @@ $('#AiAddForm').submit(function(e) {
   title: 'Insemination Time',
   sortable: true,
   align: 'center',
+  formatter: function (value, row) {
+    return moment(value, 'HH:mm').format('hh:mm A'); 
+  }
 },
 {
   field: 'insemination_status',
@@ -891,7 +941,7 @@ $('#AiAddForm').submit(function(e) {
 },
 {
   field: 'bull_reg_no',
-  title: 'Bull Registration Number',
+  title: 'Bull Code',
   sortable: true,
   align: 'center'
 },
@@ -912,7 +962,7 @@ $('#AiAddForm').submit(function(e) {
 },
 {
   field: 'repeat_heat_date',
-  title: 'Repeat Heat Date',
+  title: 'Expected Repeat Date',
   sortable: true,
   align: 'center',
   formatter: function (value, row) {
@@ -944,6 +994,18 @@ $('#AiAddForm').submit(function(e) {
   align: 'center'
 },
 {
+  field: 'sub_county',
+  title: 'Sub County',
+  sortable: true,
+  align: 'center'
+},
+{
+  field: 'ward',
+  title: 'Ward',
+  sortable: true,
+  align: 'center'
+},
+{
   field: 'village',
   title: 'Village',
   sortable: true,
@@ -956,35 +1018,36 @@ $('#AiAddForm').submit(function(e) {
   align: 'center'
 },
 {
+  field: 'provided_by',
+  title: 'Services Provided By',
+  sortable: true,
+  align: 'center'
+},
+{
   field: 'vet_name',
-  title: 'Veterinarian Name',
+  title: 'Practitioner Name',
   sortable: true,
   align: 'center'
 },
 {
   field: 'vet_reg_no',
-  title: 'Veterinarian Registration Number',
+  title: 'Practitioner Registration Number',
   sortable: true,
   align: 'center'
 },
 {
   field: 'vet_contact',
-  title: 'Veterinarian Contact',
+  title: 'Practitioner Contact',
   sortable: true,
   align: 'center'
 },
 {
-  field: 'signature',
-  title: 'Signature',
+  field: 'signature_stamp',
+  title: 'Signature & Stamp',
   sortable: true,
   align: 'center'
 },
-{
-  field: 'stamp',
-  title: 'Stamp',
-  sortable: true,
-  align: 'center'
-},
+
          
           {
             field: 'operate',
@@ -1030,31 +1093,32 @@ $('#AiAddForm').submit(function(e) {
   
   <script>
     window.onload = function () {
-        document.getElementById("download")
-            .addEventListener("click", () => {
-                const invoice = document.getElementById("invoice");
-                console.log(invoice);
-                console.log(window);
-                var opt = {
-                    margin: 1,
-                    filename: 'farmer records.pdf',
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2 },
-                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-                };
-              
-                document.getElementById("modal-footer").style.display = "none";
-                //document.getElementById("closeModalBtn").style.display = "none";
+      document.getElementById("download")
+          .addEventListener("click", () => {
+              const invoice = document.getElementById("invoice");
+              console.log(invoice);
+              console.log(window);
+              var opt = {
+                  margin: 1,
+                  filename: 'farmer records.pdf',
+                  image: { type: 'jpeg', quality: 0.98 },
+                  html2canvas: { scale: 2 },
+                  jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+              };
+            
+              document.getElementById("modal-footer").style.display = "none";
+              //document.getElementById("closeModalBtn").style.display = "none";
 
-                html2pdf().from(invoice).set(opt).save().then(() => {
-                    
-                    window.location.reload();
-                });
-                
-                
-                document.getElementById("modal-footer").style.display = "none";
-            });
-    }
+              html2pdf().from(invoice).set(opt).save().then(() => {
+                  
+                  window.location.reload();
+              });
+              
+              
+              document.getElementById("modal-footer").style.display = "none";
+          });
+  }
+  
 </script>
 
 

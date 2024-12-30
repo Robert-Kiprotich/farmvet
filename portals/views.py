@@ -37,19 +37,25 @@ import logging
 from django.db import transaction
 from rest_framework import generics,status
 from django.http import FileResponse, Http404
-
+from django.http import FileResponse, HttpResponseNotFound
 
 
 logger = logging.getLogger(__name__)
 
 
-def vet_check(request):
-    return request.is_vet_officer
+def vet_check(user):
+    if not user.is_authenticated:
+        return False  
+    return getattr(user, 'is_vet_officer', False)
 
-def farmer_check(request):
-    return request.is_farmer
-def official_check(request):
-    return request.is_official
+def farmer_check(user):
+    if not user.is_authenticated:
+        return False  
+    return getattr(user, 'is_farmer', False)
+def official_check(user):
+    if not user.is_authenticated:
+        return False
+    return user.is_official
 
 
 
@@ -273,7 +279,7 @@ class ArtificialInseminationList(generics.ListAPIView):
         if user.is_vet_officer:
             return ArtificialInsemination.objects.filter(user=user).order_by('-farm_name')
         if user.is_official:
-                return ArtificialInsemination.objects.all()
+                return ArtificialInsemination.objects.filter(assigned_to_official=user)
 
         if user.is_farmer:
             return ArtificialInsemination.objects.filter(assigned_to=user).order_by('-farm_name')
@@ -1792,7 +1798,7 @@ class InvoiceList(generics.ListAPIView):
 
         if user.is_vet_officer:
             
-            return Invoice.objects.filter()
+            return Invoice.objects.filter(assigned_to=user)
         
         elif user.is_farmer:
             
@@ -2054,7 +2060,7 @@ def calving_record(request):
 class CalvingRecordCreate(generics.CreateAPIView):
     queryset = CalvingRecord.objects.all()
     serializer_class = CalvingRecordSerializer
-    permission_classes = [Is_Farmer | Is_Vet]
+    permission_classes = [Is_Farmer]
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -2062,7 +2068,7 @@ class CalvingRecordCreate(generics.CreateAPIView):
 # List View
 class CalvingRecordList(generics.ListAPIView):
     serializer_class = CalvingRecordSerializer
-    permission_classes = [Is_Farmer | Is_Vet]
+    permission_classes = [Is_Farmer]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -2073,13 +2079,13 @@ class CalvingRecordList(generics.ListAPIView):
 class CalvingRecordUpdate(generics.UpdateAPIView):
     queryset = CalvingRecord.objects.all()
     serializer_class = CalvingRecordSerializer
-    permission_classes = [Is_Farmer | Is_Vet]
+    permission_classes = [Is_Farmer]
 
 # Delete View
 class CalvingRecordDelete(generics.DestroyAPIView):
     queryset = CalvingRecord.objects.all()
     serializer_class = CalvingRecordSerializer
-    permission_classes = [Is_Farmer | Is_Vet]
+    permission_classes = [Is_Farmer]
 
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
@@ -2146,7 +2152,7 @@ class DailyKillCreate(generics.CreateAPIView):
 
 class DailyKillList(generics.ListAPIView):
     serializer_class = DailyKillSerializer
-    permission_classes = [Is_Vet |Is_Official | Is_Official]
+    permission_classes = [Is_Vet |Is_Official]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -2187,7 +2193,7 @@ class MovementPermitCreate(generics.CreateAPIView):
 
 class MovementPermitList(generics.ListAPIView):
     serializer_class = MovementPermitSerializer
-    permission_classes = [Is_Vet |Is_Official]
+    permission_classes = [Is_Vet | Is_Official]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -2196,9 +2202,29 @@ class MovementPermitList(generics.ListAPIView):
         if user.is_vet_officer:
             return MovementPermit.objects.filter(user=user).order_by('-user')
         if user.is_official:
-                return MovementPermit.objects.all()
+            return MovementPermit.objects.all()
 
         return MovementPermit.objects.none()
+
+    def stream_file(self, request, permit_id):
+        # Get the movement permit object based on the ID
+        try:
+            permit = MovementPermit.objects.get(id=permit_id)
+        except MovementPermit.DoesNotExist:
+            return HttpResponseNotFound("Movement Permit not found.")
+
+        # Assuming `uploaded_report` is the file field on MovementPermit model
+        file_path = permit.uploaded_permit.path
+
+        # Check if the file exists
+        if not os.path.exists(file_path):
+            return HttpResponseNotFound("File not found.")
+
+        # Open the file and stream it
+        file = open(file_path, 'rb')
+        response = FileResponse(file, content_type='application/octet-stream')
+        response['Content-Disposition'] = f'attachment; filename="{permit.uploaded_permit.name}"'
+        return response
 
 class MovementPermitUpdate(generics.UpdateAPIView):
     queryset = MovementPermit.objects.all()
@@ -2258,7 +2284,7 @@ def monthly_report(request):
     return render(request, 'portals/reports/monthly_report.html', {})
 
 def monthly_report_view(request):
-    return render(request, 'portals/reports/monthly_view.html', {})
+    return render(request, 'portals/reports/monthly_report_official.html', {})
 
 
 class MonthlyReportCreate(generics.CreateAPIView):
@@ -2287,6 +2313,79 @@ class MonthlyReportDelete(generics.DestroyAPIView):
     queryset = MonthlyReport.objects.all()
     serializer_class = MonthlyReportSerializer
     permission_classes = [Is_Vet |Is_Official]
+
+    def perform_destroy(self, instance):
+        instance.delete()
+def quarterly_report(request):
+    return render(request, 'portals/reports/quarterly_report.html', {})
+
+def quarterly_report_view(request):
+    return render(request, 'portals/reports/quarterly_report_official.html', {})
+        
+class QuarterlyReportCreate(generics.CreateAPIView):
+    queryset = QuarterlyReport.objects.all()
+    serializer_class = QuarterlyReportSerializer
+    permission_classes = [Is_Vet | Is_Official]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+class QuarterlyReportList(generics.ListAPIView):
+    serializer_class = QuarterlyReportSerializer
+    permission_classes = [Is_Vet | Is_Official]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return QuarterlyReport.objects.all().order_by('-date_of_submission')
+
+class QuarterlyReportUpdate(generics.UpdateAPIView):
+    queryset = QuarterlyReport.objects.all()
+    serializer_class = QuarterlyReportSerializer
+    permission_classes = [Is_Vet | Is_Official]
+
+class QuarterlyReportDelete(generics.DestroyAPIView):
+    queryset = QuarterlyReport.objects.all()
+    serializer_class = QuarterlyReportSerializer
+    permission_classes = [Is_Vet | Is_Official]
+
+    def perform_destroy(self, instance):
+        instance.delete()
+
+# Yearly Report Views
+def yearly_report(request):
+    return render(request, 'portals/reports/yearly_report.html', {})
+
+def yearly_report_view(request):
+    return render(request, 'portals/reports/yearly_report_official.html', {})
+
+# Yearly Report Views
+class YearlyReportCreate(generics.CreateAPIView):
+    queryset = YearlyReport.objects.all()
+    serializer_class = YearlyReportSerializer
+    permission_classes = [Is_Vet | Is_Official]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+class YearlyReportList(generics.ListAPIView):
+    serializer_class = YearlyReportSerializer
+    permission_classes = [Is_Vet | Is_Official]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return YearlyReport.objects.all().order_by('-date_of_submission')
+
+class YearlyReportUpdate(generics.UpdateAPIView):
+    queryset = YearlyReport.objects.all()
+    serializer_class = YearlyReportSerializer
+    permission_classes = [Is_Vet | Is_Official]
+
+class YearlyReportDelete(generics.DestroyAPIView):
+    queryset = YearlyReport.objects.all()
+    serializer_class = YearlyReportSerializer
+    permission_classes = [Is_Vet | Is_Official]
 
     def perform_destroy(self, instance):
         instance.delete()

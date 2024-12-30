@@ -69,11 +69,11 @@
     <div class="px-5 my-1 text-center">
     </div>
    
-   <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#reportAddModal">
+   <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#ReportAddModal">
     Add Record
     </button>
      <!-- form modal -->
-     <div class="modal fade" id="reportAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+     <div class="modal fade" id="ReportAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
@@ -83,18 +83,55 @@
             </button>
           </div>
           <div class="modal-body">
-            <form id="reportAddForm" >
+            <form id="ReportAddForm"  enctype="multipart/form-data">
               {% csrf_token %}
-              <input type="hidden" id="id"  name="id" >
+              <input type="hidden" id="id"  name="id">
               <div class="mb-3">
-                <label for="assigned_to" class="form-label">Assigned To</label>
-                <select name="assigned_to" id="assigned_to" class="form-control">
-                  {% for farmer in all_farmers %}
-                      <option value="{{ farmer.username }}">{{ farmer.username }}</option>
+                <label for="assigned_to" class="form-label">Assign To Official</label>
+                <select name="assigned_to_official" id="assigned_to_official" class="form-control">
+                  <option value="" disabled selected>Select Official</option>
+                 
+                  {% for official in all_officials %}
+                      <option value="{{ official.username }}">{{ official.username }}</option>
                   {% endfor %}
               </select>
-            </div>
+            </div>  
+            <div class="mb-3">
+                <label for="date_of_submission" class="form-label">Date of Submission</label>
+                <input type="date" class="form-control" id="date_of_submission" name="date_of_submission" required>
+              </div>
+        
+              <div class="mb-3">
+                <label for="sub_county" class="form-label">Sub-County</label>
+                <input type="text" class="form-control" id="sub_county" name="sub_county" required>
+              </div>
+        
+              <div class="mb-3">
+                <label for="ward_level" class="form-label">Ward Level</label>
+                <input type="text" class="form-control" id="ward_level" name="ward_level" required>
+              </div>
+        
+              <div class="mb-3">
+                <label for="submitted_by" class="form-label">Submitted By</label>
+                <input type="text" class="form-control" id="submitted_by" name="submitted_by" required>
+              </div>
+        
+              <div class="mb-3">
+                <label for="registration_number" class="form-label">Registration Number</label>
+                <input type="text" class="form-control" id="registration_number" name="registration_number" required>
+              </div>
+        
+              <div class="mb-3">
+                <label for="phone_number" class="form-label">Phone Number</label>
+                <input type="tel" class="form-control" id="phone_number" name="phone_number" required>
+              </div>
+        
+              <div class="mb-3">
+                <label for="uploaded_report" class="form-label">Upload Report</label>
+                <input type="file" class="form-control-file" id="uploaded_report" name="uploaded_report" required>
+              </div>
            
+        
             <div class="modal-footer">
                 <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 <button type="submit" id="submit" class="btn btn-primary">Save</button>
@@ -107,7 +144,7 @@
     <!-- form modal end -->
     <!--edit Modal  -->
      <!-- form modal -->
-     <div class="modal fade" id="reportEditModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+     <div class="modal fade" id="AiEditModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
@@ -117,21 +154,60 @@
             </button>
           </div>
           <div class="modal-body">
-          <form id="reportEditForm">
+          <form id="ReportEditForm" class="form-group"  enctype="multipart/form-data">
             {% csrf_token %}
             <input type="hidden" id="id" name="id">
+            
             <div class="mb-3">
-              <label for="assigned_to" class="form-label">Assigned To</label>
-              <select name="assigned_to" id="assigned_to" class="form-control">
-                {% for farmer in all_farmers %}
-                    <option value="{{ farmer.username }}">{{ farmer.username }}</option>
+              <label for="assigned_to" class="form-label">Assign To Official(Optional)</label>
+              <select name="assigned_to_official" id="assigned_to_official" class="form-control">
+                <option value="" disabled selected>Select Official</option>
+                <option value="{{request.user.username}}">None</option>
+                {% for official in all_officials %}
+                    <option value="{{ official.username }}">{{ official.username }}</option>
                 {% endfor %}
             </select>
+          </div>      
+          <div class="mb-3">
+            <label for="date_of_submission" class="form-label">Date of Submission</label>
+            <input type="date" class="form-control" id="date_of_submission" name="date_of_submission" required>
           </div>
-         
+    
+          <div class="mb-3">
+            <label for="sub_county" class="form-label">Sub-County</label>
+            <input type="text" class="form-control" id="sub_county" name="sub_county" required>
+          </div>
+    
+          <div class="mb-3">
+            <label for="ward_level" class="form-label">Ward Level</label>
+            <input type="text" class="form-control" id="ward_level" name="ward_level" required>
+          </div>
+    
+          <div class="mb-3">
+            <label for="submitted_by" class="form-label">Submitted By</label>
+            <input type="text" class="form-control" id="submitted_by" name="submitted_by" required>
+          </div>
+    
+          <div class="mb-3">
+            <label for="registration_number" class="form-label">Registration Number</label>
+            <input type="text" class="form-control" id="registration_number" name="registration_number" required>
+          </div>
+    
+          <div class="mb-3">
+            <label for="phone_number" class="form-label">Phone Number</label>
+            <input type="tel" class="form-control" id="phone_number" name="phone_number" required>
+          </div>
+    
+          <div class="mb-3">
+            <label for="uploaded_report" class="form-label">Upload Report</label>
+            <input type="file" class="form-control-file" id="uploaded_report" name="uploaded_report" required>
+          </div>
+    
+
+
           <div class="modal-footer">
               <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-              <button type="" id="submitreport" class="btn btn-primary">Save</button>
+              <button type="" id="submitReport" class="btn btn-primary">Save</button>
           </div>
           </div>
         </form>
@@ -146,7 +222,7 @@
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
           <h2 class="text-center">Veterinary Professional Services</h2>
-       <h3 class="text-center">Daily Report</h3>
+       <h3 class="text-center">Monthly Report </h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -293,28 +369,30 @@ const csrftoken = getCookie('csrftoken');
         $('#dsModal').modal('hide');
     });
 }
-$('#reportAddForm').submit(function(e) {
+$('#ReportAddForm').submit(function(e) {
     e.preventDefault(); // Prevent the default form submission
-    
-    // Serialize form data
-    var formData = $(this).serialize();
-    console.log(formData);
-    
+
+    // Create a FormData object
+    let formData = new FormData($('#ReportAddForm')[0]);
+    console.log([...formData]); // Log FormData for debugging
+
     // Send AJAX request
     $.ajax({
         type: 'POST',
         url: "/monthly-reports/create/",
         data: formData,
+        processData: false, 
+        contentType: false, 
         success: function(data) {
-            $('#reportAddModal').modal('hide');
+            $('#ReportAddModal').modal('hide');
             $('#statusSuccessModal').modal('show');
             // Redirect after 3 seconds
             setTimeout(function() {
                 window.location.reload(); // Reload the page
-            }, 1000); 
+            }, 1000);
             // Handle success response
             console.log('Form submitted successfully');
-            console.log(data);   
+            console.log(data);
         },
         error: function(xhr, textStatus, errorThrown) {
             console.error('Error submitting form:', errorThrown);
@@ -325,6 +403,7 @@ $('#reportAddForm').submit(function(e) {
         }
     });
 });
+
      function operateFormatter(value, row, index) {
         return [
           '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
@@ -350,70 +429,71 @@ $('#reportAddForm').submit(function(e) {
       return;
     }
 
-    $('#reportEditModal').modal('show');
+    $('#AiEditModal').modal('show');
 
     // Populate form fields after the modal is shown (ensures elements exist)
-    $('#reportEditModal').on('shown.bs.modal', function () {
-      const formFields = $('#reportEditModal .editable-field');
+    $('#ReportEditModal').on('shown.bs.modal', function () {
+    const formFields = $('#ReportEditModal .editable-field');
 
-      formFields.each(function(i, field) {
-    const fieldName = $(field).attr('name');
-    const fieldValue = row[fieldName];
+    formFields.each(function (i, field) {
+        const fieldName = $(field).attr('name');
+        const fieldValue = row[fieldName]; // Assuming `row` contains the current data.
 
-    if ($(field).is('select')) {
-        
-        $(field).val(fieldValue || ''); 
-    } else {
-
-        $(field).val(fieldValue || ''); 
-    }
-});
+        if ($(field).is('select')) {
+            // For dropdowns, ensure the correct value is selected
+            $(field).val(fieldValue || '').change();
+        } else {
+            // For other input fields
+            $(field).val(fieldValue || '');
+        }
     });
-
-    $('#cancel').click(function() {
-      $('#reportEditModal').modal('hide');
-    });
-    $('#canceless').click(function() {
-      $('#reportEditModal').modal('hide');
-    });
-
-    e.preventDefault();
-
-    
-    $('#submitreport').on('click', function () {
-  const formFields = $('#reportEditModal .editable-field');
-
-  formFields.each(function (i, field) {
-    const fieldName = $(field).attr('name');
-    const fieldValue = $(field).val();
-
-    row[fieldName] = fieldValue; 
-  });
-   
-  fetch(`/monthly-reports/update/${row.id}/`, {
-    method: 'PATCH',
-    headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrftoken
-    },
-    body: JSON.stringify(row)
-})
-.then(response => response.json())
-.then(data => {
-    console.log('Success:', data);
-    
-    window.location.reload()
-   
-      
-})
-.then(data=>{
-  $('#statusSuccessModal').modal('show');
-
-})
-.catch(error => console.error('Error:', error));
 });
 
-  },
+// Close modal on cancel buttons
+$('#cancel, #canceless').on('click', function () {
+    $('#ReportEditModal').modal('hide');
+});
+
+// Handle form submission
+$('#submitReport').on('click', function (e) {
+    e.preventDefault(); // Prevent the default form submission behavior
+
+    const formFields = $('#ReportEditModal .editable-field');
+
+    // Update the `row` object with the form field values
+    formFields.each(function (i, field) {
+        const fieldName = $(field).attr('name');
+        const fieldValue = $(field).val();
+        row[fieldName] = fieldValue; // Assuming `row` is defined in the scope
+    });
+
+    // Send the data to the server using fetch API
+    fetch(`/monthly-reports/update/${row.id}/`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken, // Ensure `csrftoken` is defined
+        },
+        body: JSON.stringify(row),
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Success:', data);
+
+            // Show the success modal
+            $('#ReportEditModal').modal('hide');
+            $('#statusSuccessModal').modal('show');
+
+            // Reload the page after the success modal is shown
+            $('#statusSuccessModal').on('shown.bs.modal', function () {
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000); // 1 second delay
+            });
+        })
+        .catch(error => console.error('Error:', error));
+});
+        },
         'click .remove': function (e, value, row, index) {
     // Send an AJAX request to the Django backend to delete the record
     $.ajax({
@@ -475,18 +555,18 @@ $('#reportAddForm').submit(function(e) {
             valign: 'middle'
           },
           {
-            field: 'assigned_to',
-            title: 'Farmer Name',
+            field: 'assigned_to_official',
+            title: 'Official Name',
             sortable: true,
             align: 'center'
           },
           {
             field: 'date_of_submission',
-            title: '&nbsp; Date of Submission',
+            title: 'Date of Submission',
             sortable: true,
             align: 'center',
-            formatter: function (value, row) {
-              return moment(value).format('DD-MM-YYYY');
+            formatter: function (value) {
+              return moment(value).format('DD-MM-YYYY'); // Formatting the date
             }
           },
           {
@@ -524,11 +604,8 @@ $('#reportAddForm').submit(function(e) {
             title: 'Uploaded Report',
             sortable: true,
             align: 'center',
-            formatter: function (value, row) {
-              return `<a href="${value}" target="_blank">View File</a>`;
-            }
+           
           },
-         
          
           {
             field: 'operate',
@@ -574,31 +651,32 @@ $('#reportAddForm').submit(function(e) {
   
   <script>
     window.onload = function () {
-        document.getElementById("download")
-            .addEventListener("click", () => {
-                const invoice = document.getElementById("invoice");
-                console.log(invoice);
-                console.log(window);
-                var opt = {
-                    margin: 1,
-                    filename: 'farmer records.pdf',
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2 },
-                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-                };
-              
-                document.getElementById("modal-footer").style.display = "none";
-                //document.getElementById("closeModalBtn").style.display = "none";
+      document.getElementById("download")
+          .addEventListener("click", () => {
+              const invoice = document.getElementById("invoice");
+              console.log(invoice);
+              console.log(window);
+              var opt = {
+                  margin: 1,
+                  filename: 'farmer records.pdf',
+                  image: { type: 'jpeg', quality: 0.98 },
+                  html2canvas: { scale: 2 },
+                  jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+              };
+            
+              document.getElementById("modal-footer").style.display = "none";
+              //document.getElementById("closeModalBtn").style.display = "none";
 
-                html2pdf().from(invoice).set(opt).save().then(() => {
-                    
-                    window.location.reload();
-                });
-                
-                
-                document.getElementById("modal-footer").style.display = "none";
-            });
-    }
+              html2pdf().from(invoice).set(opt).save().then(() => {
+                  
+                  window.location.reload();
+              });
+              
+              
+              document.getElementById("modal-footer").style.display = "none";
+          });
+  }
+  
 </script>
 
 

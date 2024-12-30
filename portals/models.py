@@ -23,80 +23,116 @@ farmers_list = []
 
 class VaccinationRecord(models.Model):
     
-    CATTLE = 'Cattle'
-    SHEEP = 'Sheep'
-    GOAT = 'Goat'
-    DONKEY = 'Donkey'
-    DOG = 'Dog'
-    HORSE = 'Horse'
-    POULTRY = 'Poultry'
-    OTHER = 'Other'
-    
-    ANIMAL_SPECIES_CHOICES = [
-        (CATTLE, 'Cattle'),
-        (SHEEP, 'Sheep'),
-        (GOAT, 'Goat'),
-        (DONKEY, 'Donkey'),
-        (DOG, 'Dog'),
-        (HORSE, 'Horse'),
-        (POULTRY, 'Poultry'),
-        (OTHER, 'Other'),
-    ]
-    
-    PRIMARY = 'Primary'
-    BOOSTER = 'Booster'
-    
-    VACCINATION_TYPE_CHOICES = [
-        (PRIMARY, 'Primary'),
-        (BOOSTER, 'Booster'),
-    ]
-    
-    MASS = 'Mass'
-    INDIVIDUAL = 'Individual'
-    
-    NATURE_OF_VACCINATION_PROGRAM_CHOICES = [
-        (MASS, 'Mass'),
-        (INDIVIDUAL, 'Individual'),
-    ]
-    VACCINATION_SEX=[
+	CATTLE = 'Cattle'
+	SHEEP = 'Sheep'
+	GOAT = 'Goat'
+	DONKEY = 'Donkey'
+	DOG = 'Dog'
+	HORSE = 'Horse'
+	POULTRY = 'Poultry'
+	OTHER = 'Other'
+
+	ANIMAL_SPECIES_CHOICES = [
+		(CATTLE, 'Cattle'),
+		(SHEEP, 'Sheep'),
+		(GOAT, 'Goat'),
+		(DONKEY, 'Donkey'),
+		(DOG, 'Dog'),
+		(HORSE, 'Horse'),
+		(POULTRY, 'Poultry'),
+		(OTHER, 'Other'),
+	]
+
+	PRIMARY = 'Primary'
+	BOOSTER = 'Booster'
+
+	VACCINATION_TYPE_CHOICES = [
+		(PRIMARY, 'Primary'),
+		(BOOSTER, 'Booster'),
+	]
+
+	MASS = 'Mass'
+	INDIVIDUAL = 'Individual'
+
+	NATURE_OF_VACCINATION_PROGRAM_CHOICES = [
+		(MASS, 'Mass'),
+		(INDIVIDUAL, 'Individual'),
+	]
+	VACCINATION_SEX=[
 		('Male','Male'),
-		('Female','Female')
+		('Female','Female'),
+		('All','All')
 
 	]
-    
+
+	DISEASE_CHOICES = [
+	('anthrax', 'Anthrax'),
+	('fmd', 'FMD'),
+	('lumpy_skin_disease', 'Lumpy Skin Disease'),
+	('rift_valley_fever', 'Rift Valley Fever'),
+	('rabies', 'Rabies'),
+	('cbpp', 'CBPP '),
+	('ccpp', 'CCPP '),
+	('ppr', 'PPR '),
+	('newcastle_disease', 'Newcastle Disease'),
+	('canine_distemper', 'Canine Distemper'),
+	('none', 'None'),
+	]
+
     # Fields
     
-    user=models.ForeignKey(User,on_delete=models.CASCADE,default=1)
-    assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='vaccination_records', limit_choices_to={'is_farmer': True})
-    species_targeted = models.CharField(max_length=20,choices=ANIMAL_SPECIES_CHOICES)
-    other_species = models.CharField(max_length=255, blank=True, null=True)
-    number_of_animals_vaccinated = models.IntegerField()
-    age_of_animal = models.CharField(max_length=50)
-    sex_of_animal = models.CharField(max_length=10,choices=VACCINATION_SEX)
-    breed_of_animal = models.CharField(max_length=100)
-    color_of_animal = models.CharField(max_length=100)
-    other_description = models.TextField(blank=True, null=True)
-    vaccination_of = models.CharField(max_length=255)
-    vaccines_used = models.CharField(max_length=255)
-    batch_number = models.CharField(max_length=255)
-    date_of_vaccination = models.DateField()
-    vaccination_type = models.CharField(max_length=10,choices=VACCINATION_TYPE_CHOICES)
-    next_date_of_vaccination = models.DateField()
-    name_of_rash = models.CharField(max_length=255, blank=True, null=True)
-    village_vaccination_done = models.CharField(max_length=255, blank=True, null=True)
-    nature_of_vaccination_program = models.CharField(max_length=10,choices=NATURE_OF_VACCINATION_PROGRAM_CHOICES)
-    name_of_owner = models.CharField(max_length=255)
-    village = models.CharField(max_length=255)
-    contact = models.CharField(max_length=50)
-    name_of_vet_incharge = models.CharField(max_length=255)
-    registration_number = models.CharField(max_length=255)
-    mobile_number = models.CharField(max_length=20)
-    signature = models.TextField(blank=True,null=True)
-    stamp = models.TextField(blank=True,null=True)
+	user=models.ForeignKey(User,on_delete=models.CASCADE,default=1)
+	assigned_to = models.ForeignKey(
+		User,
+		on_delete=models.CASCADE,  
+		related_name='vaccination',
+		limit_choices_to={'is_farmer': False},
+		null=True,                 
+		blank=True,               
+							
+	)
+	assigned_to_official = models.ForeignKey(
+		User,
+		on_delete=models.CASCADE,  
+		related_name='vaccination_official',
+		limit_choices_to={'is_official': False},
+		null=True,                 
+		blank=True,               
+							
+	)
+	species_targeted = models.CharField(max_length=20,choices=ANIMAL_SPECIES_CHOICES)
+	other_species = models.CharField(max_length=255, blank=True, null=True)
+	number_of_animals_vaccinated = models.IntegerField()
+	age_of_animal = models.CharField(max_length=50)
+	sex_of_animal = models.CharField(max_length=10,choices=VACCINATION_SEX)
+	breed_of_animal = models.CharField(max_length=100)
+	color_of_animal = models.CharField(max_length=100)
+	other_description = models.TextField(blank=True, null=True)
+	vaccination_of = models.CharField(max_length=20,choices=DISEASE_CHOICES)
+	other_disease=models.CharField(max_length=255)
+	vaccines_used = models.CharField(max_length=255)
+	batch_number = models.CharField(max_length=255)
+	dosage = models.CharField(max_length=255)
+	expiry_date = models.DateField()
+	date_of_vaccination = models.DateField()
+	vaccination_type = models.CharField(max_length=10,choices=VACCINATION_TYPE_CHOICES)
+	next_date_of_vaccination = models.DateField()
+	name_of_rash = models.CharField(max_length=255, blank=True, null=True)
+	village_vaccination_done = models.CharField(max_length=255, blank=True, null=True)
+	nature_of_vaccination_program = models.CharField(max_length=10,choices=NATURE_OF_VACCINATION_PROGRAM_CHOICES)
+	name_of_owner = models.CharField(max_length=255)
+	sub_county=models.CharField(max_length=255)
+	ward=models.CharField(max_length=255)
+	village = models.CharField(max_length=255)
+	contact = models.CharField(max_length=50)
+	name_of_vet_incharge = models.CharField(max_length=255)
+	registration_number = models.CharField(max_length=255)
+	mobile_number = models.CharField(max_length=20)
+	signature = models.TextField(blank=True,null=True)
 
     
-    def __str__(self):
-        return f"Vaccination Record for {self.user} - {self.animal_species_targeted}"
+	def __str__(self):
+		return f"Vaccination Record for {self.user} - {self.animal_species_targeted}"
 
 
 class SurgicalRecord(models.Model):
@@ -731,7 +767,26 @@ class ArtificialInsemination(models.Model):
 		('Sexed','Sexed'),
 	]
 	user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)
-	assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ai_records', limit_choices_to={'is_farmer': True})
+	assigned_to = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,  
+        related_name='ai_assign',
+        limit_choices_to={'is_farmer': True},
+        null=True,                 
+        blank=True,
+		editable=True,
+        default=1                  
+    )
+	assigned_to_official = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,  
+        related_name='ai_official',
+        limit_choices_to={'is_official': False},
+        null=True,                 
+        blank=True,
+        editable=True,               
+        default=1                  
+    )
 	farm_name = models.CharField(max_length=255)
 	cow_name = models.CharField(max_length=255)
 	reg_no = models.CharField(max_length=255)
@@ -754,13 +809,16 @@ class ArtificialInsemination(models.Model):
 	first_pd_date = models.DateField()  
 	expected_delivery_date = models.DateField()
 	owners_name = models.CharField(max_length=255)
+	sub_county = models.CharField(max_length=25)
+	ward = models.CharField(max_length=25)
 	village = models.CharField(max_length=255)
-	contact = models.CharField(max_length=15)  
+	contact = models.CharField(max_length=15) 
+	provided_by=models.CharField(max_length=255)
 	vet_name = models.CharField(max_length=255)
 	vet_reg_no = models.CharField(max_length=254)
 	vet_contact = models.CharField(max_length=15)  
-	signature = models.TextField(blank=True,null=True)
-	stamp = models.TextField(blank=True,null=True)
+	signature_stamp = models.TextField(blank=True,null=True)
+	
 
 	def __str__(self):
 		return f"{self.cow_name} - {self.reg_no}"
@@ -1592,7 +1650,7 @@ class DiseaseReport(models.Model):
 		('no', 'No'),
 	]
 	user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)
-	assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='disease_report', limit_choices_to={'is_farmer': True})
+	assigned_to_official = models.ForeignKey(User, on_delete=models.CASCADE, related_name='disease_report', limit_choices_to={'is_official': True})
 	livestock_category = models.CharField(max_length=20, choices=LIVESTOCK_CATEGORY_CHOICES)
 	other_livestock_category = models.CharField(max_length=50, blank=True, null=True)
 	number_of_animals_affected = models.IntegerField()
@@ -1612,33 +1670,34 @@ class DiseaseReport(models.Model):
 	vet_registration_number = models.CharField(max_length=50)
 	vet_mobile_number = models.CharField(max_length=20)
 	signature=models.TextField(blank=True,null=True)
-	stamp = models.TextField(blank=True, null=True)
+	#stamp = models.TextField(blank=True, null=True)
 
 	def __str__(self):
 		return f"Disease Report by {self.owner_name} on {self.village_disease_occurred}"
 
 class Slaughterhouse(models.Model):
-    CATEGORY_CHOICES = [
-        ('small_scale', 'Small Scale'),
-        ('large_scale', 'Large Scale'),
-        # Add other categories if needed
-    ]
-    user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)
-    name = models.CharField(max_length=255)
-    county = models.CharField(max_length=255)
-    sub_county = models.CharField(max_length=255)
-    location = models.CharField(max_length=255)
-    slaughterhouse_category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
-    livestock_slaughtered = models.IntegerField()  # Number of livestock slaughtered
-    number_of_employees = models.IntegerField()
-    roller_mark_number = models.CharField(max_length=50)
-    inspector_name = models.CharField(max_length=255)
-    inspector_registration_number = models.CharField(max_length=100)
-    inspector_employment_number = models.CharField(max_length=100)
-    inspector_mobile_number = models.CharField(max_length=15)
-    
-    def __str__(self):
-        return self.name
+	CATEGORY_CHOICES = [
+		('small_scale', 'Small Scale'),
+		('large_scale', 'Large Scale'),
+		# Add other categories if needed
+	]
+	user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)
+	assigned_to_official = models.ForeignKey(User, on_delete=models.CASCADE, related_name='slaughter_house', limit_choices_to={'is_official': True})
+	name = models.CharField(max_length=255)
+	county = models.CharField(max_length=255)
+	sub_county = models.CharField(max_length=255)
+	location = models.CharField(max_length=255)
+	slaughterhouse_category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
+	livestock_slaughtered = models.IntegerField()  # Number of livestock slaughtered
+	number_of_employees = models.IntegerField()
+	roller_mark_number = models.CharField(max_length=50)
+	inspector_name = models.CharField(max_length=255)
+	inspector_registration_number = models.CharField(max_length=100)
+	inspector_employment_number = models.CharField(max_length=100)
+	inspector_mobile_number = models.CharField(max_length=15)
+
+	def __str__(self):
+		return self.name
 
 # Employee Model
 class Employee(models.Model):
@@ -1733,7 +1792,16 @@ class DailyKill(models.Model):
 		('Intern/Student', 'Intern/Student'),
 	]
 	user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)	
-	assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='kills', limit_choices_to={'is_farmer': True})
+	assigned_to_official = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,  
+        related_name='kills_official',
+        limit_choices_to={'is_official': False},
+        null=True,                 
+        blank=True,
+        editable=True,               
+        default=1                  
+    )
 	date = models.DateField()
 	livestock_category = models.CharField(max_length=50, choices=LIVESTOCK_CATEGORY_CHOICES)
 	number_of_females_killed = models.PositiveIntegerField()
@@ -1869,6 +1937,7 @@ class LivestockExaminationRecord(models.Model):
 		('For Sale', 'For Sale'),
 	]
 	user=models.ForeignKey(User, on_delete=models.CASCADE)
+	assigned_to_official = models.ForeignKey(User, on_delete=models.CASCADE, related_name='examination_report', limit_choices_to={'is_official': True})
 	livestock_category = models.CharField(max_length=50, choices=LIVESTOCK_CATEGORIES)
 	other_category = models.CharField(max_length=100, blank=True, null=True)
 	age_of_animal = models.PositiveIntegerField()
@@ -1963,7 +2032,7 @@ class AssessmentRecord(models.Model):
 		('For Export', 'For Export'),
 	]
 	user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)	
-	assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='assesment_report', limit_choices_to={'is_farmer': True})
+	assigned_to_official = models.ForeignKey(User, on_delete=models.CASCADE, related_name='assesment_report', limit_choices_to={'is_farmer': True})
 	livestock_category = models.CharField(max_length=20, choices=LIVESTOCK_CATEGORIES)
 	other_category = models.CharField(max_length=50, blank=True, null=True)
 	date_of_assessment = models.DateField()
@@ -1990,7 +2059,7 @@ class AssessmentRecord(models.Model):
 
 class MovementPermit(models.Model):
 	user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)	
-	assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='movement_permit', limit_choices_to={'is_farmer': True}, default=1)
+	assigned_to_official = models.ForeignKey(User, on_delete=models.CASCADE, related_name='movement_permit', limit_choices_to={'is_official': True}, default=1)
 	date_of_permit = models.DateField()
 	sub_county_district = models.CharField(max_length=100)
 	ward_level = models.CharField(max_length=100)
@@ -2004,7 +2073,7 @@ class MovementPermit(models.Model):
 
 class NoObjection(models.Model):
 	user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)	
-	assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='noobjection_form', limit_choices_to={'is_farmer': True}, default=1)
+	assigned_to_official = models.ForeignKey(User, on_delete=models.CASCADE, related_name='noobjection_form', limit_choices_to={'is_official': True}, default=1)
 	date_of_confirmation = models.DateField()
 	sub_county_district = models.CharField(max_length=100)
 	ward_level = models.CharField(max_length=100)
@@ -2017,7 +2086,15 @@ class NoObjection(models.Model):
 		return f"No Objection {self.registration_number} - {self.date_of_confirmation}"
 class MonthlyReport(models.Model):
 	user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)	
-	assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='monthly_report', limit_choices_to={'is_farmer': True}, default=1)
+	assigned_to_official = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,  
+        related_name='monthly_reports_official',
+        limit_choices_to={'is_official': True},
+        null=True,                 
+        blank=True,               
+        default=1                  
+    )
 	date_of_submission = models.DateField()
 	sub_county = models.CharField(max_length=100)
 	ward_level = models.CharField(max_length=100)
@@ -2028,6 +2105,51 @@ class MonthlyReport(models.Model):
 
 	def __str__(self):
 		return f"Monthly Report - {self.date_of_submission} by {self.submitted_by}"
+
+class QuarterlyReport(models.Model):
+	user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)	
+	assigned_to_official = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,  
+        related_name='quartely_reports_official',
+        limit_choices_to={'is_official': True},
+        null=True,                 
+        blank=True,               
+        default=1                  
+    )
+	date_of_submission = models.DateField()
+	sub_county = models.CharField(max_length=100)
+	ward_level = models.CharField(max_length=100)
+	submitted_by = models.CharField(max_length=100)
+	registration_number = models.CharField(max_length=50)
+	phone_number = models.CharField(max_length=15)
+	uploaded_report = models.FileField(upload_to='monthly_reports/')
+
+	def __str__(self):
+		return f"Monthly Report - {self.date_of_submission} by {self.submitted_by}"
+class YearlyReport(models.Model):
+	user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)	
+	assigned_to_official = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,  
+        related_name='yearly_reports_official',
+        limit_choices_to={'is_official': True},
+        null=True,                 
+        blank=True,               
+        default=1                  
+    )
+	date_of_submission = models.DateField()
+	sub_county = models.CharField(max_length=100)
+	ward_level = models.CharField(max_length=100)
+	submitted_by = models.CharField(max_length=100)
+	registration_number = models.CharField(max_length=50)
+	phone_number = models.CharField(max_length=15)
+	uploaded_report = models.FileField(upload_to='monthly_reports/')
+
+	def __str__(self):
+		return f"Monthly Report - {self.date_of_submission} by {self.submitted_by}"
+
+
 
 class Practitioner(models.Model):
     SPECIALIZATION_CHOICES = [
@@ -2042,9 +2164,9 @@ class Practitioner(models.Model):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
-    assigned_to = models.ForeignKey(
+    assigned_to_official = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='practitioner_record',
-        limit_choices_to={'is_farmer': True}, default=1
+        limit_choices_to={'is_official': True}, default=1
     )
     first_name = models.CharField(max_length=20)
     last_name = models.CharField(max_length=20)
