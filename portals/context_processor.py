@@ -68,7 +68,11 @@ def choices(request):
         'E_POSITION_CHOICES':Employee.POSITION_CHOICES,
         'VET_CATEGORY':Practitioner.VET_CATEGORY_CHOICES,
         'SPECIALIZATION':Practitioner.SPECIALIZATION_CHOICES,
-        'DISEASE_CHOICES':VaccinationRecord.DISEASE_CHOICES
+        'DISEASE_CHOICES':VaccinationRecord.DISEASE_CHOICES,
+        'EMP_STATUS_CHOICES':Practitioner.EMP_STATUS_CHOICES,
+        'SL_STATUS':Slaughterhouse.SL_STATUS,
+        'ML_LICENSE_CHOICES':Employee.ML_LICENSE_CHOICES,
+        'LICENSE_CHOICES':Butcher.LICENSE_CHOICES
         
           
     }

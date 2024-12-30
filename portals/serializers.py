@@ -782,7 +782,8 @@ class SlaughterhouseSerializer(serializers.ModelSerializer):
             'assigned_to_official',
             'county', 
             'sub_county', 
-            'location', 
+            'location',
+            'slaughterhouse_status',
             'slaughterhouse_category', 
             'livestock_slaughtered', 
             'number_of_employees', 
@@ -817,6 +818,7 @@ class ButcherSerializer(serializers.ModelSerializer):
         model = Butcher
         fields = [
             'id', 
+            'user',
             'name', 
             'id_number', 
             'mobile_number', 
@@ -1102,6 +1104,7 @@ class PractitionerSerializer(serializers.ModelSerializer):
             'assigned_to_official',
             'first_name',
             'last_name',
+            'reg_date',
             'phone_number',
             'email',
             'county',
@@ -1111,4 +1114,5 @@ class PractitionerSerializer(serializers.ModelSerializer):
             'specialization',
             'vet_category',
             'registration_number',
+            'employment_status'
         ]

@@ -1681,14 +1681,20 @@ class Slaughterhouse(models.Model):
 		('large_scale', 'Large Scale'),
 		# Add other categories if needed
 	]
+	
+	SL_STATUS=[
+		('private','Private'),
+		('municipal','Municipal')
+	]
 	user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)
 	assigned_to_official = models.ForeignKey(User, on_delete=models.CASCADE, related_name='slaughter_house', limit_choices_to={'is_official': True})
 	name = models.CharField(max_length=255)
 	county = models.CharField(max_length=255)
 	sub_county = models.CharField(max_length=255)
 	location = models.CharField(max_length=255)
+	slaughterhouse_status=models.CharField(max_length=50, choices=SL_STATUS)
 	slaughterhouse_category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
-	livestock_slaughtered = models.IntegerField()  # Number of livestock slaughtered
+	livestock_slaughtered = models.CharField(max_length=255)  # Number of livestock slaughtered
 	number_of_employees = models.IntegerField()
 	roller_mark_number = models.CharField(max_length=50)
 	inspector_name = models.CharField(max_length=255)
@@ -1708,12 +1714,17 @@ class Employee(models.Model):
         ('security_officer', 'Security Officer'),
     ]
     
+    ML_LICENSE_CHOICES=[
+		('updated','Updated'),
+		('not_updated','Not Updated'),
+	]
+    user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)
     slaughterhouse = models.CharField(max_length=60)
     name = models.CharField(max_length=255)
     id_number = models.CharField(max_length=100)
     mobile_number = models.CharField(max_length=15)
     position = models.CharField(max_length=50, choices=POSITION_CHOICES)
-    medical_license_status = models.CharField(max_length=50)  
+    medical_license_status = models.CharField(max_length=50,choices=ML_LICENSE_CHOICES)  
     
     def __str__(self):
         return self.name
@@ -1724,12 +1735,16 @@ class Butcher(models.Model):
         ('motorbike', 'Motorbike'),
         ('vehicle', 'Vehicle'),
     ]
-    
+    LICENSE_CHOICES=[
+		('updated','Updated'),
+		('not_updated','Not Updated'),
+	]
+    user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)
     name = models.CharField(max_length=255)
     id_number = models.CharField(max_length=100)
     mobile_number = models.CharField(max_length=15)
-    medical_license_status = models.CharField(max_length=50)  # True for Updated, False for Not Updated
-    livestock_slaughtered = models.IntegerField()  # Number of livestock slaughtered
+    medical_license_status = models.CharField(max_length=50,choices=LICENSE_CHOICES)  # True for Updated, False for Not Updated
+    livestock_slaughtered = models.CharField(max_length=50)  # Number of livestock slaughtered
     meat_container_number = models.CharField(max_length=50)
     meat_carrier_number = models.CharField(max_length=50)
     means_of_transport = models.CharField(max_length=50, choices=TRANSPORT_CHOICES)
@@ -2152,33 +2167,44 @@ class YearlyReport(models.Model):
 
 
 class Practitioner(models.Model):
-    SPECIALIZATION_CHOICES = [
-        ('large_animals', 'Large Animals'),
-        ('small_animals', 'Small Animals'),
-    ]
+	SPECIALIZATION_CHOICES = [
+		('large_animals', 'Large Animals'),
+		('small_animals', 'Small Animals'),
+	]
 
-    VET_CATEGORY_CHOICES = [
-        ('surgeon', 'Surgeon'),
-        ('technologist', 'Technologist'),
-        ('technician', 'Technician'),
-    ]
+	VET_CATEGORY_CHOICES = [
+		('surgeon', 'Surgeon'),
+		('technologist', 'Technologist'),
+		('technician', 'Technician'),
+	]
+ 
+	EMP_STATUS_CHOICES=[
+		('employed','Employed'),
+		('private_practitioner','Private Practitioneer ')
+	]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
-    assigned_to_official = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='practitioner_record',
-        limit_choices_to={'is_official': True}, default=1
-    )
-    first_name = models.CharField(max_length=20)
-    last_name = models.CharField(max_length=20)
-    phone_number = models.CharField(max_length=20)
-    email = models.CharField(max_length=100)
-    county = models.CharField(max_length=30)
-    subcounty = models.CharField(max_length=30)
-    ward = models.CharField(max_length=30)
-    area_of_operation = models.CharField(max_length=30)
-    specialization = models.CharField(max_length=50, choices=SPECIALIZATION_CHOICES)
-    vet_category = models.CharField(max_length=50, choices=VET_CATEGORY_CHOICES)
-    registration_number = models.CharField(max_length=50)
 
-    def __str__(self):
-        return f"{self.first_name} {self.last_name} - {self.specialization}"
+
+
+
+	user = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
+	assigned_to_official = models.ForeignKey(
+		User, on_delete=models.CASCADE, related_name='practitioner_record',
+		limit_choices_to={'is_official': True}, default=1
+	)
+	first_name = models.CharField(max_length=20)
+	last_name = models.CharField(max_length=20)
+	reg_date=models.DateField()
+	phone_number = models.CharField(max_length=20)
+	email = models.CharField(max_length=100)
+	county = models.CharField(max_length=30)
+	subcounty = models.CharField(max_length=30)
+	ward = models.CharField(max_length=30)
+	area_of_operation = models.CharField(max_length=30)
+	specialization = models.CharField(max_length=50, choices=SPECIALIZATION_CHOICES)
+	vet_category = models.CharField(max_length=50, choices=VET_CATEGORY_CHOICES)
+	registration_number = models.CharField(max_length=50)
+	employment_status=models.CharField(max_length=50,choices=EMP_STATUS_CHOICES)
+
+	def __str__(self):
+		return f"{self.first_name} {self.last_name} - {self.specialization}"

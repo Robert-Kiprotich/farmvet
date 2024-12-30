@@ -1,6 +1,6 @@
 {% load static %}
 
-<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <!------ Include the above in your HEAD tag ---------->
@@ -54,53 +54,61 @@
             </a>
             <div class="sidebar-submenu">
               <ul>
-                <li>
-                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'ai'%}">AI Records</a>
+                 
+                <li class="sidebar-dropdown">
+                  <a href="#" style="font-weight: bold;">
+                      <i class=""></i>
+                      <span>Ambulatory Services</span>
                   </a>
-                </li>
-                
-                <li>
-                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'pregnancy-diag'%}">Pregnancy Diagnosis</a>
-                  </a>
-                </li>
-              
-                <li>
-                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'vaccination' %}">Vaccination Records</a>
-                  </a>
-                </li>
-
-                <li>
-                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'surgery'%}">Surgery Records</a>
-                  </a>
-                </li>
-               
-                <li>
-                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'clinical'%}">Clinical Records</a>
-                  </a>
-                </li>
-                <li>
-                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'consultation'%}">Farm Consultation Records</a>
-                  </a>
-                </li>
-                <li>
-                  <a class="dropdown-item"  href="{% url 'referral'%}" style="font-weight: bold;">Referral Records</a>
-                  </a>
-                </li>
-                <li>
-                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'deworming'%}">Deworming Records</a>
-                  </a>
-                </li>
-                <li>
-                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'postmortem'%}">Post Mortem Records</a>
-                  </a>
-                </li>
-                
-                <li>
-                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'assesment-record-page' %}">Livestock Examination</a>
-                </li>
-               
-                
-               
+                  <div class="sidebar-submenu">
+                      <ul>
+                        <li>
+                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'ai'%}">AI Records</a>
+                          </a>
+                        </li>
+                        
+                        <li>
+                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'pregnancy-diag'%}">Pregnancy Diagnosis</a>
+                          </a>
+                        </li>
+                      
+                        <li>
+                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'vaccination' %}">Vaccination Records</a>
+                          </a>
+                        </li>
+        
+                        <li>
+                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'surgery'%}">Surgery Records</a>
+                          </a>
+                        </li>
+                       
+                        <li>
+                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'clinical'%}">Clinical Records</a>
+                          </a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'consultation'%}">Farm Consultation Records</a>
+                          </a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item"  href="{% url 'referral'%}" style="font-weight: bold;">Referral Records</a>
+                          </a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'deworming'%}">Deworming Records</a>
+                          </a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'postmortem'%}">Post Mortem Records</a>
+                          </a>
+                        </li>
+                        
+                        <li>
+                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'assesment-record-page' %}">Livestock Examination</a>
+                        </li>
+                        
+                  </div>
+              </li> 
               
                 
                 <li class="sidebar-dropdown">
@@ -153,12 +161,12 @@
           <li class="sidebar-dropdown">
             <a href="#">
               <i class="fa fa-chart-line"></i>
-              <span>Practitioner</span>
+              <span>Practitioner Registration</span>
             </a>
             <div class="sidebar-submenu">
               <ul>
                 <li>
-                  <a style="font-weight: bold;" href="{% url 'practitioner_record'%}">Register</a>
+                  <a style="font-weight: bold;" href="{% url 'practitioner_record'%}">Register As Practitioner</a>
                 </li>
                 
               </ul>
@@ -195,7 +203,7 @@
           <li class="sidebar-dropdown">
             <a href="#">
               <i class="fa fa-chart-line"></i>
-              <span>My Shop</span>
+              <span>My Agrovet</span>
             </a>
             <div class="sidebar-submenu">
               <ul>
@@ -282,22 +290,71 @@
           <li class="sidebar-dropdown">
             <a href="#">
               <i class="fa fa-chart-line"></i>
-              <span>Meat Inspection</span>
+              <span>Government Employee</span>
             </a>
             <div class="sidebar-submenu">
               <ul>
-                <li>
-                  <a style="font-weight: bold;" href="{% url 'slaughterhouse' %}">Register Slaughterhouse</a>
-                </li>
-                <li>
-                  <a style="font-weight: bold;" href="{% url 'employee' %}">Employess</a>
-                </li>
-                <li>
-                  <a style="font-weight: bold;" href="{% url 'butcher' %}">Butchers Details</a>
-                </li>
-                <li>
-                  <a style="font-weight: bold;" href="{% url 'daily-kills' %}">Daily Kills</a>
-                </li>
+                <li class="sidebar-dropdown">
+                  <a href="#" style="font-weight: bold;">
+                      <i class=""></i>
+                      <span>Meat Inspection</span>
+                  </a>
+                  <div class="sidebar-submenu">
+                      <ul>
+                        <li>
+                          <a style="font-weight: bold;" href="{% url 'slaughterhouse' %}">Register Slaughterhouse</a>
+                        </li>
+                        <li>
+                          <a style="font-weight: bold;" href="{% url 'employee' %}">Employess</a>
+                        </li>
+                        <li>
+                          <a style="font-weight: bold;" href="{% url 'butcher' %}">Butchers Details</a>
+                        </li>
+                        <li>
+                          <a style="font-weight: bold;" href="{% url 'daily-kills' %}">Daily Kills</a>
+                        </li>  
+                      </ul>
+                  </div>
+              </li> 
+              <li class="sidebar-dropdown">
+                <a href="#" style="font-weight: bold;">
+                    <i class=""></i>
+                    <span>Livestock Movement</span>
+                </a>
+                <div class="sidebar-submenu">
+                    <ul>
+                      <li>
+                        <a style="font-weight: bold;" class="dropdown-item" href="{% url 'movement-permit-report'%}">Movement Permit</a>
+                        </a>
+                      </li>
+                      <li>
+                        <a style="font-weight: bold;" class="dropdown-item" href="{% url 'no_objection_report'%}">No Objections Record</a>
+                        </a>
+                      </li>
+                    </ul>
+                </div>
+            </li> 
+            <li class="sidebar-dropdown">
+              <a href="#" style="font-weight: bold;">
+                  <i class=""></i>
+                  <span>Reports Writing</span>
+              </a>
+              <div class="sidebar-submenu">
+                  <ul>
+                    <li>
+                      <a class="dropdown-item" style="font-weight: bold;" href="{% url 'monthly_report' %}">Monthly Report</a>
+                    </a>
+                    </li>
+                    <li>
+                      <a style="font-weight: bold;" href="{% url 'quarterly_report' %}">Quarterly Report</a>
+                    </li>
+                    <li>
+                      <a style="font-weight: bold;" href="{% url 'yearly_report' %}">Annual Report</a>
+                    </li>
+                  </ul>
+              </div>
+          </li> 
+          
               </ul>
             </div>
           </li>
@@ -315,45 +372,9 @@
               </ul>
             </div>
           </li>
-          <li class="sidebar-dropdown">
-            <a href="#">
-              <i class="fa fa-chart-line"></i>
-              <span>Livestock Movement</span>
-            </a>
-            <div class="sidebar-submenu">
-              <ul>
-                <li>
-                  <a style="font-weight: bold;" class="dropdown-item" href="{% url 'movement-permit-report'%}">Movement Permit</a>
-                  </a>
-                </li>
-                <li>
-                  <a style="font-weight: bold;" class="dropdown-item" href="{% url 'no_objection_report'%}">No Objections Report</a>
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </li>
           
-          <li class="sidebar-dropdown">
-            <a href="#">
-              <i class="fa fa-chart-line"></i>
-              <span>Reports Writing</span>
-            </a>
-            <div class="sidebar-submenu">
-              <ul>
-                <li>
-                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'monthly_report' %}">Monthly Report</a>
-                </a>
-                </li>
-                <li>
-                  <a style="font-weight: bold;" href="{% url 'quarterly_report' %}">Quarterly Report</a>
-                </li>
-                <li>
-                  <a style="font-weight: bold;" href="{% url 'yearly_report' %}">Annual Report</a>
-                </li>
-              </ul>
-            </div>
-          </li>
+          
+          
           
           
           <li class="sidebar-dropdown">

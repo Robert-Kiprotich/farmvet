@@ -64,7 +64,7 @@
           <div class="col-md-12">
             <div class="card">
               <div class="card-header">
-<h4 class="">No ObJection</h4>
+<h4 class="">No Objection</h4>
     <!-- Content Wrapper. Contains page content -->
     <div class="px-5 my-1 text-center">
     </div>
@@ -86,7 +86,7 @@
             <form id="objectionAddForm" enctype="multipart/form-data">
               {% csrf_token %}
               <input type="hidden" id="id"  name="id" >
-              <div class="mb-3">
+              
                 <div class="mb-3">
                   <label for="assigned_to" class="form-label">Assign To Official</label>
                   <select name="assigned_to_official" id="assigned_to_official" class="form-control">
@@ -153,7 +153,7 @@
           <form id="objectionEditForm" enctype="multipart/form-data">
             {% csrf_token %}
             <input type="hidden" id="id" name="id">
-            <div class="mb-3">
+            
               <div class="mb-3">
                 <label for="assigned_to" class="form-label">Assign To Official</label>
                 <select name="assigned_to_official" id="assigned_to_official" class="form-control">
@@ -213,7 +213,7 @@
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
           <h2 class="text-center">Veterinary Professional Services</h2>
-       <h3 class="text-center">No Objection</h3>
+       <h3 class="text-center">No Objection Records</h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -606,9 +606,9 @@ $('#objectionAddForm').submit(function(e) {
             formatter: operateFormatter
           }
           ],
-          [
-          ]
-          ]
+        [
+        ]
+        ]
     })
     $table.on('check.bs.table uncheck.bs.table ' +
       'check-all.bs.table uncheck-all.bs.table',

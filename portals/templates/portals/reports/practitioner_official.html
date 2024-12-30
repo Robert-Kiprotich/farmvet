@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block content %}
-{% include 'portals/sidebarVet.html' %}
+{% include 'portals/sidebarOfficial.html' %}
 <main class="page-content">
 <div class="container-fluid">
       <!-- Navbar -->
@@ -561,7 +561,7 @@ $('#practitionerAddForm').submit(function(e) {
             valign: 'middle'
           },
           
-        {
+          {
             field: 'first_name',
             title: 'First Name',
             sortable: true,
@@ -573,6 +573,12 @@ $('#practitionerAddForm').submit(function(e) {
             sortable: true,
             align: 'center'
         },
+        {
+          field: 'reg_date',
+          title: 'Registration Date',
+          sortable: true,
+          align: 'center'
+      },
         {
             field: 'phone_number',
             title: 'Phone Number',
@@ -626,7 +632,13 @@ $('#practitionerAddForm').submit(function(e) {
             title: 'Registration Number',
             sortable: true,
             align: 'center'
-        }
+        },
+        {
+          field: 'employment_status',
+          title: 'Employment Status',
+          sortable: true,
+          align: 'center'
+      }
           ],
           [
           ]

@@ -106,13 +106,19 @@
             <!-- Medical License Status -->
             
             <div class="mb-3">
-                <label for="medical_license_status" class="form-label">Medical License Status</label>
-                <input type="text" class="form-control" id="medical_license_status" name="medical_license_status" placeholder="Enter Medical License Status">
-            </div>
+              <label for="means_of_transport" class="form-label">Medical License Status</label>
+              <select class="form-control" id="medical_license_status" name="medical_license_status">
+                 
+                  <!-- Loop through TRANSPORT_CHOICES dynamically -->
+                  {% for key, value in LICENSE_CHOICES %}
+                      <option value="{{ key }}">{{ value }}</option>
+                  {% endfor %}
+              </select>
+          </div>
             <!-- Livestock Slaughtered -->
             <div class="mb-3">
                 <label for="livestock_slaughtered" class="form-label">Livestock Slaughtered</label>
-                <input type="number" class="form-control" id="livestock_slaughtered" name="livestock_slaughtered"  placeholder="Enter Number of Livestock Slaughtered">
+                <input type="text" class="form-control" id="livestock_slaughtered" name="livestock_slaughtered"  placeholder="Enter Type of Livestock Slaughtered">
             </div>
 
             <!-- Meat Container Number -->
@@ -131,7 +137,7 @@
             <div class="mb-3">
                 <label for="means_of_transport" class="form-label">Means of Transport</label>
                 <select class="form-control" id="means_of_transport" name="means_of_transport">
-                    <option value="">Select Means of Transport</option>
+                    
                     <!-- Loop through TRANSPORT_CHOICES dynamically -->
                     {% for key, value in TRANSPORT_CHOICES %}
                         <option value="{{ key }}">{{ value }}</option>
@@ -183,9 +189,15 @@
 
             <!-- Medical License Status -->
             <div class="mb-3">
-                <label for="medical_license_status" class="form-label">Medical License Status</label>
-                <input type="text" class="form-control" id="medical_license_status" placeholder="Enter Medical License Status">
-            </div>
+              <label for="means_of_transport" class="form-label">Medical License Status</label>
+              <select class="form-control" id="medical_license_status" name="medical_license_status">
+                  
+                  <!-- Loop through TRANSPORT_CHOICES dynamically -->
+                  {% for key, value in LICENSE_CHOICES %}
+                      <option value="{{ key }}">{{ value }}</option>
+                  {% endfor %}
+              </select>
+          </div>
 
             <!-- Livestock Slaughtered -->
             <div class="mb-3">
@@ -229,7 +241,7 @@
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
           <h2 class="text-center">Veterinary Professional Services</h2>
-       <h3 class="text-center">Buthernancy Diagnosis Records</h3>
+       <h3 class="text-center">Butcher</h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -295,7 +307,7 @@
       data-page-list="[10, 25, 50, 100, all]"
       data-show-footer="true"
       data-side-pagination="server"
-      data-url="{% url 'slaughterhouse_list' %}"
+      data-url="{% url 'butcher_list' %}"
       data-response-handler="responseHandler">
     </table>
     <script>

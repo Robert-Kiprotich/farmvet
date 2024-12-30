@@ -69,11 +69,11 @@
     <div class="px-5 my-1 text-center">
     </div>
    
-   <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#pregAddModal">
+   <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#slAddModal">
     Add Record
     </button>
      <!-- form modal -->
-     <div class="modal fade" id="pregAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+     <div class="modal fade" id="slAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
@@ -83,10 +83,10 @@
             </button>
           </div>
           <div class="modal-body">
-            <form id="pregAddForm" >
+            <form id="slAddForm" >
               {% csrf_token %}
               <input type="hidden" id="id"  name="id" >
-              <div class="mb-3">
+              
                 <div class="mb-3">
                   <label for="assigned_to" class="form-label">Assign To Official</label>
                   <select name="assigned_to_official" id="assigned_to_official" class="form-control">
@@ -114,6 +114,15 @@
                 <label for="location" class="form-label">Location</label>
                 <input type="text" class="form-control" id="location" name="location">
             </div>
+            <div class="mb-3">
+              <label for="slaughterhouse_status" class="form-label">Slaughterhouse Status</label>
+              <select class="form-control" id="slaughterhouse_status" name="slaughterhouse_status">
+                  <option value="">Select Slaughterhouse Status</option>
+                  {% for key, value in SL_STATUS %}
+                      <option value="{{ key }}">{{ value }}</option>
+                  {% endfor %}
+              </select>
+          </div>
 
             <div class="mb-3">
                 <label for="slaughterhouse_category" class="form-label">Slaughterhouse Category</label>
@@ -126,9 +135,9 @@
             </div>
 
             <div class="mb-3">
-                <label for="livestock_slaughtered" class="form-label">Livestock Slaughtered</label>
-                <input type="number" class="form-control" id="livestock_slaughtered" name="livestock_slaughtered">
-            </div>
+              <label for="livestock_slaughtered" class="form-label">Livestock Slaughtered</label>
+              <input type="text" class="form-control" id="livestock_slaughtered" name="livestock_slaughtered" placeholder="EG,Cattle,Sheep,Goats,Poultry">
+          </div>
 
             <div class="mb-3">
                 <label for="number_of_employees" class="form-label">Number of Employees</label>
@@ -172,7 +181,7 @@
     <!-- form modal end -->
     <!--edit Modal  -->
      <!-- form modal -->
-     <div class="modal fade" id="pregEditModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+     <div class="modal fade" id="slEditModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
@@ -182,10 +191,9 @@
             </button>
           </div>
           <div class="modal-body">
-          <form id="pregEditForm">
+          <form id="slEditForm">
             {% csrf_token %}
             <input type="hidden" id="id" name="id">
-            <div class="mb-3">
               <div class="mb-3">
                 <label for="assigned_to" class="form-label">Assign To Official</label>
                 <select name="assigned_to_official" id="assigned_to_official" class="form-control">
@@ -213,7 +221,15 @@
                 <label for="location" class="form-label">Location</label>
                 <input type="text" class="form-control" id="location" name="location">
             </div>
-
+            <div class="mb-3">
+              <label for="slaughterhouse_status" class="form-label">Slaughterhouse Status</label>
+              <select class="form-control" id="slaughterhouse_status" name="slaughterhouse_status">
+                  <option value="">Select Slaughterhouse Status</option>
+                  {% for key, value in SL_STATUS %}
+                      <option value="{{ key }}">{{ value }}</option>
+                  {% endfor %}
+              </select>
+          </div>
             <div class="mb-3">
                 <label for="slaughterhouse_category" class="form-label">Slaughterhouse Category</label>
                 <select class="form-select" id="slaughterhouse_category" name="slaughterhouse_category">
@@ -226,7 +242,7 @@
 
             <div class="mb-3">
                 <label for="livestock_slaughtered" class="form-label">Livestock Slaughtered</label>
-                <input type="number" class="form-control" id="livestock_slaughtered" name="livestock_slaughtered">
+                <input type="text" class="form-control" id="livestock_slaughtered" name="livestock_slaughtered" placeholder="EG,Cattle,Sheep,Goats,Poultry">
             </div>
 
             <div class="mb-3">
@@ -258,11 +274,9 @@
                 <label for="inspector_mobile_number" class="form-label">Inspector Mobile Number</label>
                 <input type="tel" class="form-control" id="inspector_mobile_number" name="inspector_mobile_number">
             </div>
-
-            
           <div class="modal-footer">
               <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-              <button type="" id="submitpreg" class="btn btn-primary">Save</button>
+              <button type="" id="submitsl" class="btn btn-primary">Save</button>
           </div>
           </div>
         </form>
@@ -424,7 +438,7 @@ const csrftoken = getCookie('csrftoken');
         $('#dsModal').modal('hide');
     });
 }
-$('#pregAddForm').submit(function(e) {
+$('#slAddForm').submit(function(e) {
     e.preventDefault(); // Prevent the default form submission
     
     // Serialize form data
@@ -437,10 +451,10 @@ $('#pregAddForm').submit(function(e) {
         url: "/slaughterhouse/create/",
         data: formData,
         success: function(data) {
-            $('#pregAddModal').modal('hide');
+            $('#slAddModal').modal('hide');
             $('#statusSuccessModal').modal('show');
             // Redirect after 3 seconds
-            setTimeout(function() {
+           setTimeout(function() {
                 window.location.reload(); // Reload the page
             }, 1000); 
             // Handle success response
@@ -481,11 +495,11 @@ $('#pregAddForm').submit(function(e) {
       return;
     }
 
-    $('#pregEditModal').modal('show');
+    $('#slEditModal').modal('show');
 
     // Populate form fields after the modal is shown (ensures elements exist)
-    $('#pregEditModal').on('shown.bs.modal', function () {
-      const formFields = $('#pregEditModal .editable-field');
+    $('#slEditModal').on('shown.bs.modal', function () {
+      const formFields = $('#slEditModal .editable-field');
 
       formFields.each(function(i, field) {
     const fieldName = $(field).attr('name');
@@ -502,17 +516,17 @@ $('#pregAddForm').submit(function(e) {
     });
 
     $('#cancel').click(function() {
-      $('#pregEditModal').modal('hide');
+      $('#slEditModal').modal('hide');
     });
     $('#canceless').click(function() {
-      $('#pregEditModal').modal('hide');
+      $('#slEditModal').modal('hide');
     });
 
     e.preventDefault();
 
     
-    $('#submitpreg').on('click', function () {
-  const formFields = $('#pregEditModal .editable-field');
+    $('#submitsl').on('click', function () {
+  const formFields = $('#slEditModal .editable-field');
 
   formFields.each(function (i, field) {
     const fieldName = $(field).attr('name');
@@ -600,18 +614,16 @@ $('#pregAddForm').submit(function(e) {
         [
           {
             field: 'state',
-            checkbox: true,
             rowspan: 2,
             align: 'center',
             valign: 'middle'
           },
           {
             field:'assigned_to_official',
-            title:'Official'
-            checkbox:'true',
+            title:'Official',
             rowspan:2,
             align:'center',
-          }
+          },
           {
             field: 'name',
             title: 'Slaughterhouse Name',

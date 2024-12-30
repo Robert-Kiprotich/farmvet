@@ -432,6 +432,7 @@ urlpatterns = [
 
     
     path('no_objections/', no_objection_report, name='no_objection_report'),
+    path('no_objections/view', no_objection_report_view, name='no_objection_report_view'),
     path('no_objections/create/', NoObjectionCreate.as_view(), name='no_objection_create'),
     path('no_objections/list/', NoObjectionList.as_view(), name='no-objection-list'),
     path('no_objections/<int:pk>/update/', NoObjectionUpdate.as_view(), name='no_objection_update'),

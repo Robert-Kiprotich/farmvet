@@ -348,7 +348,15 @@ const csrftoken = getCookie('csrftoken');
             align: 'center'
           },
         
-          
+          {
+            field: 'next_date_of_vaccination',
+            title: 'Next Date of Vaccination',
+            sortable: true,
+            align: 'center',
+            formatter: function (value, row) {
+              return moment(value).format('DD-MM-YYYY');
+            }
+          },  
 
           {
             field: 'name_of_vet_incharge',

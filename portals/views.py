@@ -1453,7 +1453,7 @@ class VaccinationRecordList(generics.ListAPIView):
         
         if user.is_official:
            
-            return VaccinationRecord.objects.all()
+            return VaccinationRecord.objects.filter(assign_to=user)
         
         
         if user.is_farmer:
@@ -1636,7 +1636,7 @@ class DiseaseReportList(generics.ListAPIView):
         if user.is_farmer:
             return DiseaseReport.objects.filter(assigned_to=user)
         if user.is_official:
-            return DiseaseReport.objects.all()
+            return DiseaseReport.objects.filter(assigned_to_oficial=user)
 
         return DiseaseReport.objects.none()
 
@@ -1669,7 +1669,7 @@ class SlaughterhouseCreate(generics.CreateAPIView):
     permission_classes = [Is_Vet]
 
     def perform_create(self, serializer):
-        serializer.save()
+        serializer.save(user=self.request.user)
 
 class SlaughterhouseList(generics.ListAPIView):
     serializer_class = SlaughterhouseSerializer
@@ -1683,7 +1683,7 @@ class SlaughterhouseList(generics.ListAPIView):
             return Slaughterhouse.objects.filter(user=user)
         
         if user.is_official:
-            return Slaughterhouse.objects.all()
+            return Slaughterhouse.objects.filter(assigned_to_official=user)
         
         if user.is_farmer:
             return Slaughterhouse.objects.none()
@@ -2159,9 +2159,9 @@ class DailyKillList(generics.ListAPIView):
         user = self.request.user
 
         if user.is_vet_officer:
-            return DailyKill.objects.filter(user=user).order_by('-farm_name')
+            return DailyKill.objects.filter(user=user).order_by('-id')
         if user.is_official:
-                return DailyKill.objects.all()
+                return DailyKill.objects.filter(assigned_to_official=user)
 
         return DailyKill.objects.none()
 class DailyKillUpdate(generics.UpdateAPIView):
@@ -2202,7 +2202,7 @@ class MovementPermitList(generics.ListAPIView):
         if user.is_vet_officer:
             return MovementPermit.objects.filter(user=user).order_by('-user')
         if user.is_official:
-            return MovementPermit.objects.all()
+            return MovementPermit.objects.filter(assigned_to_official=user)
 
         return MovementPermit.objects.none()
 
@@ -2263,8 +2263,14 @@ class NoObjectionList(generics.ListAPIView):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        return NoObjection.objects.all().order_by('-date_of_confirmation')
+        user = self.request.user
 
+        if user.is_vet_officer:
+            return NoObjection.objects.filter(user=user)
+        if user.is_official:
+            return NoObjection.objects.filter(assigned_to_official=user)
+
+        return NoObjection.objects.none()
 class NoObjectionUpdate(generics.UpdateAPIView):
     queryset = NoObjection.objects.all()
     serializer_class = NoObjectionSerializer
@@ -2302,8 +2308,14 @@ class MonthlyReportList(generics.ListAPIView):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        return MonthlyReport.objects.all().order_by('-date_of_submission')
+        user = self.request.user
 
+        if user.is_vet_officer:
+            return MonthlyReport.objects.filter(user=user).order_by('-county')
+        if user.is_official:
+            return MonthlyReport.objects.filter(assigned_to_official=user)
+
+        return MonthlyReport.objects.none()
 class MonthlyReportUpdate(generics.UpdateAPIView):
     queryset = MonthlyReport.objects.all()
     serializer_class = MonthlyReportSerializer
@@ -2337,8 +2349,14 @@ class QuarterlyReportList(generics.ListAPIView):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        return QuarterlyReport.objects.all().order_by('-date_of_submission')
+        user = self.request.user
 
+        if user.is_vet_officer:
+            return  QuarterlyReport.objects.filter(user=user).order_by('-county')
+        if user.is_official:
+            return QuarterlyReport.objects.filter(assigned_to_official=user)
+
+        return QuarterlyReport.objects.none()
 class QuarterlyReportUpdate(generics.UpdateAPIView):
     queryset = QuarterlyReport.objects.all()
     serializer_class = QuarterlyReportSerializer
@@ -2375,8 +2393,14 @@ class YearlyReportList(generics.ListAPIView):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        return YearlyReport.objects.all().order_by('-date_of_submission')
+        user = self.request.user
 
+        if user.is_vet_officer:
+            return YearlyReport.objects.filter(user=user).order_by('-county')
+        if user.is_official:
+            return YearlyReport.objects.filter(assigned_to_official=user)
+
+        return YearlyReport.objects.none()
 class YearlyReportUpdate(generics.UpdateAPIView):
     queryset = YearlyReport.objects.all()
     serializer_class = YearlyReportSerializer
@@ -2416,7 +2440,7 @@ class PractitionerList(generics.ListAPIView):
         if user.is_vet_officer:
             return Practitioner.objects.filter(user=user).order_by('-county')
         if user.is_official:
-            return Practitioner.objects.all()
+            return Practitioner.objects.filter(assigned_to_official=user)
 
         return Practitioner.objects.none()
 
