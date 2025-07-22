@@ -77,21 +77,27 @@
 
 
                 <h2>Quiz Result</h2>
-                <p>Your score is: {{ score }}%</p>
-                <p>{% if passed %} You passed the quiz! {% else %} You did not pass the quiz. {% endif %}</p>
-                
-                {% if passed %}
-                    <p>Congratulations! You can generate your certificate below:</p>
-                    <form method="POST" action="{% url 'generate-certificate' %}"> <!-- Replace with your certificate generation URL -->
-                        {% csrf_token %}
-                        <button type="submit">Generate Certificate</button>
-                    </form>
-                {% else %}
-                    <p>Unfortunately, you did not pass the test. You can retake the quiz below.</p>
-                    <form method="GET" action="{% url 'questions-list' section_id=section.id %}"> <!-- Replace with the quiz start URL -->
-                        <button name="retake" value="true" type="submit">Retake Quiz</button>
-                    </form>
-                {% endif %}
+<p>Your score is: {{ score }}%</p>
+
+{% if score > 80 %}
+    <p>You passed the quiz! </p>
+    <p>Congratulations! You can generate your certificate below:</p>
+    <form method="POST" action="{% url 'generate_certificate' first_name last_name %}">
+        {% csrf_token %}
+        <button type="submit">Generate Certificate</button>
+    </form>
+{% else %}
+    {% if failed_attempts < 3 %}
+        <p>Unfortunately, you did not pass the test. You can retake the quiz below.</p>
+        <form method="GET" action="{% url 'questions-list' section_id=section.id %}">
+            <button name="retake" value="true" type="submit">Retake Quiz</button>
+        </form>
+    {% else %}
+        <p>You have reached the maximum number of retake attempts.</p>
+        <button type="button" disabled>Retake Quiz</button>
+    {% endif %}
+{% endif %}
+               
           
       </div>
       </div>

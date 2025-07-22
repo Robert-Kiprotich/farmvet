@@ -103,7 +103,11 @@
               </select>
               <div class="invalid-feedback">Please provide a valid bill category.</div>
           </div>
-          
+          <div class="mb-3">
+            <label for="other_billing_category" class="form-label">Other billing category</label>
+            <input type="number" id="other_billing_category" name="other_billing_category" class="form-control" step="0.01" max="99999999.99">
+            <div class="invalid-feedback">Please provide a valid amount.</div>
+        </div>
           <div class="mb-3">
               <label for="total_amount_billed" class="form-label">Total Amount Billed</label>
               <input type="number" id="total_amount_billed" name="total_amount_billed" class="form-control" step="0.01" max="99999999.99">
@@ -138,12 +142,23 @@
               <div class="invalid-feedback">Please provide a valid date.</div>
           </div>
           
-          <div class="mb-3">
-              <label for="payment_plan" class="form-label">Payment Plan</label>
-              <textarea id="payment_plan" name="payment_plan" class="form-control" rows="3"></textarea>
-              <div class="invalid-feedback">Please provide a valid payment plan.</div>
+           <div class="form-group">
+                <label for="payment_plan">Payment Plan</label>
+                <select class="form-control" id="payment_plan" name="payment_plan">
+                    {% for value, display in PLAN_CHOICES %}
+                        <option value="{{ value }}">{{ display }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+              <label for="payment_status">Payment Status</label>
+              <select class="form-control" id="payment_status" name="payment_status">
+                  {% for value, display in PAYMENT_STATUS_CHOICES %}
+                      <option value="{{ value }}">{{ display }}</option>
+                  {% endfor %}
+              </select>
           </div>
-          
+              
           <div class="mb-3">
               <label for="farmer_name" class="form-label">Farmer Name</label>
               <input type="text" id="farmer_name" name="farmer_name" class="form-control" maxlength="255">
@@ -161,7 +176,11 @@
               <input type="text" id="contact" name="contact" class="form-control" maxlength="15">
               <div class="invalid-feedback">Please provide a valid contact number.</div>
           </div>
-          
+          <div class="mb-3">
+            <label for="provided_by" class="form-label">Service Provided By</label>
+            <input type="text" id="provided_by" name="provided_by" class="form-control editable-field" maxlength="15">
+            <div class="invalid-feedback">Please provide a valid contact number.</div>
+        </div>
           <div class="mb-3">
               <label for="vet_to_be_paid" class="form-label">Billing Vet Details</label>
               <input type="text" id="vet_to_be_paid" name="vet_to_be_paid" class="form-control" maxlength="255">
@@ -181,24 +200,11 @@
           </div>
           
           <div class="mb-3">
-              <label for="signature" class="form-label">Signature</label>
+              <label for="signature" class="form-label">Signature & Stamp</label>
               <textarea id="signature" name="signature" class="form-control"></textarea>
               <div class="invalid-feedback">Please enter a valid signature text.</div>
           </div>
           
-          <div class="mb-3">
-              <label for="stamp" class="form-label">Stamp</label>
-              <textarea id="stamp" name="stamp" class="form-control"></textarea>
-              <div class="invalid-feedback">Please enter a valid stamp text.</div>
-          </div>
-          
-          <div class="mb-3">
-              <label for="comment" class="form-label">Comment</label>
-              <textarea id="comment" name="comment" class="form-control" rows="3"></textarea>
-              <div class="invalid-feedback">Please provide a valid comment.</div>
-          </div>
-          
-        
             <div class="modal-footer">
                 <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 <button type="submit" id="submit" class="btn btn-primary">Save</button>
@@ -241,7 +247,11 @@
             </select>
             <div class="invalid-feedback">Please provide a valid bill category.</div>
         </div>
-        
+        <div class="mb-3">
+          <label for="other_billing_category" class="form-label">Other billing category</label>
+          <input type="number" id="other_billing_category" name="other_billing_category" class="form-control" step="0.01" max="99999999.99">
+          <div class="invalid-feedback">Please provide a valid amount.</div>
+      </div>
         <div class="mb-3">
             <label for="total_amount_billed" class="form-label">Total Amount Billed</label>
             <input type="number" id="total_amount_billed" name="total_amount_billed" class="form-control editable-field" step="0.01" max="99999999.99">
@@ -276,11 +286,22 @@
             <div class="invalid-feedback">Please provide a valid date.</div>
         </div>
         
-        <div class="mb-3">
-            <label for="payment_plan" class="form-label">Payment Plan</label>
-            <textarea id="payment_plan" name="payment_plan" class="form-control editable-field" rows="3"></textarea>
-            <div class="invalid-feedback">Please provide a valid payment plan.</div>
-        </div>
+        <div class="form-group">
+          <label for="payment_plan">Payment Plan</label>
+          <select class="form-control" id="payment_plan" name="payment_plan">
+              {% for value, display in PLAN_CHOICES %}
+                  <option value="{{ value }}">{{ display }}</option>
+              {% endfor %}
+          </select>
+      </div>
+      <div class="form-group">
+        <label for="payment_status">Payment Status</label>
+        <select class="form-control" id="payment_status" name="payment_status">
+            {% for value, display in PAYMENT_STATUS_CHOICES %}
+                <option value="{{ value }}">{{ display }}</option>
+            {% endfor %}
+        </select>
+    </div>
         
         <div class="mb-3">
             <label for="farmer_name" class="form-label">Farmer Name</label>
@@ -299,6 +320,11 @@
             <input type="text" id="contact" name="contact" class="form-control editable-field" maxlength="15">
             <div class="invalid-feedback">Please provide a valid contact number.</div>
         </div>
+        <div class="mb-3">
+          <label for="provided_by" class="form-label">Service Provided By</label>
+          <input type="text" id="provided_by" name="provided_by" class="form-control editable-field" maxlength="15">
+          <div class="invalid-feedback">Please provide a valid contact number.</div>
+      </div>
         
         <div class="mb-3">
             <label for="vet_to_be_paid" class="form-label">Billing Vet Details</label>
@@ -319,24 +345,12 @@
         </div>
         
         <div class="mb-3">
-            <label for="signature" class="form-label">Signature</label>
+            <label for="signature" class="form-label">Signature & Stamp</label>
             <textarea id="signature" name="signature" class="form-control editable-field"></textarea>
             <div class="invalid-feedback">Please enter a valid signature text.</div>
         </div>
         
-        <div class="mb-3">
-            <label for="stamp" class="form-label">Stamp</label>
-            <textarea id="stamp" name="stamp" class="form-control editable-field"></textarea>
-            <div class="invalid-feedback">Please enter a valid stamp text.</div>
-        </div>
         
-        <div class="mb-3">
-            <label for="comment" class="form-label">Comment</label>
-            <textarea id="comment" name="comment" class="form-control editable-field" rows="3"></textarea>
-            <div class="invalid-feedback">Please provide a valid comment.</div>
-        </div>
-        
-      
           <div class="modal-footer">
               <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
               <button type="submit" id="submit" class="btn btn-primary">Save</button>
@@ -533,17 +547,18 @@ $('#vetBillingAddForm').submit(function(e) {
         });
         
     });
-     function operateFormatter(value, row, index) {
-        return [
-          '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
-          '<i class="fa fa-edit"></i>',
-          '</a>  ',
-          '<a class="remove" href="javascript:void(0)" title="Remove">',
-          '<i class="fa fa-trash"></i>',
-          '</a>'
-          
-        ].join('')
-      }
+    function operateFormatter(value, row, index) {
+      return [
+         '<div class="btn-group" role="group" aria-label="Actions">',
+              '<a class="btn btn-warning btn-sm edit" id="edit" href="javascript:void(0)" title="Edit">',
+                  '<i class="fa fa-edit"></i> Edit',
+              '</a>',
+              '<a class="btn btn-danger btn-sm remove" href="javascript:void(0)" title="Remove">',
+                  '<i class="fa fa-trash"></i> Delete',
+              '</a>',
+          '</div>'
+      ].join('');
+    }
 
      
       window.operateEvents = {
@@ -623,31 +638,38 @@ $('#vetBillingAddForm').submit(function(e) {
 
   },
         'click .remove': function (e, value, row, index) {
-    // Send an AJAX request to the Django backend to delete the record
-    $.ajax({
-        url: `/vet-billing/delete/${row.id}/`, // Replace with the appropriate URL
-        type: 'DELETE',
-        headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrftoken
-    }, // Include CSRF token if required
-        success: function () {
-          
-            // If deletion is successful, remove the row from the Bootstrap Table
-            $table.bootstrapTable('remove', {
-                row: 'id',
-                values: [row.id]
-            });
-            window.location.reload();
-        },
-        error: function (xhr, textStatus, errorThrown) {
-            // Handle errors, if any
-            console.error('Error deleting record:', errorThrown);
-            // Optionally, you can display error messages or handle UI updates here
-        }
-    });
-
-}
+    // Show confirmation dialog
+    const confirmation = window.confirm("Are you sure you want to delete this record?");
+    
+    // If the user confirms, proceed with the deletion
+    if (confirmation) {
+        // Send an AJAX request to the Django backend to delete the record
+        $.ajax({
+            url: `/vet-billing/delete/${row.id}/`, // Replace with the appropriate URL
+            type: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            }, // Include CSRF token if required
+            success: function () {
+                // If deletion is successful, remove the row from the Bootstrap Table
+                $table.bootstrapTable('remove', {
+                    row: 'id',
+                    values: [row.id]
+                });
+                window.location.reload(); // Optionally reload the page after removal
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                // Handle errors, if any
+                console.error('Error deleting record:', errorThrown);
+                // Optionally, you can display error messages or handle UI updates here
+            }
+        });
+    } else {
+        // If the user cancels the action, do nothing (optional: add a cancel log message)
+        console.log('Deletion canceled');
+    }
+      }
       }
     
       function totalTextFormatter(data) {
@@ -691,6 +713,12 @@ $('#vetBillingAddForm').submit(function(e) {
           {
             field: 'billing_category',
             title: 'Bill Category',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'other_billing_category',
+            title: 'Other Bill Category',
             sortable: true,
             align: 'center'
           },
@@ -752,6 +780,12 @@ $('#vetBillingAddForm').submit(function(e) {
             align: 'center'
           },
           {
+            field: 'provided_by',
+            title: 'Service Provided By',
+            sortable: true,
+            align: 'center'
+          },
+          {
             field: 'vet_to_be_paid',
             title: 'Billing Vet Details',
             sortable: true,
@@ -771,23 +805,11 @@ $('#vetBillingAddForm').submit(function(e) {
           },
           {
             field: 'signature',
-            title: 'Signature',
+            title: 'Signature & Stamp',
             sortable: true,
             align: 'center'
-          },
-          {
-            field: 'stamp',
-            title: 'Stamp',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'comment',
-            title: 'Comment',
-            sortable: true,
-            align: 'center'
-          },
-         
+      },
+          
           {
             field: 'operate',
             title: 'Item Operate',

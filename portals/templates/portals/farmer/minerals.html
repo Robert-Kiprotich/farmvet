@@ -406,12 +406,14 @@ $('#mineralsAddForm').submit(function(e) {
     });
      function operateFormatter(value, row, index) {
         return [
-          '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
-          '<i class="fa fa-edit"></i>',
-          '</a>  ',
-          '<a class="remove" href="javascript:void(0)" title="Remove">',
-          '<i class="fa fa-trash"></i>',
-          '</a>'
+          '<div class="btn-group" role="group" aria-label="Actions">',
+          '<a class="btn btn-warning btn-sm edit" id="edit" href="javascript:void(0)" title="Edit">',
+              '<i class="fa fa-edit"></i> Edit',
+          '</a>',
+          '<a class="btn btn-danger btn-sm remove" href="javascript:void(0)" title="Remove">',
+              '<i class="fa fa-trash"></i> Delete',
+          '</a>',
+      '</div>'
           
         ].join('')
       }
@@ -493,8 +495,8 @@ $('#mineralsAddForm').submit(function(e) {
 });
 
   },
-        'click .remove': function (e, value, row, index) {
-    // Send an AJAX request to the Django backend to delete the record
+  'click .remove': function (e, value, row, index) {
+   
     $.ajax({
         url: `/minerals/delete/${row.id}/`, // Replace with the appropriate URL
         type: 'DELETE',

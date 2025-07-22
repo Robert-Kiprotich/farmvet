@@ -94,6 +94,11 @@
                   {% endfor %}
               </select>
             </div>
+              <!-- Other Livestock Category -->
+              <div class="form-group">
+                <label for="date">Date Of Report</label>
+                <input type="date" class="form-control" id="date" name="date" placeholder="Other Livestock Category">
+            </div>
             <div class="form-group">
               <label for="livestock_category">Livestock Category</label>
               <select class="form-control" id="livestock_category" name="livestock_category">
@@ -144,7 +149,7 @@
               <textarea class="form-control" id="propose_control_measures" name="propose_control_measures" rows="3"></textarea>
           </div>
             <div class="form-group">
-              <label for="number_of_dead_animals">Number of Animals Affected</label>
+              <label for="number_of_dead_animals">Number of Dead Animals</label>
               <input type="number" class="form-control" id="number_of_dead_animals" name="number_of_dead_animals">
           </div>
             <div class="form-group">
@@ -240,6 +245,10 @@
                 {% endfor %}
             </select>
           </div>
+          <div class="form-group">
+            <label for="date">Date Of Report</label>
+            <input type="date" class="form-control" id="date" name="date" placeholder="Other Livestock Category">
+        </div>
           <div class="form-group">
             <label for="livestock_category">Livestock Category</label>
             <select class="form-control" id="livestock_category" name="livestock_category">
@@ -548,17 +557,18 @@ $('#dreportAddForm').submit(function(e) {
         }
     });
 });
-     function operateFormatter(value, row, index) {
-        return [
-          '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
-          '<i class="fa fa-edit"></i>',
-          '</a>  ',
-          '<a class="remove" href="javascript:void(0)" title="Remove">',
-          '<i class="fa fa-trash"></i>',
-          '</a>'
-          
-        ].join('')
-      }
+function operateFormatter(value, row, index) {
+  return [
+     '<div class="btn-group" role="group" aria-label="Actions">',
+          '<a class="btn btn-warning btn-sm edit" id="edit" href="javascript:void(0)" title="Edit">',
+              '<i class="fa fa-edit"></i> Edit',
+          '</a>',
+          '<a class="btn btn-danger btn-sm remove" href="javascript:void(0)" title="Remove">',
+              '<i class="fa fa-trash"></i> Delete',
+          '</a>',
+      '</div>'
+  ].join('');
+}
 
      
       window.operateEvents = {
@@ -637,34 +647,40 @@ $('#dreportAddForm').submit(function(e) {
 });
 
   },
-        'click .remove': function (e, value, row, index) {
-    // Send an AJAX request to the Django backend to delete the record
-    $.ajax({
-        url: `/disease-reports/delete/${row.id}/`, // Replace with the appropriate URL
-        type: 'DELETE',
-        headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrftoken
-    }, // Include CSRF token if required
-        success: function () {
-          
-            // If deletion is successful, remove the row from the Bootstrap Table
-            $table.bootstrapTable('remove', {
-                row: 'id',
-                values: [row.id]
-            });
-            window.location.reload();
-        },
-        error: function (xhr, textStatus, errorThrown) {
-            // Handle errors, if any
-            console.error('Error deleting record:', errorThrown);
-            // Optionally, you can display error messages or handle UI updates here
-        }
-    });
-
-}
-      }
+       'click .remove': function (e, value, row, index) {
+    // Show confirmation dialog
+    const confirmation = window.confirm("Are you sure you want to delete this record?");
     
+    // If the user confirms, proceed with the deletion
+    if (confirmation) {
+        // Send an AJAX request to the Django backend to delete the record
+        $.ajax({
+            url: `/disease-reports/delete/${row.id}/`, // Replace with the appropriate URL
+            type: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            }, // Include CSRF token if required
+            success: function () {
+                // If deletion is successful, remove the row from the Bootstrap Table
+                $table.bootstrapTable('remove', {
+                    row: 'id',
+                    values: [row.id]
+                });
+                window.location.reload(); // Optionally reload the page after removal
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                // Handle errors, if any
+                console.error('Error deleting record:', errorThrown);
+                // Optionally, you can display error messages or handle UI updates here
+            }
+        });
+    } else {
+        // If the user cancels the action, do nothing (optional: add a cancel log message)
+        console.log('Deletion canceled');
+    }
+      }
+      }
       function totalTextFormatter(data) {
         return 'Total'
       }
@@ -700,6 +716,12 @@ $('#dreportAddForm').submit(function(e) {
           {
             field: 'assigned_to_official',
             title: 'Official Name',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'date',
+            title: 'Date Of Report',
             sortable: true,
             align: 'center'
           },

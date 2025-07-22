@@ -109,15 +109,27 @@
               </div>
             
               <div class="mb-3">
-                <label for="sample_type_received" class="form-label">Type of Sample Received</label>
-                <input type="text" id="sample_type_received" name="sample_type_received" class="form-control" required>
-              </div>
+                <label for="type_of_sample_received" class="form-label">Type of Sample Received</label>
+                <select id="type_of_sample_received" name="type_of_sample_received" class="form-control" required>
+                    <option value="">Select an option</option>
+                    <option value="milk">Milk</option>
+                    <option value="blood smear">Blood Smear</option>
+                    <option value="lymph node smear">Lymph Node Smear</option>
+                    <option value="urine">Urine</option>
+                    <option value="faeces">Faeces</option>
+                    <option value="ear notching">Ear Notching</option>
+                    <option value="biopsy">Biopsy</option>
+                    <option value="skin scraping">Skin Scraping</option>
+                    <option value="vaginal swap">Vaginal Swap</option>
+                    <option value="head">Head</option>
+                </select>
+            </div>
             
               <div class="mb-3">
                 <label for="sample_rating" class="form-label">Sample Rating</label>
                 <select id="sample_rating" name="sample_rating" class="form-control" required>
-                  <option value="highly_infectious">Highly Infectious</option>
-                  <option value="not_infectious">Not Infectious</option>
+                  <option value="highly nfectious">Highly Infectious</option>
+                  <option value="not infectious">Not Infectious</option>
                 </select>
               </div>
             
@@ -158,8 +170,8 @@
               </div>
             
               <div class="mb-3">
-                <label for="number_of_days_for_processing" class="form-label">Number of Days for Processing</label>
-                <input type="number" id="number_of_days_for_processing" name="number_of_days_for_processing" class="form-control" required>
+                <label for="number_of_days_for_processing" class="form-label">Duration Of Sample Processing</label>
+                <input type="text" id="number_of_days_for_processing" name="number_of_days_for_processing" class="form-control" required>
               </div>
             
               <div class="mb-3">
@@ -213,14 +225,11 @@
               </div>
             
               <div class="mb-3">
-                <label for="signature" class="form-label">Signature</label>
+                <label for="signature" class="form-label">Signature & Stamp</label>
                 <textarea id="signature" name="signature" class="form-control" rows="2"></textarea>
               </div>
             
-              <div class="mb-3">
-                <label for="stamp" class="form-label">Stamp</label>
-                <textarea id="stamp" name="stamp" class="form-control" rows="2"></textarea>
-              </div>
+            
         
             <div class="modal-footer">
                 <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -270,9 +279,21 @@
         </div>
         
         <div class="mb-3">
-            <label for="type_of_sample_received" class="form-label">Type of Sample Received</label>
-            <input type="text" id="sample_type_received" name="sample_type_received" class="form-control editable-field" required>
-        </div>
+          <label for="type_of_sample_received" class="form-label">Type of Sample Received</label>
+          <select id="type_of_sample_received" name="type_of_sample_received" class="form-control" required>
+              <option value="">Select an option</option>
+              <option value="milk">Milk</option>
+              <option value="blood_smear">Blood Smear</option>
+              <option value="lymph_node_smear">Lymph Node Smear</option>
+              <option value="urine">Urine</option>
+              <option value="faeces">Faeces</option>
+              <option value="ear_notching">Ear Notching</option>
+              <option value="biopsy">Biopsy</option>
+              <option value="skin_scraping">Skin Scraping</option>
+              <option value="vaginal_swap">Vaginal Swap</option>
+              <option value="head">Head</option>
+          </select>
+      </div>
         
         <div class="mb-3">
             <label for="sample_rating" class="form-label">Sample Rating</label>
@@ -319,8 +340,8 @@
         </div>
         
         <div class="mb-3">
-            <label for="number_of_days_for_processing" class="form-label">Number of Days for Processing</label>
-            <input type="number" id="number_of_days_for_processing" name="number_of_days_for_processing" class="form-control editable-field" required>
+            <label for="number_of_days_for_processing" class="form-label">Duration Of Sample Processing</label>
+            <input type="text" id="number_of_days_for_processing" name="number_of_days_for_processing" class="form-control editable-field" required>
         </div>
         
         <div class="mb-3">
@@ -374,13 +395,8 @@
         </div>
         
         <div class="mb-3">
-            <label for="signature" class="form-label">Signature</label>
+            <label for="signature" class="form-label">Signature & Stamp</label>
             <textarea id="signature" name="signature" class="form-control editable-field" rows="2"></textarea>
-        </div>
-        
-        <div class="mb-3">
-            <label for="stamp" class="form-label">Stamp</label>
-            <textarea id="stamp" name="stamp" class="form-control editable-field" rows="2"></textarea>
         </div>
         
           <div class="modal-footer">
@@ -579,17 +595,18 @@ $('#processingAddForm').submit(function(e) {
         }
     });
 });
-     function operateFormatter(value, row, index) {
-        return [
-          '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
-          '<i class="fa fa-edit"></i>',
-          '</a>  ',
-          '<a class="remove" href="javascript:void(0)" title="Remove">',
-          '<i class="fa fa-trash"></i>',
-          '</a>'
-          
-        ].join('')
-      }
+function operateFormatter(value, row, index) {
+  return [
+     '<div class="btn-group" role="group" aria-label="Actions">',
+          '<a class="btn btn-warning btn-sm edit" id="edit" href="javascript:void(0)" title="Edit">',
+              '<i class="fa fa-edit"></i> Edit',
+          '</a>',
+          '<a class="btn btn-danger btn-sm remove" href="javascript:void(0)" title="Remove">',
+              '<i class="fa fa-trash"></i> Delete',
+          '</a>',
+      '</div>'
+  ].join('');
+}
 
      
       window.operateEvents = {
@@ -668,32 +685,39 @@ $('#processingAddForm').submit(function(e) {
 });
 
   },
-        'click .remove': function (e, value, row, index) {
-    // Send an AJAX request to the Django backend to delete the record
-    $.ajax({
-        url: `/sample-processing/delete/${row.id}/`, // Replace with the appropriate URL
-        type: 'DELETE',
-        headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrftoken
-    }, // Include CSRF token if required
-        success: function () {
-          
-            // If deletion is successful, remove the row from the Bootstrap Table
-            $table.bootstrapTable('remove', {
-                row: 'id',
-                values: [row.id]
-            });
-            window.location.reload();
-        },
-        error: function (xhr, textStatus, errorThrown) {
-            // Handle errors, if any
-            console.error('Error deleting record:', errorThrown);
-            // Optionally, you can display error messages or handle UI updates here
-        }
-    });
-
-}
+       'click .remove': function (e, value, row, index) {
+    // Show confirmation dialog
+    const confirmation = window.confirm("Are you sure you want to delete this record?");
+    
+    // If the user confirms, proceed with the deletion
+    if (confirmation) {
+        // Send an AJAX request to the Django backend to delete the record
+        $.ajax({
+            url: `/sample-processing/delete/${row.id}/`, // Replace with the appropriate URL
+            type: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            }, // Include CSRF token if required
+            success: function () {
+                // If deletion is successful, remove the row from the Bootstrap Table
+                $table.bootstrapTable('remove', {
+                    row: 'id',
+                    values: [row.id]
+                });
+                window.location.reload(); // Optionally reload the page after removal
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                // Handle errors, if any
+                console.error('Error deleting record:', errorThrown);
+                // Optionally, you can display error messages or handle UI updates here
+            }
+        });
+    } else {
+        // If the user cancels the action, do nothing (optional: add a cancel log message)
+        console.log('Deletion canceled');
+    }
+      }
       }
     
       function totalTextFormatter(data) {
@@ -754,7 +778,7 @@ $('#processingAddForm').submit(function(e) {
     align: 'center'
 },
 {
-    field: 'name_of_animal',
+    field: 'animal_name',
     title: 'Name of Animal',
     sortable: true,
     align: 'center'
@@ -797,7 +821,7 @@ $('#processingAddForm').submit(function(e) {
 },
 {
     field: 'number_of_days_for_processing',
-    title: 'Number of Days for Processing',
+    title: 'Duration Of Sample Processing',
     sortable: true,
     align: 'center'
 },
@@ -866,16 +890,11 @@ $('#processingAddForm').submit(function(e) {
 },
 {
     field: 'signature',
-    title: 'Signature',
+    title: 'Signature $ Stamp',
     sortable: true,
     align: 'center'
 },
-{
-    field: 'stamp',
-    title: 'Stamp',
-    sortable: true,
-    align: 'center'
-},
+
          
           {
             field: 'operate',

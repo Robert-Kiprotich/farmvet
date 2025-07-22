@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block content %}
-{% include 'portals/sidebarOfficial.html' %}
+{% include 'portals/sidebarFarmer.html' %}
 <main class="page-content">
 <div class="container-fluid">
       <!-- Navbar -->
@@ -64,7 +64,7 @@
           <div class="col-md-12">
             <div class="card">
               <div class="card-header">
-<h4 class="">Livestock Assesment Records</h4>
+<h4 class="">Livestock Examination Records</h4>
     <!-- Content Wrapper. Contains page content -->
     <div class="px-5 my-1 text-center">
     </div>
@@ -178,6 +178,7 @@
                 <option value="For Complaint">For Complaint</option>
                 <option value="Theft Cases">Theft Cases</option>
                 <option value="For Export">For Export</option>
+                <option value="Elective Surgery">Elective Surgery</option>
               </select>
           </div>
       
@@ -342,6 +343,7 @@
             <option value="For Complaint">For Complaint</option>
             <option value="Theft Cases">Theft Cases</option>
             <option value="For Export">For Export</option>
+            
           </select>
       </div>
   
@@ -430,11 +432,27 @@
       <h5 class="text-danger">Click the plus sign To view More</h5>
     </div>
     <style>
-      table, th, td {
-        border: 1px solid black;
+      table {
         border-collapse: collapse;
+        width: 100%;
+    }
+    
+    th, td {
+        border: 1px solid black;
+        padding: 8px;
+        text-align: left;
         font-size: medium;
-      }
+    }
+    
+    /* Make the table container scrollable */
+    
+    /* Apply sticky header only to the table header */
+     th {
+        position: sticky;
+        top: 0;
+        //background: #f8f9fa; /* Light background */
+        z-index: 1;
+    }
       </style>
       <div class="select" hidden>
         <select class="form-control" id="locale">
@@ -735,6 +753,12 @@ $('#AssAddForm').submit(function(e) {
 {
   field: 'other_category',
   title: 'Other Category',
+  sortable: true,
+  align: 'center'
+},
+{
+  field: 'breed',
+  title: 'Breed',
   sortable: true,
   align: 'center'
 },

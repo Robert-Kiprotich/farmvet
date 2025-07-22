@@ -270,14 +270,17 @@ const csrftoken = getCookie('csrftoken');
           },
 
           {
-            field: 'date_of_vaccination',
-            title: 'Date of Vaccination',
+            field: 'species_targeted',
+            title: 'Livestock Category',
             sortable: true,
-            align: 'center',
-            formatter: function (value, row) {
-              return moment(value).format('DD-MM-YYYY');
-            }
-          },  
+            align: 'center'
+          },
+          {
+            field: 'other_species',
+            title: 'Other Category',
+            sortable: true,
+            align: 'center'
+          },
           {
             field: 'number_of_animals_vaccinated',
             title: 'Number of Animals Vaccinated',
@@ -302,11 +305,21 @@ const csrftoken = getCookie('csrftoken');
             sortable: true,
             align: 'center'
           },
-
-          
+          {
+            field: 'color_of_animal',
+            title: 'Color of Animal',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'other_description',
+            title: 'Other Description',
+            sortable: true,
+            align: 'center'
+          },
           {
             field: 'vaccination_of',
-            title: 'Vaccinated Against',
+            title: 'Vaccination Of',
             sortable: true,
             align: 'center'
           },
@@ -340,14 +353,21 @@ const csrftoken = getCookie('csrftoken');
             sortable: true,
             align: 'center'
           },
-          
+          {
+            field: 'date_of_vaccination',
+            title: 'Date of Vaccination',
+            sortable: true,
+            align: 'center',
+            formatter: function (value, row) {
+              return moment(value).format('DD-MM-YYYY');
+            }
+          },
           {
             field: 'vaccination_type',
             title: 'Vaccination Type',
             sortable: true,
             align: 'center'
           },
-        
           {
             field: 'next_date_of_vaccination',
             title: 'Next Date of Vaccination',
@@ -356,11 +376,71 @@ const csrftoken = getCookie('csrftoken');
             formatter: function (value, row) {
               return moment(value).format('DD-MM-YYYY');
             }
-          },  
+          },
+          {
+            field: 'name_of_rash',
+            title: 'Name of Crush',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'village_vaccination_done',
+            title: 'Village Vaccination Done',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'nature_of_vaccination_program',
+            title: 'Nature of Vaccination Program',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'name_of_owner',
+            title: 'Name of Owner',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'sub_county',
+            title: 'Sub County',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'ward',
+            title: 'Ward',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'village',
+            title: 'Village',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'contact',
+            title: 'Contact',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'provided_by',
+            title: 'Service Provided By',
+            sortable: true,
+            align: 'center'
+          },
 
           {
             field: 'name_of_vet_incharge',
             title: 'Name of Vet Incharge',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'vet_category',
+            title: 'Vet Category',
             sortable: true,
             align: 'center'
           },
@@ -378,13 +458,7 @@ const csrftoken = getCookie('csrftoken');
           },
           {
             field: 'signature',
-            title: 'Signature',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'stamp',
-            title: 'Stamp',
+            title: 'Signature & Stamp',
             sortable: true,
             align: 'center'
           },

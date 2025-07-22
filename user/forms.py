@@ -37,17 +37,15 @@ class VetOfficerSignUpForm(UserCreationForm):
 			}
 		)
 	)
-	phone_number = forms.RegexField(regex='^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$', max_length=13)
+	registration_number=forms.CharField(label='KVB Number')
+	licence_number=forms.CharField(label='Licence Number')
 	specialization=forms.ChoiceField(choices=[('large', 'Large Animals'), ('small', 'Small Animals')], label='Select Specialization')
-	vet_category=forms.ChoiceField(choices=[('surgeon', 'Surgeon'), ('technologist', 'Technologist'), ('technician', 'Technician')], label='Select Vet Category')
-	country=forms.CharField()
+	vet_category=forms.ChoiceField(choices=[('surgeon', 'Surgeon'), ('Technologist Degree', 'Technologist Degree'),('Technologist Diploma', 'Technologist Diploma'),('Technician', 'Technician')], label='Select Vet Category')
+	supervisor=forms.CharField(label='Supervisor')
+	county=forms.CharField()
+	subcounty=forms.CharField()
 	location=forms.CharField()
-	registration_number=forms.CharField()
-	inst_of_grad = forms.CharField(label='Institution Of Graduation')
-
-	
-
-	
+	phone_number = forms.RegexField(regex='^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$', max_length=13)
 	password1 = forms.CharField(
 		label='Password',
 		max_length=30,
@@ -60,7 +58,6 @@ class VetOfficerSignUpForm(UserCreationForm):
 			}
 		)
 	)
-
 	password2 = forms.CharField(
 		label='Confirm Password',
 		max_length=30,
@@ -76,7 +73,7 @@ class VetOfficerSignUpForm(UserCreationForm):
 	
 	class Meta(UserCreationForm.Meta):
 		model = User
-		fields = ('username','first_name','last_name','phone_number','specialization','vet_category','country','location','registration_number','inst_of_grad','email','password1', 'password2',)
+		fields = ('username','first_name','last_name','registration_number','licence_number','specialization','vet_category','supervisor','county','subcounty','location','phone_number','email','password1', 'password2',)
 
 	
 class FarmerSignUpForm(UserCreationForm):
@@ -104,7 +101,7 @@ class FarmerSignUpForm(UserCreationForm):
 	email = forms.EmailField()
 	phone_number = forms.RegexField(regex='^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$', max_length=13)
 	farm_name  = forms.CharField(max_length=20)
-	country=forms.CharField(label='County')
+	county=forms.CharField(label='County')
 	location = forms.CharField(max_length=30)
 	password1 = forms.CharField(
 		label='Password',
@@ -139,7 +136,7 @@ class FarmerSignUpForm(UserCreationForm):
 
 	class Meta(UserCreationForm.Meta):
 		model = User
-		fields = ['username','first_name','last_name','farm_name','email','phone_number','country', 'location','password1', 'password2']
+		fields = ['username','first_name','last_name','farm_name','email','phone_number','county', 'location','password1', 'password2']
 			
 
 class OfficialSignUpForm(UserCreationForm):

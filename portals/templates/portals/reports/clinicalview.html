@@ -274,7 +274,7 @@ const csrftoken = getCookie('csrftoken');
           },
           {
             field: 'animal_species_affected',
-            title: 'Animal Species Affected',
+            title: 'Animal Category Affected',
             sortable: true,
             align: 'center'
           },
@@ -321,8 +321,26 @@ const csrftoken = getCookie('csrftoken');
             align: 'center'
           },
           {
+            field: 'case_history',
+            title: 'History of the Case',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'refer_case_to_other_vet',
+            title: 'Refer Case to Other Vet',
+            sortable: true,
+            align: 'center'
+          },
+          {
             field: 'clinical_signs',
             title: 'Clinical Signs',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'prognosis',
+            title: 'Prognosis',
             sortable: true,
             align: 'center'
           },
@@ -338,12 +356,7 @@ const csrftoken = getCookie('csrftoken');
             sortable: true,
             align: 'center'
           },
-          {
-            field: 'case_history',
-            title: 'History of the Case',
-            sortable: true,
-            align: 'center'
-          },
+         
           {
             field: 'treatment_plan',
             title: 'Treatment Plan',
@@ -356,12 +369,7 @@ const csrftoken = getCookie('csrftoken');
             sortable: true,
             align: 'center'
           },
-          {
-            field: 'prognosis',
-            title: 'Prognosis',
-            sortable: true,
-            align: 'center'
-          },
+          
           {
             field: 'date_of_start_dose',
             title: 'Date of Start Dose',
@@ -392,12 +400,7 @@ const csrftoken = getCookie('csrftoken');
             sortable: true,
             align: 'center'
           },
-          {
-            field: 'refer_case_to_other_vet',
-            title: 'Refer Case to Other Vet',
-            sortable: true,
-            align: 'center'
-          },
+          
           {
             field: 'is_disease_reportable',
             title: 'Is Disease Reportable',
@@ -418,7 +421,7 @@ const csrftoken = getCookie('csrftoken');
           },
           {
             field: 'notified_authority',
-            title: 'Notified Authority',
+            title: 'Notified Authority?',
             sortable: true,
             align: 'center'
           },
@@ -447,8 +450,20 @@ const csrftoken = getCookie('csrftoken');
             align: 'center'
           },
           {
+            field: 'provided_by',
+            title: 'Service Provided By',
+            sortable: true,
+            align: 'center'
+          },
+          {
             field: 'vet_in_charge_name',
             title: 'Vet In-Charge Name',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'vet_category',
+            title: 'Vet Category',
             sortable: true,
             align: 'center'
           },
@@ -470,12 +485,8 @@ const csrftoken = getCookie('csrftoken');
             sortable: true,
             align: 'center'
           },
-          {
-            field: 'rubber_stamp',
-            title: 'Rubber Stamp',
-            sortable: true,
-            align: 'center'
-          }
+         
+
         ],
         [
         ]

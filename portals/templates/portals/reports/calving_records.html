@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block content %}
-{% include 'portals/sidebarVet.html' %}
+{% include 'portals/sidebarFarmer.html' %}
 <main class="page-content">
 <div class="container-fluid">
       <!-- Navbar -->
@@ -86,14 +86,7 @@
             <form id="CalvingAddForm"  enctype="multipart/form-data">
               {% csrf_token %}
               <input type="hidden" id="id"  name="id" >
-              <div class="mb-3">
-                <label for="assigned_to" class="form-label">Assigned To</label>
-                <select name="assigned_to" id="assigned_to" class="form-control">
-                  {% for farmer in all_farmers %}
-                      <option value="{{ farmer.username }}">{{ farmer.username }}</option>
-                  {% endfor %}
-              </select>
-            </div>       
+                  
             
             <div class="mb-3">
               <label for="date_of_calving" class="form-label">Date of Calving</label>
@@ -105,10 +98,7 @@
               <input type="date" id="insemination_date" name="insemination_date" class="form-control">
             </div>
           
-            <div class="mb-3">
-              <label for="days_to_calving_down" class="form-label">Days to Calving Down</label>
-              <input type="number" id="days_to_calving_down" name="days_to_calving_down" class="form-control">
-            </div>
+           
           
             <div class="mb-3">
               <label for="cow_name" class="form-label">Cow Name</label>
@@ -141,11 +131,11 @@
           
             <div class="mb-3">
               <label for="hours_for_natural_expulsion" class="form-label">Hours for Natural Expulsion</label>
-              <input type="number" id="hours_for_natural_expulsion" name="hours_for_natural_expulsion" class="form-control">
+              <input type="text" id="hours_for_natural_expulsion" name="hours_for_natural_expulsion" class="form-control">
             </div>
           
             <div class="mb-3">
-              <label for="calf_sex" class="form-label">Calf Sex</label>
+              <label for="calf_sex" class="form-label">Gender of the calf</label>
               <select id="calf_sex" name="calf_sex" class="form-control">
                 <option selected disabled>Select Calf Sex</option>
                 <option value="Male">Male</option>
@@ -202,21 +192,8 @@
           <form id="CalvingEditForm" class="form-group"  enctype="multipart/form-data">
             {% csrf_token %}
             <input type="hidden" id="id" name="id">
-            <div class="mb-3">
-              <label for="assigned_to" class="form-label">Assigned To</label>
-              <select name="assigned_to" id="assigned_to" class="form-control">
-                {% for farmer in all_farmers %}
-                    <option value="{{ farmer.username }}">{{ farmer.username }}</option>
-                {% endfor %}
-            </select>
-          </div> 
-          <div class="mb-3">
-            <label for="assigned_to" class="form-label">Assigned To</label>
-            <select id="assigned_to" name="assigned_to" class="form-select">
-              <option selected disabled>Select a farmer</option>
-              <!-- Populate dynamically with related farmers -->
-            </select>
-          </div>
+            
+         
         
           <div class="mb-3">
             <label for="date_of_calving" class="form-label">Date of Calving</label>
@@ -228,10 +205,7 @@
             <input type="date" id="insemination_date" name="insemination_date" class="form-control">
           </div>
         
-          <div class="mb-3">
-            <label for="days_to_calving_down" class="form-label">Days to Calving Down</label>
-            <input type="number" id="days_to_calving_down" name="days_to_calving_down" class="form-control">
-          </div>
+         
         
           <div class="mb-3">
             <label for="cow_name" class="form-label">Cow Name</label>
@@ -264,11 +238,11 @@
         
           <div class="mb-3">
             <label for="hours_for_natural_expulsion" class="form-label">Hours for Natural Expulsion</label>
-            <input type="number" id="hours_for_natural_expulsion" name="hours_for_natural_expulsion" class="form-control">
+            <input type="text" id="hours_for_natural_expulsion" name="hours_for_natural_expulsion" class="form-control">
           </div>
         
           <div class="mb-3">
-            <label for="calf_sex" class="form-label">Calf Sex</label>
+            <label for="calf_sex" class="form-label">Gender of the calf</label>
             <select id="calf_sex" name="calf_sex" class="form-select">
               <option selected disabled>Select Calf Sex</option>
               <option value="Male">Male</option>
@@ -314,7 +288,7 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <h2 class="text-center">Veterinary Professional Services</h2>
+          <h2 class="text-center">Farm Records</h2>
        <h3 class="text-center">Calving Records</h3>
           <div class="modal-body" id="modalBody">
           </div>
@@ -512,17 +486,18 @@ $('#CalvingAddForm').submit(function(e) {
   });
   
 });
-     function operateFormatter(value, row, index) {
-        return [
-          '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
-          '<i class="fa fa-edit"></i>',
-          '</a>  ',
-          '<a class="remove" href="javascript:void(0)" title="Remove">',
-          '<i class="fa fa-trash"></i>',
-          '</a>'
-          
-        ].join('')
-      }
+function operateFormatter(value, row, index) {
+  return [
+     '<div class="btn-group" role="group" aria-label="Actions">',
+          '<a class="btn btn-warning btn-sm edit" id="edit" href="javascript:void(0)" title="Edit">',
+              '<i class="fa fa-edit"></i> Edit',
+          '</a>',
+          '<a class="btn btn-danger btn-sm remove" href="javascript:void(0)" title="Remove">',
+              '<i class="fa fa-trash"></i> Delete',
+          '</a>',
+      '</div>'
+  ].join('');
+}
 
      
       window.operateEvents = {
@@ -604,33 +579,39 @@ $('#CalvingAddForm').submit(function(e) {
 
   },
         'click .remove': function (e, value, row, index) {
-    // Send an AJAX request to the Django backend to delete the record
-    $.ajax({
-        url: `/calving-record/delete/${row.id}/`, // Replace with the appropriate URL
-        type: 'DELETE',
-        headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrftoken
-    }, // Include CSRF token if required
-        success: function () {
-          
-            // If deletion is successful, remove the row from the Bootstrap Table
-            $table.bootstrapTable('remove', {
-                row: 'id',
-                values: [row.id]
-            });
-            window.location.reload();
-        },
-        error: function (xhr, textStatus, errorThrown) {
-            // Handle errors, if any
-            console.error('Error deleting record:', errorThrown);
-            // Optionally, you can display error messages or handle UI updates here
-        }
-    });
-
-}
-      }
+    // Show confirmation dialog
+    const confirmation = window.confirm("Are you sure you want to delete this record?");
     
+    // If the user confirms, proceed with the deletion
+    if (confirmation) {
+        // Send an AJAX request to the Django backend to delete the record
+        $.ajax({
+            url: `/calving-record/delete/${row.id}/`, // Replace with the appropriate URL
+            type: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            }, // Include CSRF token if required
+            success: function () {
+                // If deletion is successful, remove the row from the Bootstrap Table
+                $table.bootstrapTable('remove', {
+                    row: 'id',
+                    values: [row.id]
+                });
+                window.location.reload(); // Optionally reload the page after removal
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                // Handle errors, if any
+                console.error('Error deleting record:', errorThrown);
+                // Optionally, you can display error messages or handle UI updates here
+            }
+        });
+    } else {
+        // If the user cancels the action, do nothing (optional: add a cancel log message)
+        console.log('Deletion canceled');
+    }
+      }
+      }
       function totalTextFormatter(data) {
         return 'Total'
       }
@@ -663,12 +644,7 @@ $('#CalvingAddForm').submit(function(e) {
             align: 'center',
             valign: 'middle'
           },
-{
-  field: 'assigned_to',
-  title: 'Assigned To',
-  sortable: true,
-  align: 'center'
-},
+
 {
   field: 'date_of_calving',
   title: 'Date of Calving',

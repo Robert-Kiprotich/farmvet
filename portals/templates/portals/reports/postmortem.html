@@ -119,7 +119,10 @@
                 <label for="name_of_animal">Name of Animal</label>
                 <input type="text" class="form-control" id="name_of_animal" name="name_of_animal" required />
               </div>
-            
+              <div class="form-group">
+                <label for="name_of_animal">Registration Number</label>
+                <input type="text" class="form-control editable-field" id="reg_no" name="reg_no" required />
+              </div>
               <!-- Sex -->
               <div class="form-group">
                 <label for="sex">Sex</label>
@@ -197,6 +200,10 @@
                 <label for="major_pathological_conditions">Major Pathological Conditions</label>
                 <textarea class="form-control" id="major_pathological_conditions" name="major_pathological_conditions" rows="3"></textarea>
               </div>
+              <div class="form-group">
+                <label for="major_pathological_conditions">Cause Of Death</label>
+                <textarea class="form-control" id="cause_of_death" name="cause_of_death" rows="3"></textarea>
+              </div>
             
               <!-- Sample Sent to Lab -->
               <div class="form-group">
@@ -255,13 +262,23 @@
                 <label for="owner_mobile_number">Owner Mobile Number</label>
                 <input type="text" class="form-control" id="owner_mobile_number" name="owner_mobile_number" required />
               </div>
-            
+              <div class="mb-3">
+                <label for="provided_by" class="form-label">Service Provided By</label>
+                <input type="text" id="provided_by" name="provided_by" class="form-control .editable-field'" required>
+            </div>
               <!-- Vet in Charge Details -->
               <div class="form-group">
-                <label for="vet_in_charge_name">Vet in Charge Name</label>
+                <label for="vet_in_charge_name">Vet in Charge</label>
                 <input type="text" class="form-control" id="vet_in_charge_name" name="vet_in_charge_name" required />
               </div>
-            
+              <div class="form-group">
+                <label for="species_targeted">Vet Category</label>
+                <select class="form-control editable-field" id="vet_category" name="vet_category">
+                    {% for value, display in VET_CATEGORY %}
+                        <option value="{{ value }}">{{ display }}</option>
+                    {% endfor %}
+                </select>
+            </div>
               <div class="form-group">
                 <label for="vet_in_charge_registration_number">Vet in Charge Registration Number</label>
                 <input type="text" class="form-control" id="vet_in_charge_registration_number" name="vet_in_charge_registration_number" required />
@@ -274,15 +291,11 @@
             
               <!-- Signature and Stamp -->
               <div class="form-group">
-                <label for="signature">Signature</label>
+                <label for="signature">Signature & Stamp</label>
                 <textarea class="form-control" id="signature" name="signature"></textarea>
               </div>
             
-              <div class="form-group">
-                <label for="stamp">Stamp</label>
-                <textarea class="form-control" id="stamp" name="stamp"></textarea>
-              </div>
-        
+             
             <div class="modal-footer">
                 <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 <button type="submit" id="submit" class="btn btn-primary">Save</button>
@@ -340,6 +353,10 @@
           <div class="form-group">
             <label for="name_of_animal">Name of Animal</label>
             <input type="text" class="form-control editable-field" id="name_of_animal" name="name_of_animal" required />
+          </div>
+          <div class="form-group">
+            <label for="name_of_animal">Registration Number</label>
+            <input type="text" class="form-control editable-field" id="reg_no" name="reg_no" required />
           </div>
           
           <!-- Sex -->
@@ -419,7 +436,10 @@
             <label for="major_pathological_conditions">Major Pathological Conditions</label>
             <textarea class="form-control editable-field" id="major_pathological_conditions" name="major_pathological_conditions" rows="3"></textarea>
           </div>
-          
+          <div class="form-group">
+            <label for="major_pathological_conditions">Cause Of Death</label>
+            <textarea class="form-control" id="cause_of_death" name="cause_of_death" rows="3"></textarea>
+          </div>
           <!-- Sample Sent to Lab -->
           <div class="form-group">
             <label for="sample_sent_to_lab">Sample Sent to Lab</label>
@@ -477,13 +497,23 @@
             <label for="owner_mobile_number">Owner Mobile Number</label>
             <input type="text" class="form-control editable-field" id="owner_mobile_number" name="owner_mobile_number" required />
           </div>
-          
+          <div class="mb-3">
+            <label for="provided_by" class="form-label">Service Provided By</label>
+            <input type="text" id="provided_by" name="provided_by" class="form-control .editable-field'" required>
+        </div>
           <!-- Vet in Charge Details -->
           <div class="form-group">
-            <label for="vet_in_charge_name">Vet in Charge Name</label>
+            <label for="vet_in_charge_name">Vet in Charge</label>
             <input type="text" class="form-control editable-field" id="vet_in_charge_name" name="vet_in_charge_name" required />
           </div>
-          
+          <div class="form-group">
+            <label for="species_targeted">Vet Category</label>
+            <select class="form-control editable-field" id="vet_category" name="vet_category">
+                {% for value, display in VET_CATEGORY %}
+                    <option value="{{ value }}">{{ display }}</option>
+                {% endfor %}
+            </select>
+        </div>
           <div class="form-group">
             <label for="vet_in_charge_registration_number">Vet in Charge Registration Number</label>
             <input type="text" class="form-control editable-field" id="vet_in_charge_registration_number" name="vet_in_charge_registration_number" required />
@@ -496,14 +526,11 @@
           
           <!-- Signature and Stamp -->
           <div class="form-group">
-            <label for="signature">Signature</label>
+            <label for="signature">Signature & Stamp</label>
             <textarea class="form-control editable-field" id="signature" name="signature"></textarea>
           </div>
           
-          <div class="form-group">
-            <label for="stamp">Stamp</label>
-            <textarea class="form-control editable-field" id="stamp" name="stamp"></textarea>
-          </div>
+          
           <div class="modal-footer">
               <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
               <button type="" id="submitmortem" class="btn btn-primary">Save</button>
@@ -700,17 +727,18 @@ $('#postmortemAddForm').submit(function(e) {
         }
     });
 });
-     function operateFormatter(value, row, index) {
-        return [
-          '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
-          '<i class="fa fa-edit"></i>',
-          '</a>  ',
-          '<a class="remove" href="javascript:void(0)" title="Remove">',
-          '<i class="fa fa-trash"></i>',
-          '</a>'
-          
-        ].join('')
-      }
+function operateFormatter(value, row, index) {
+  return [
+     '<div class="btn-group" role="group" aria-label="Actions">',
+          '<a class="btn btn-warning btn-sm edit" id="edit" href="javascript:void(0)" title="Edit">',
+              '<i class="fa fa-edit"></i> Edit',
+          '</a>',
+          '<a class="btn btn-danger btn-sm remove" href="javascript:void(0)" title="Remove">',
+              '<i class="fa fa-trash"></i> Delete',
+          '</a>',
+      '</div>'
+  ].join('');
+}
 
      
       window.operateEvents = {
@@ -790,33 +818,39 @@ $('#postmortemAddForm').submit(function(e) {
 
   },
         'click .remove': function (e, value, row, index) {
-    // Send an AJAX request to the Django backend to delete the record
-    $.ajax({
-        url: `/postmortem/delete/${row.id}/`, // Replace with the appropriate URL
-        type: 'DELETE',
-        headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrftoken
-    }, // Include CSRF token if required
-        success: function () {
-          
-            // If deletion is successful, remove the row from the Bootstrap Table
-            $table.bootstrapTable('remove', {
-                row: 'id',
-                values: [row.id]
-            });
-            window.location.reload();
-        },
-        error: function (xhr, textStatus, errorThrown) {
-            // Handle errors, if any
-            console.error('Error deleting record:', errorThrown);
-            // Optionally, you can display error messages or handle UI updates here
-        }
-    });
-
-}
-      }
+    // Show confirmation dialog
+    const confirmation = window.confirm("Are you sure you want to delete this record?");
     
+    // If the user confirms, proceed with the deletion
+    if (confirmation) {
+        // Send an AJAX request to the Django backend to delete the record
+        $.ajax({
+            url: `/postmortem/delete/${row.id}/`, // Replace with the appropriate URL
+            type: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            }, // Include CSRF token if required
+            success: function () {
+                // If deletion is successful, remove the row from the Bootstrap Table
+                $table.bootstrapTable('remove', {
+                    row: 'id',
+                    values: [row.id]
+                });
+                window.location.reload(); // Optionally reload the page after removal
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                // Handle errors, if any
+                console.error('Error deleting record:', errorThrown);
+                // Optionally, you can display error messages or handle UI updates here
+            }
+        });
+    } else {
+        // If the user cancels the action, do nothing (optional: add a cancel log message)
+        console.log('Deletion canceled');
+    }
+      }
+      }
       function totalTextFormatter(data) {
         return 'Total'
       }
@@ -870,6 +904,12 @@ $('#postmortemAddForm').submit(function(e) {
   {
     field: 'name_of_animal',
     title: 'Name of Animal',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'reg_no',
+    title: 'Registration Number',
     sortable: true,
     align: 'center'
   },
@@ -952,6 +992,12 @@ $('#postmortemAddForm').submit(function(e) {
     align: 'center'
   },
   {
+    field: 'cause_of_death',
+    title: 'Cause Of Death',
+    sortable: true,
+    align: 'center'
+  },
+  {
     field: 'sample_sent_to_lab',
     title: 'Sample Sent to Lab',
     sortable: true,
@@ -1000,8 +1046,20 @@ $('#postmortemAddForm').submit(function(e) {
     align: 'center'
   },
   {
+    field: 'provided_by',
+    title: 'Services Provided By',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'vet_category',
+    title: 'Vet Category',
+    sortable: true,
+    align: 'center'
+  },
+  {
     field: 'vet_in_charge_name',
-    title: 'Vet in Charge Name',
+    title: 'Vet in Charge',
     sortable: true,
     align: 'center'
   },
@@ -1019,16 +1077,11 @@ $('#postmortemAddForm').submit(function(e) {
   },
   {
     field: 'signature',
-    title: 'Signature',
+    title: 'Signature & Stamp',
     sortable: true,
     align: 'center'
   },
-  {
-    field: 'stamp',
-    title: 'Stamp',
-    sortable: true,
-    align: 'center'
-  },
+  
          
           {
             field: 'operate',

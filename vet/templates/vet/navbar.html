@@ -1,73 +1,62 @@
 {% load static %}
-<!-- ======= Top Bar ======= -->
- <section id="topbar" class="d-none d-lg-block">
-    <div class="container d-flex">
-      <div class="contact-info mr-auto">
-        <i class="icofont-envelope"></i><a href="mailto:services@soinvet.com">services@soinvet.com</a>
-        <i class="icofont-phone"></i> +254727091292
-      </div>
-      <div class="social-links">
-        <a href="#" class="twitter"><i class="icofont-twitter"></i></a>
-        <a href="#" class="facebook"><i class="icofont-facebook"></i></a>
-      </div>
+<header id="header">
+  <div class="container d-flex align-items-center">
+
+    <div class="logo d-flex align-items-center">
+      <!-- Logo Image -->
+      <a href="{% url 'index' %}">
+        <img src="{% static 'vet/assets/img/llogo2.png' %}" alt="Logo" style="height: 50px;  margin-right: 10px;">
+      </a>
+      <!-- Logo Text -->
+      <h1 class="text-light mb-0">
+        <a href="{% url 'index' %}"> <span style="font-size: 23px;">SOIN VETERINARY</span></a>
+      </h1>
     </div>
-  </section>
 
-  <!-- ======= Header ======= -->
-  <header id="header">
-    <div class="container d-flex">
+    <nav class="nav-menu d-none d-lg-block ml-auto">
+      <ul>
+        <li class="active"><a href="{% url 'index' %}">Home</a></li>
 
-      <div class="logo mr-auto">
-        <h1 class="text-light"><a href="{% url 'index' %}"><span>SOIN VETERINARY</span></a></h1>
-        
-        <!-- Uncomment below if you prefer to use an image logo -->
-        <a href="{% url 'index' %}">
-            <img src="{% static 'vet/assets/img/llogo.jpg' %}" alt="Logo" >
-        </a>
-    </div>
-    
+        <li class="drop-down"><a href="#">About</a>
+          <ul>
+            <li><a href="{% url 'about' %}">About Us</a></li>
+            <li><a href="{% url 'team' %}">Our Team</a></li>
+          </ul>
+        </li>
 
-      <nav class="nav-menu d-none d-lg-block">
-        <ul>
-          <li class="active"><a href="{% url 'index' %}">Home</a></li>
-
-          <li class="drop-down"><a href="#">About</a>
+        <li class="drop-down"><a href="#">Services</a>
+          <ul>
+            <li><a href="{% url 'services' %}">Services</a></li>
+          </ul>
+        </li>
+        {% if not user.is_authenticated %}
+          <li class="drop-down"><a href="#">Accounts</a>
             <ul>
-              <li><a href="{% url 'about' %}">About Us</a></li>
-              <li><a href="{% url 'events' %}">Events and Trainings</a></li>
+              <li><a href="{% url 'vet-login' %}">Vet Officer Login</a></li>
+              <li><a href="{% url 'farmer-login' %}">Farmer Login</a></li>
+              <li><a href="{% url 'official-login' %}">Government Official Login</a></li>
             </ul>
           </li>
+        {% else %}
+          <li class="drop-down"><a href="#">{{ user.username }}</a>
+            <ul>
+              {% if user.is_vet_officer %}
+                <li><a href="{% url 'vet-portal' %}">My Dashboard</a></li>
+              {% elif user.is_farmer %}
+                <li><a href="{% url 'farmer-portal' %}">My Dashboard</a></li>
+              {% elif user.is_official %}
+                <li><a href="{% url 'official-portal' %}">My Dashboard</a></li>
+              {% elif user.is_superuser %}
+                <li><a href="/admin">Admin Dashboard</a></li>
+              {% endif %}
+              <li><a href="{% url 'logout' %}">Logout</a></li>
+            </ul>
+          </li>
+        {% endif %}
+        <li><a href="{% url 'blog' %}">Our Partners</a></li>
+        <li><a href="{% url 'contact' %}">Contact</a></li>
+      </ul>
+    </nav><!-- .nav-menu -->
 
-          <li><a href="{% url 'services' %}">Services</a></li>
-          {% if not user.is_authenticated %}
-            <li class="drop-down"><a href="#">Accounts</a>
-              <ul>
-                <li><a href="{% url 'vet-login' %}">Vet Officer Login</a></li>
-                  <li><a href="{% url 'farmer-login' %}">Farmer Login</a></li>
-                  <li><a href="{% url 'official-login' %}">Government Official Login</a></li>
-              </ul>
-            </li>
-          {% else %}
-            <li class="drop-down"><a href="#">{{user.username}}</a>
-              <ul>
-                {% if user.is_vet_officer %}
-                  <li><a href="{% url 'vet-portal' %}">My Dashboard</a></li>
-                {% elif user.is_farmer %}
-                  <li><a href="{% url 'farmer-portal' %}">My Dashboard</a></li>
-                  {% elif user.is_official %}
-                  <li><a href="{% url 'official-portal' %}">My Dashboard</a></li>
-                {% elif user.is_superuser %}            
-                  <li><a href="/admin">Admin Dashboard</a></li>
-                {% endif %} 
-                <li><a href="{% url 'logout' %}">Logout</a></li>
-              </ul>
-            </li>
-          {% endif %} 
-          <li><a href="{% url 'blog' %}">Articles</a></li>
-          <li><a href="{% url 'contact' %}">Contact</a></li>
-
-        </ul>
-      </nav><!-- .nav-menu -->
-
-    </div>
-  </header><!-- End Header -->
+  </div>
+</header><!-- End Header -->

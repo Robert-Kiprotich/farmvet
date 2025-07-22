@@ -113,6 +113,8 @@
         border: 1px solid black;
         border-collapse: collapse;
         font-size: medium;
+        width: 100%;
+        
       }
       </style>
       <div class="select" hidden>
@@ -366,6 +368,12 @@ const csrftoken = getCookie('csrftoken');
             align: 'center'
           },
           {
+            field: 'other_breed',
+            title: 'Other Breed',
+            sortable: true,
+            align: 'center'
+          },
+          {
             field: 'bull_name',
             title: 'Bull Name',
             sortable: true,
@@ -380,6 +388,12 @@ const csrftoken = getCookie('csrftoken');
           {
             field: 'semen_source',
             title: 'Semen Source',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'other_source',
+            title: 'Other Source',
             sortable: true,
             align: 'center'
           },
@@ -456,6 +470,12 @@ const csrftoken = getCookie('csrftoken');
             align: 'center'
           },
           {
+            field: 'vet_category',
+            title: 'Vet Category',
+            sortable: true,
+            align: 'center'
+          },
+          {
             field: 'vet_reg_no',
             title: 'Veterinarian Registration Number',
             sortable: true,
@@ -468,17 +488,12 @@ const csrftoken = getCookie('csrftoken');
             align: 'center'
           },
           {
-            field: 'signature',
+            field: 'signature_stamp',
             title: 'Signature',
             sortable: true,
             align: 'center'
           },
-          {
-            field: 'stamp',
-            title: 'Stamp',
-            sortable: true,
-            align: 'center'
-          },
+          
         ],
         [
         ]

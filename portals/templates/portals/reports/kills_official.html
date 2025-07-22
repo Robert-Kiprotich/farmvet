@@ -3,7 +3,11 @@
 {% load static %}
 
 {% block content %}
-{% include 'portals/sidebarOfficial.html' %}
+{% if role == "farmer" %}
+    {% include 'portals/sidebarFarmer.html' %}
+{% elif role == "official" %}
+    {% include 'portals/sidebarOfficial.html' %}
+{% endif %}
 <main class="page-content">
 <div class="container-fluid">
       <!-- Navbar -->
@@ -624,7 +628,7 @@ $('#killsAddForm').submit(function(e) {
             sortable: true,
             align: 'center'
           },
-          {
+          /* {
             field: 'number_of_females_killed',
             title: 'Number of Females Killed',
             sortable: true,
@@ -635,7 +639,7 @@ $('#killsAddForm').submit(function(e) {
             title: 'Number of Males Killed',
             sortable: true,
             align: 'center'
-          },
+          }, */
           {
             field: 'total_kills_per_day',
             title: 'Total Kills Per Day',

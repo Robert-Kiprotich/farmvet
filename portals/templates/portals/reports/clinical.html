@@ -95,7 +95,7 @@
               </select>
             </div>
             <div class="form-group">
-              <label for="animal_species_affected">Animal Species Affected</label>
+              <label for="animal_species_affected">Animal Category Affected</label>
               <select class="form-control" id="animal_species_affected" name="animal_species_affected">
                   <option value="Cattle">Cattle</option>
                   <option value="Sheep">Sheep</option>
@@ -116,10 +116,10 @@
           </div>
           
           <!-- Number of Animals Sick -->
-          <div class="form-group">
+          {% comment %} <div class="form-group">
               <label for="number_of_animals_sick">Number of Animals Sick</label>
               <input type="number" class="form-control" id="number_of_animals_sick" name="number_of_animals_sick">
-          </div>
+          </div> {% endcomment %}
           
           <!-- Name of Animal Affected -->
           <div class="form-group">
@@ -136,7 +136,7 @@
           <!-- Age of Animal -->
           <div class="form-group">
               <label for="age_of_animal">Age of Animal</label>
-              <input type="number" class="form-control" id="age_of_animal" name="age_of_animal">
+              <input type="text" class="form-control" id="age_of_animal" name="age_of_animal">
           </div>
           
           <!-- Breed of Animal -->
@@ -154,13 +154,32 @@
                   <option value="Chronic">Chronic</option>
               </select>
           </div>
-          
+           <!-- Case History -->
+           <div class="form-group">
+            <label for="case_history">Case History</label>
+            <textarea class="form-control" id="case_history" name="case_history"></textarea>
+        </div>
+         <!-- Refer Case to Other Vet -->
+         <div class="form-group">
+          <label for="refer_case_to_other_vet">Refer Case to Other Vet?</label>
+          <select class="form-control" id="refer_case_to_other_vet" name="refer_case_to_other_vet">
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+          </select>
+      </div>
           <!-- Clinical Signs -->
           <div class="form-group">
               <label for="clinical_signs">Clinical Signs</label>
               <textarea class="form-control" id="clinical_signs" name="clinical_signs"></textarea>
           </div>
-          
+          <div class="mb-3">
+            <label for="prognosis_of_patient" class="form-label">Prognosis</label>
+            <select id="prognosis" name="prognosis" class="form-control editable-field">
+                {% for value, display in CLINICAL_PROGNOSIS %}
+                    <option value="{{ value }}">{{ display }}</option>
+                {% endfor %}
+            </select>
+        </div>
           <!-- Differential Diagnosis -->
           <div class="form-group">
               <label for="differential_diagnosis">Differential Diagnosis</label>
@@ -173,11 +192,7 @@
               <textarea class="form-control" id="final_diagnosis" name="final_diagnosis"></textarea>
           </div>
           
-          <!-- Case History -->
-          <div class="form-group">
-              <label for="case_history">Case History</label>
-              <textarea class="form-control" id="case_history" name="case_history"></textarea>
-          </div>
+         
           
           <!-- Treatment Plan -->
           <div class="form-group">
@@ -191,11 +206,7 @@
               <textarea class="form-control" id="drugs_of_choice" name="drugs_of_choice"></textarea>
           </div>
           
-          <!-- Prognosis -->
-          <div class="form-group">
-              <label for="prognosis">Prognosis</label>
-              <textarea class="form-control" id="prognosis" name="prognosis"></textarea>
-          </div>
+         
           
           <!-- Date of Start Dose -->
           <div class="form-group">
@@ -211,7 +222,7 @@
           
           <!-- Is Zoonotic -->
           <div class="form-group">
-              <label for="is_zoonotic">Is Zoonotic?</label>
+              <label for="is_zoonotic">Is Disease Zoonotic?</label>
               <select class="form-control" id="is_zoonotic" name="is_zoonotic">
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
@@ -220,33 +231,13 @@
           
           <!-- Precautions -->
           <div class="form-group">
-              <label for="precautions">Precautions</label>
+              <label for="precautions">State Precautions</label>
               <textarea class="form-control" id="precautions" name="precautions"></textarea>
           </div>
           
-          <!-- Refer Case to Other Vet -->
-          <div class="form-group">
-              <label for="refer_case_to_other_vet">Refer Case to Other Vet?</label>
-              <select class="form-control" id="refer_case_to_other_vet" name="refer_case_to_other_vet">
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-              </select>
-          </div>
+         
           
-          <!-- Is Disease Reportable -->
-          <div class="form-group">
-              <label for="is_disease_reportable">Is Disease Reportable?</label>
-              <select class="form-control" id="is_disease_reportable" name="is_disease_reportable">
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-              </select>
-          </div>
           
-          <!-- Reason If Not Reportable -->
-          <div class="form-group">
-              <label for="reason_if_not_reportable">Reason If Not Reportable</label>
-              <textarea class="form-control" id="reason_if_not_reportable" name="reason_if_not_reportable"></textarea>
-          </div>
           
           <!-- Is Disease Notifiable -->
           <div class="form-group">
@@ -259,7 +250,7 @@
           
           <!-- Notified Authority -->
           <div class="form-group">
-              <label for="notified_authority">Notified Authority</label>
+              <label for="notified_authority">Notified Authority?</label>
               <select class="form-control" id="notified_authority" name="notified_authority">
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
@@ -271,9 +262,6 @@
               <label for="comment">Comment</label>
               <textarea class="form-control" id="comment" name="comment"></textarea>
           </div>
-          
-          
-          
           <!-- Owner Name -->
           <div class="form-group">
               <label for="owner_name">Owner Name</label>
@@ -292,10 +280,21 @@
               <input type="text" class="form-control" id="owner_contact" name="owner_contact">
           </div>
           <div class="form-group">
+            <label for="comment">Service Provided By</label>
+            <textarea class="form-control editable-field" id="provided_by" name="provided_by"></textarea>
+        </div>
+          <div class="form-group">
             <label for="vet_in_charge_name">Vet In-Charge Name</label>
             <input type="text" class="form-control" id="vet_in_charge_name" name="vet_in_charge_name">
         </div>
-        
+        <div class="form-group">
+          <label for="species_targeted">Vet Category</label>
+          <select class="form-control editable-field" id="vet_category" name="vet_category">
+              {% for value, display in VET_CATEGORY %}
+                  <option value="{{ value }}">{{ display }}</option>
+              {% endfor %}
+          </select>
+      </div>
         <!-- Vet Registration Number -->
         <div class="form-group">
             <label for="vet_registration_number">Vet Registration Number</label>
@@ -309,15 +308,11 @@
         </div>
         
         <div class="form-group">
-          <label for="vet_signature">Vet Signature</label>
+          <label for="vet_signature">Signature & Stamp</label>
           <textarea class="form-control" id="vet_signature" name="vet_signature"></textarea>
       </div>
       
-      <!-- Rubber Stamp -->
-      <div class="form-group">
-          <label for="rubber_stamp">Rubber Stamp</label>
-          <textarea class="form-control" id="rubber_stamp" name="rubber_stamp"></textarea>
-      </div>
+      
 
             <div class="modal-footer">
                 <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -353,7 +348,7 @@
             </select>
           </div>
           <div class="form-group">
-            <label for="animal_species_affected">Animal Species Affected</label>
+            <label for="animal_species_affected">Animal Category Affected</label>
             <select class="form-control editable-field" id="animal_species_affected" name="animal_species_affected">
                 <option value="Cattle">Cattle</option>
                 <option value="Sheep">Sheep</option>
@@ -372,10 +367,10 @@
             <input type="text" class="form-control editable-field" id="other_species" name="other_species">
         </div>
         
-        <div class="form-group">
+        {% comment %} <div class="form-group">
             <label for="number_of_animals_sick">Number of Animals Sick</label>
             <input type="number" class="form-control editable-field" id="number_of_animals_sick" name="number_of_animals_sick">
-        </div>
+        </div> {% endcomment %}
         
         <div class="form-group">
             <label for="name_of_animal_affected">Name of Animal Affected</label>
@@ -389,7 +384,7 @@
         
         <div class="form-group">
             <label for="age_of_animal">Age of Animal</label>
-            <input type="number" class="form-control editable-field" id="age_of_animal" name="age_of_animal">
+            <input type="text" class="form-control editable-field" id="age_of_animal" name="age_of_animal">
         </div>
         
         <div class="form-group">
@@ -405,12 +400,29 @@
                 <option value="Chronic">Chronic</option>
             </select>
         </div>
-        
+        <div class="form-group">
+          <label for="case_history">Case History</label>
+          <textarea class="form-control editable-field" id="case_history" name="case_history"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="refer_case_to_other_vet">Refer Case to Other Vet?</label>
+        <select class="form-control editable-field" id="refer_case_to_other_vet" name="refer_case_to_other_vet">
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+        </select>
+    </div>
         <div class="form-group">
             <label for="clinical_signs">Clinical Signs</label>
             <textarea class="form-control editable-field" id="clinical_signs" name="clinical_signs"></textarea>
         </div>
-        
+        <div class="mb-3">
+          <label for="prognosis_of_patient" class="form-label">Prognosis</label>
+          <select id="prognosis" name="prognosis" class="form-control editable-field">
+              {% for value, display in CLINICAL_PROGNOSIS %}
+                  <option value="{{ value }}">{{ display }}</option>
+              {% endfor %}
+          </select>
+      </div>
         <div class="form-group">
             <label for="differential_diagnosis">Differential Diagnosis</label>
             <textarea class="form-control editable-field" id="differential_diagnosis" name="differential_diagnosis"></textarea>
@@ -421,10 +433,7 @@
             <textarea class="form-control editable-field" id="final_diagnosis" name="final_diagnosis"></textarea>
         </div>
         
-        <div class="form-group">
-            <label for="case_history">Case History</label>
-            <textarea class="form-control editable-field" id="case_history" name="case_history"></textarea>
-        </div>
+       
         
         <div class="form-group">
             <label for="treatment_plan">Treatment Plan</label>
@@ -436,10 +445,7 @@
             <textarea class="form-control editable-field" id="drugs_of_choice" name="drugs_of_choice"></textarea>
         </div>
         
-        <div class="form-group">
-            <label for="prognosis">Prognosis</label>
-            <textarea class="form-control editable-field" id="prognosis" name="prognosis"></textarea>
-        </div>
+       
         
         <div class="form-group">
             <label for="date_of_start_dose">Date of Start Dose</label>
@@ -452,7 +458,7 @@
         </div>
         
         <div class="form-group">
-            <label for="is_zoonotic">Is Zoonotic?</label>
+            <label for="is_zoonotic">Is Disease Zoonotic?</label>
             <select class="form-control editable-field" id="is_zoonotic" name="is_zoonotic">
                 <option value="Yes">Yes</option>
                 <option value="No">No</option>
@@ -460,30 +466,13 @@
         </div>
         
         <div class="form-group">
-            <label for="precautions">Precautions</label>
+            <label for="precautions">State Precautions</label>
             <textarea class="form-control editable-field" id="precautions" name="precautions"></textarea>
         </div>
         
-        <div class="form-group">
-            <label for="refer_case_to_other_vet">Refer Case to Other Vet?</label>
-            <select class="form-control editable-field" id="refer_case_to_other_vet" name="refer_case_to_other_vet">
-                <option value="Yes">Yes</option>
-                <option value="No">No</option>
-            </select>
-        </div>
         
-        <div class="form-group">
-            <label for="is_disease_reportable">Is Disease Reportable?</label>
-            <select class="form-control editable-field" id="is_disease_reportable" name="is_disease_reportable">
-                <option value="Yes">Yes</option>
-                <option value="No">No</option>
-            </select>
-        </div>
         
-        <div class="form-group">
-            <label for="reason_if_not_reportable">Reason If Not Reportable</label>
-            <textarea class="form-control editable-field" id="reason_if_not_reportable" name="reason_if_not_reportable"></textarea>
-        </div>
+        
         
         <div class="form-group">
             <label for="is_disease_notifiable">Is Disease Notifiable?</label>
@@ -494,7 +483,7 @@
         </div>
         
         <div class="form-group">
-            <label for="notified_authority">Notified Authority</label>
+            <label for="notified_authority">Notified Authority?</label>
             <select class="form-control editable-field" id="notified_authority" name="notified_authority">
                 <option value="Yes">Yes</option>
                 <option value="No">No</option>
@@ -520,12 +509,23 @@
             <label for="owner_contact">Owner Contact</label>
             <input type="text" class="form-control editable-field" id="owner_contact" name="owner_contact">
         </div>
-        
+        <div class="form-group">
+          <label for="comment">Service Provided By</label>
+          <textarea class="form-control editable-field" id="provided_by" name="provided_by"></textarea>
+      </div>
+      
         <div class="form-group">
             <label for="vet_in_charge_name">Vet In-Charge Name</label>
             <input type="text" class="form-control editable-field" id="vet_in_charge_name" name="vet_in_charge_name">
         </div>
-        
+        <div class="form-group">
+          <label for="species_targeted">Vet Category</label>
+          <select class="form-control editable-field" id="vet_category" name="vet_category">
+              {% for value, display in VET_CATEGORY %}
+                  <option value="{{ value }}">{{ display }}</option>
+              {% endfor %}
+          </select>
+      </div>
         <div class="form-group">
             <label for="vet_registration_number">Vet Registration Number</label>
             <input type="text" class="form-control editable-field" id="vet_registration_number" name="vet_registration_number">
@@ -541,10 +541,7 @@
             <textarea class="form-control editable-field" id="vet_signature" name="vet_signature"></textarea>
         </div>
         
-        <div class="form-group">
-            <label for="rubber_stamp">Rubber Stamp</label>
-            <textarea class="form-control editable-field" id="rubber_stamp" name="rubber_stamp"></textarea>
-        </div>
+        
         
           <div class="modal-footer">
               <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -738,17 +735,18 @@ $('#clinicalAddForm').submit(function(e) {
         }
     });
 });
-     function operateFormatter(value, row, index) {
-        return [
-          '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
-          '<i class="fa fa-edit"></i>',
-          '</a>  ',
-          '<a class="remove" href="javascript:void(0)" title="Remove">',
-          '<i class="fa fa-trash"></i>',
-          '</a>'
-          
-        ].join('')
-      }
+function operateFormatter(value, row, index) {
+  return [
+     '<div class="btn-group" role="group" aria-label="Actions">',
+          '<a class="btn btn-warning btn-sm edit" id="edit" href="javascript:void(0)" title="Edit">',
+              '<i class="fa fa-edit"></i> Edit',
+          '</a>',
+          '<a class="btn btn-danger btn-sm remove" href="javascript:void(0)" title="Remove">',
+              '<i class="fa fa-trash"></i> Delete',
+          '</a>',
+      '</div>'
+  ].join('');
+}
 
      
       window.operateEvents = {
@@ -828,33 +826,39 @@ $('#clinicalAddForm').submit(function(e) {
 
   },
         'click .remove': function (e, value, row, index) {
-    // Send an AJAX request to the Django backend to delete the record
-    $.ajax({
-        url: `/clinical-record/delete/${row.id}/`, // Replace with the appropriate URL
-        type: 'DELETE',
-        headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrftoken
-    }, // Include CSRF token if required
-        success: function () {
-          
-            // If deletion is successful, remove the row from the Bootstrap Table
-            $table.bootstrapTable('remove', {
-                row: 'id',
-                values: [row.id]
-            });
-            window.location.reload();
-        },
-        error: function (xhr, textStatus, errorThrown) {
-            // Handle errors, if any
-            console.error('Error deleting record:', errorThrown);
-            // Optionally, you can display error messages or handle UI updates here
-        }
-    });
-
-}
-      }
+    // Show confirmation dialog
+    const confirmation = window.confirm("Are you sure you want to delete this record?");
     
+    // If the user confirms, proceed with the deletion
+    if (confirmation) {
+        // Send an AJAX request to the Django backend to delete the record
+        $.ajax({
+            url: `/clinical-record/delete/${row.id}/`, // Replace with the appropriate URL
+            type: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            }, // Include CSRF token if required
+            success: function () {
+                // If deletion is successful, remove the row from the Bootstrap Table
+                $table.bootstrapTable('remove', {
+                    row: 'id',
+                    values: [row.id]
+                });
+                window.location.reload(); // Optionally reload the page after removal
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                // Handle errors, if any
+                console.error('Error deleting record:', errorThrown);
+                // Optionally, you can display error messages or handle UI updates here
+            }
+        });
+    } else {
+        // If the user cancels the action, do nothing (optional: add a cancel log message)
+        console.log('Deletion canceled');
+    }
+      }
+      }
       function totalTextFormatter(data) {
         return 'Total'
       }
@@ -896,7 +900,7 @@ $('#clinicalAddForm').submit(function(e) {
           },
           {
             field: 'animal_species_affected',
-            title: 'Animal Species Affected',
+            title: 'Animal Category Affected',
             sortable: true,
             align: 'center'
           },
@@ -906,12 +910,12 @@ $('#clinicalAddForm').submit(function(e) {
             sortable: true,
             align: 'center'
           },
-          {
+         /* {
             field: 'number_of_animals_sick',
             title: 'Number of Animals Sick',
             sortable: true,
             align: 'center'
-          },
+          },*/
           {
             field: 'name_of_animal_affected',
             title: 'Name of Animal Affected',
@@ -949,6 +953,12 @@ $('#clinicalAddForm').submit(function(e) {
             align: 'center'
           },
           {
+            field: 'prognosis',
+            title: 'Prognosis',
+            sortable: true,
+            align: 'center'
+          },
+          {
             field: 'differential_diagnosis',
             title: 'Differential Diagnosis',
             sortable: true,
@@ -967,6 +977,12 @@ $('#clinicalAddForm').submit(function(e) {
             align: 'center'
           },
           {
+            field: 'refer_case_to_other_vet',
+            title: 'Refer Case to Other Vet',
+            sortable: true,
+            align: 'center'
+          },
+          {
             field: 'treatment_plan',
             title: 'Treatment Plan',
             sortable: true,
@@ -978,12 +994,7 @@ $('#clinicalAddForm').submit(function(e) {
             sortable: true,
             align: 'center'
           },
-          {
-            field: 'prognosis',
-            title: 'Prognosis',
-            sortable: true,
-            align: 'center'
-          },
+          
           {
             field: 'date_of_start_dose',
             title: 'Date of Start Dose',
@@ -1010,28 +1021,12 @@ $('#clinicalAddForm').submit(function(e) {
           },
           {
             field: 'precautions',
-            title: 'Zoonotic Precautions',
+            title: 'State Precautions',
             sortable: true,
             align: 'center'
           },
-          {
-            field: 'refer_case_to_other_vet',
-            title: 'Refer Case to Other Vet',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'is_disease_reportable',
-            title: 'Is Disease Reportable',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'reason_if_not_reportable',
-            title: 'Reason If Not Reportable',
-            sortable: true,
-            align: 'center'
-          },
+          
+         
           {
             field: 'is_disease_notifiable',
             title: 'Is Disease Notifiable',
@@ -1040,7 +1035,7 @@ $('#clinicalAddForm').submit(function(e) {
           },
           {
             field: 'notified_authority',
-            title: 'Notified Authority',
+            title: 'Notified Authority?',
             sortable: true,
             align: 'center'
           },
@@ -1069,8 +1064,20 @@ $('#clinicalAddForm').submit(function(e) {
             align: 'center'
           },
           {
+            field: 'provided_by',
+            title: 'Service Provided By',
+            sortable: true,
+            align: 'center'
+          },
+          {
             field: 'vet_in_charge_name',
             title: 'Vet In-Charge Name',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'vet_category',
+            title: 'Vet Category',
             sortable: true,
             align: 'center'
           },
@@ -1088,16 +1095,11 @@ $('#clinicalAddForm').submit(function(e) {
           },
           {
             field: 'vet_signature',
-            title: 'Vet Signature',
+            title: ' Signature & Stamp',
             sortable: true,
             align: 'center'
           },
-          {
-            field: 'rubber_stamp',
-            title: 'Rubber Stamp',
-            sortable: true,
-            align: 'center'
-          },
+          
           {
             field: 'operate',
             title: 'Item Operate',

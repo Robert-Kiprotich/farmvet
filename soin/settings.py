@@ -15,7 +15,7 @@ SECRET_KEY = 'chang3m3'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*','https://4afd-154-122-78-252.ngrok-free.app']
 
 
 # Application definition
@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'rest_framework',
     # Third party packages
     'crispy_forms',
+    'crispy_bootstrap4',
 
     # Django defaults
      'jazzmin',
@@ -50,9 +51,10 @@ INSTALLED_APPS = [
 
 AUTH_USER_MODEL = 'user.User'
 
-
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 MIDDLEWARE = [
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -77,7 +79,9 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'portals.context_processor.all_farmers',
                 'portals.context_processor.all_officials',
+                'portals.context_processor.all_vets',
                 'portals.context_processor.choices',
+                'portals.context_processor.user_role',
                 
             ],
         },
@@ -203,12 +207,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 STATIC_URL = '/static/'
 
-STATIC_ROOT = '/home/soinvetc/farmvet/vetWeb/soin/static'
-
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR,'portals', 'static'),
-]
-
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
 

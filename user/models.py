@@ -11,11 +11,14 @@ class User(AbstractUser):
     email = models.EmailField(null=True, blank=True)
     phone_number = models.CharField(max_length=13)
     specialization = models.CharField(max_length=100,null=True)
-    country = models.CharField(max_length=100,null=True)
+    county=models.CharField(max_length=100,null=True)
+    subcounty=models.CharField(max_length=100,null=True)
     location = models.CharField(max_length=100,null=True)
     vet_category = models.CharField(max_length=100,null=True)
+    supervisor=models.CharField(max_length=100,null=True)
     registration_number = models.CharField(max_length=100,null=True)
-    inst_of_grad = models.CharField(max_length=100,null=True)
+    licence_number=models.CharField(max_length=100,null=True)
+    
     
 
 class Vet_Officer(models.Model):
@@ -26,7 +29,7 @@ class Vet_Officer(models.Model):
 	
 class Farmer(models.Model):
 	user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-	country = models.CharField(max_length=100,default='Unknown')
+	county = models.CharField(max_length=100,default='Unknown')
 	location = models.CharField(max_length=100, default='My location')
 
 	def __str__(self):

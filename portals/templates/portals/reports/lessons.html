@@ -74,7 +74,7 @@
             <div class="card">
               <div class="card-header">
 
-                                <h2 class="title-1 m-b-25">Available Lessons </h2>
+                                <h2 class="title-1 m-b-25">Lessons </h2>
                                 {% if sections %}
                                 {% for section in sections %}
                                     <div class="card">
@@ -99,10 +99,10 @@
                                         <div class="card mb-3">
                                             <div class="card-header">
                                                 {% comment %} <h5 class="card-title">{{ section.title }}</h5> {% endcomment %}
-                                                <a href="{% url 'comment-list' section_id=section.id %}">Comments and Discussion</a>
+                                                <a href="{% url 'comment-list' section_id=section.id %}">Comments</a>
                                             </div>
                                             <div class="card-body">
-                                                <p class="card-text">{{ section.content }}</p>
+                                                <p class="card-text">You Can also leave a comment here</p>
                                                 
                                                 {% with section.comment_set.last as latest_comment %}
                                                     {% if latest_comment %}
@@ -130,8 +130,8 @@
                                       <a href="{% url 'questions-list' section_id=section.id %}">Take Exam</a>
                                     </div>
                                     <div class="card-body">
-                                      <h5 class="card-title">{{ section.content }}</h5>
-                                      <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                                      <h5 class="card-title">The pass mark for this exam is 80%.You can retake 2 times when you fail</h5>
+                                      
                                     </div>
                                 </div>
                                 {% endwith %} 

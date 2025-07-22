@@ -79,7 +79,7 @@
 <form method="POST" action="{% url 'questions-submit' section_id=section.id %}">
   {% csrf_token %}
   <div>
-      <h3>Online Cpd Questions</h3>
+      <h3>Online CPD Questions</h3>
       {% if questions %}
           <p id="note">Note: You only have <span id="timer"><strong>20:00</strong></span> for this course</p>
           
@@ -92,13 +92,12 @@
                               <input type="radio" name="answers[{{ question.id }}]" value="{{ choice.id }}">
                               <label for="choice">{{ choice.choice_text }}</label>
                           </li>
-                          
                       {% endfor %}
                   </ul>
               </div>
           {% endfor %}
       {% else %}
-          <p>No questions currently available for this section.</p>
+          
           <p>Since there are no questions, the timer will not be started.</p>
           <style>
               #timer {
@@ -107,11 +106,21 @@
           </style>
       {% endif %}
   </div>
+
   <button type="submit" 
-            {% if questions|length == 0 %}disabled style="background-color: brown; color: white;"{% endif %}>
+          {% if disable_submit %}disabled class="blurred"{% endif %}>
         Submit
-    </button>
+  </button>
 </form>
+
+<!-- Add your CSS for the blur effect -->
+<style>
+  .blurred {
+      pointer-events: none; /* Prevent the button from being clickable */
+      opacity: 0.5;          /* Make it visually appear disabled */
+      filter: blur(2px);     /* Apply the blur effect */
+  }
+</style>
 
 
            </div>

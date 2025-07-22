@@ -89,7 +89,7 @@
                
           <div class="mb-3">
             <label for="date_of_billing" class="form-label">Date of Billing</label>
-            <input type="date" id="date_of_billing" name="date_of_billing" class="form-control editable-field">
+            <input type="date" id="date_of_billing" name="date_of_billing" class="form-control">
             <div class="invalid-feedback">Please provide a valid date of billing.</div>
           </div>
           
@@ -411,12 +411,14 @@ $('#billsAddForm').submit(function(e) {
     });
      function operateFormatter(value, row, index) {
         return [
-          '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
-          '<i class="fa fa-edit"></i>',
-          '</a>  ',
-          '<a class="remove" href="javascript:void(0)" title="Remove">',
-          '<i class="fa fa-trash"></i>',
-          '</a>'
+          '<div class="btn-group" role="group" aria-label="Actions">',
+          '<a class="btn btn-warning btn-sm edit" id="edit" href="javascript:void(0)" title="Edit">',
+              '<i class="fa fa-edit"></i> Edit',
+          '</a>',
+          '<a class="btn btn-danger btn-sm remove" href="javascript:void(0)" title="Remove">',
+              '<i class="fa fa-trash"></i> Delete',
+          '</a>',
+      '</div>'
           
         ].join('')
       }

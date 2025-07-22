@@ -415,6 +415,12 @@ $('#pregAddForm').submit(function(e) {
             align: 'center'
           },
           {
+            field: 'other_invoice_category',
+            title: 'Other Invoice Category',
+            sortable: true,
+            align: 'center'
+          },
+          {
             field: 'date_of_invoice',
             title: 'Date of Invoice',
             sortable: true,
@@ -424,11 +430,24 @@ $('#pregAddForm').submit(function(e) {
             }
           },
           {
+            field: 'invoice_particulars',
+            title: 'Invoice Particulars',
+            sortable: true,
+            align: 'center' 
+          },
+          {
             field: 'total_amount_due',
             title: 'Total Amount Due',
             sortable: true,
             align: 'center' 
           },
+          {
+            field: 'payment_method',
+            title: 'Payment Method',
+            sortable: true,
+            align: 'center' 
+          },
+
           {
             field: 'farmer_name',
             title: 'Farmer Name',
@@ -447,6 +466,19 @@ $('#pregAddForm').submit(function(e) {
             sortable: true,
             align: 'center'
           },
+          {
+            field: 'provided_by',
+            title: 'Service Provided By',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'vet_category',
+            title: 'Vet Category',
+            sortable: true,
+            align: 'center'
+          },
+          
           {
             field: 'vet_in_charge_of_invoice',
             title: 'Vet in Charge',
@@ -467,25 +499,11 @@ $('#pregAddForm').submit(function(e) {
           },
           {
             field: 'signature',
-            title: 'Signature',
+            title: 'Signature & Stamp',
             sortable: true,
             align: 'center'
           },
-          {
-            field: 'stamp',
-            title: 'Stamp',
-            sortable: true,
-            align: 'center'
-          },
-         
-          {
-            field: 'operate',
-            title: 'Item Operate',
-            align: 'center',
-            clickToSelect: false,
-            events: window.operateEvents,
-            formatter: operateFormatter
-          }
+          
         ],
         [
         ]

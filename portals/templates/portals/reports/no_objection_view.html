@@ -141,7 +141,7 @@
       data-page-list="[10, 25, 50, 100, all]"
       data-show-footer="true"
       data-side-pagination="server"
-      data-url="{% url 'ai-list' %}"
+      data-url="{% url 'no-objection-list' %}"
       data-response-handler="responseHandler">
     </table>
     <script>
@@ -269,6 +269,7 @@ const csrftoken = getCookie('csrftoken');
             valign: 'middle'
           },
           
+          
           {
             field: 'assigned_to_official',
             title: 'Farmer Name',
@@ -314,15 +315,12 @@ const csrftoken = getCookie('csrftoken');
             sortable: true,
             align: 'center'
           },
-          {
+         /* {
             field: 'uploaded_no_objection_form',
-            title: 'Uploaded No Objection Form',
+            title: 'No Objection Form',
             sortable: true,
             align: 'center',
-            formatter: function (value, row) {
-              return `<a href="${value}" target="_blank">View File</a>`;
-            }
-          },
+          },*/
         ],
         [
         ]

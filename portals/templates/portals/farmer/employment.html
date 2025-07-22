@@ -87,6 +87,10 @@
                 {% csrf_token %}
                 <input type="hidden" id="pk" name="id">
                 <div class="mb-3">
+                  <label for="enrollment_date" class="form-label">Date Of Enrollment</label>
+                  <input type="date" class="form-control" id="enrollment_date" name="enrollment_date">
+              </div>
+                <div class="mb-3">
                   <label for="employee_name" class="form-label">Employee Name</label>
                   <input type="text" id="employee_name" name="employee_name" class="form-control editable-field" maxlength="100" required>
                   <div class="invalid-feedback">Please provide a valid employee name.</div>
@@ -216,7 +220,10 @@
               <form id="employEditForm" class="form-group">
                 {% csrf_token %}
                 <input type="hidden" id="id" name="id">
-               
+                <div class="mb-3">
+                  <label for="enrollment_date" class="form-label">Date Of Enrollment</label>
+                  <input type="date" class="form-control" id="enrollment_date" name="enrollment_date">
+              </div>
                 <div class="mb-3">
                   <label for="employee_name" class="form-label">Employee Name</label>
                   <input type="text" id="employee_name" name="employee_name" class="form-control editable-field" maxlength="100" required>
@@ -537,12 +544,14 @@ $('#employAddForm').submit(function(e) {
 });
      function operateFormatter(value, row, index) {
         return [
-          '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
-          '<i class="fa fa-edit"></i>',
-          '</a>  ',
-          '<a class="remove" href="javascript:void(0)" title="Remove">',
-          '<i class="fa fa-trash"></i>',
-          '</a>'
+         '<div class="btn-group" role="group" aria-label="Actions">',
+          '<a class="btn btn-warning btn-sm edit" id="edit" href="javascript:void(0)" title="Edit">',
+              '<i class="fa fa-edit"></i> Edit',
+          '</a>',
+          '<a class="btn btn-danger btn-sm remove" href="javascript:void(0)" title="Remove">',
+              '<i class="fa fa-trash"></i> Delete',
+          '</a>',
+      '</div>'
           
         ].join('')
       }
@@ -683,6 +692,15 @@ $('#employAddForm').submit(function(e) {
             rowspan: 2,
             align: 'center',
             valign: 'middle'
+          },
+          {
+            field: 'enrollment_date',
+            title: 'Date of Enrollment',
+            sortable: true,
+            align: 'center',
+            formatter: function (value) {
+              return moment(value).format('DD-MM-YYYY'); // Format date
+            }
           },
           {
   field: 'employee_name',

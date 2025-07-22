@@ -102,87 +102,23 @@
                 <label for="id_date_sold" class="form-label">Date Sold</label>
                 <input type="date" id="date_sold" name="date_sold" class="form-control editable-field">
             </div>
-              <div class="mb-3">
-                  <label for="id_age" class="form-label">Age</label>
-                  <input type="number" id="id_age" name="age" class="form-control editable-field">
-              </div>
-              <div class="mb-3">
-                  <label for="id_breed" class="form-label">Breed</label>
-                  <select class="form-control editable-field" id="id_breed" name="breed">
-                    <optgroup label="Cattle" aria-selected="">
-                      <option value="Angus">Angus</option>
-                      <option value="Hereford">Hereford</option>
-                      <option value="Charolais">Charolais</option>
-                      <option value="Simmental">Simmental</option>
-                      <option value="Limousin">Limousin</option>
-                      <option value="Texas Longhorn">Texas Longhorn</option>
-                      <option value="Holstein">Holstein</option>
-                      <option value="Jersey">Jersey</option>
-                      <option value="Gelbvieh">Gelbvieh</option>
-                      <option value="Brahman">Brahman</option>
-                  </optgroup>
-                  <optgroup label="Sheep">
-                      <option value="Merino">Merino</option>
-                      <option value="Dorper">Dorper</option>
-                      <option value="Suffolk">Suffolk</option>
-                      <option value="Rambouillet">Rambouillet</option>
-                      <option value="Hampshire">Hampshire</option>
-                      <option value="Shropshire">Shropshire</option>
-                      <option value="Dorset">Dorset</option>
-                      <option value="Cotswold">Cotswold</option>
-                      <option value="Lincoln">Lincoln</option>
-                      <option value="Targhee">Targhee</option>
-                  </optgroup>
-                  <optgroup label="Goat">
-                      <option value="Boer">Boer</option>
-                      <option value="Nubian">Nubian</option>
-                      <option value="Saanen">Saanen</option>
-                      <option value="Angora">Angora</option>
-                      <option value="LaMancha">LaMancha</option>
-                      <option value="Alpine">Alpine</option>
-                      <option value="Toggenburg">Toggenburg</option>
-                      <option value="Kiko">Kiko</option>
-                      <option value="Spanish">Spanish</option>
-                      <option value="Pygmy">Pygmy</option>
-                  </optgroup>     
-                    <optgroup label="Dog" >
-                      <option value="Labrador Retriever">Labrador Retriever</option>
-                      <option value="German Shepherd">German Shepherd</option>
-                      <option value="Golden Retriever">Golden Retriever</option>
-                      <option value="Bulldog">Bulldog</option>
-                      <option value="Beagle">Beagle</option>
-                      <option value="Poodle">Poodle</option>
-                      <option value="Boxer">Boxer</option>
-                      <option value="Dachshund">Dachshund</option>
-                      <option value="Yorkshire Terrier">Yorkshire Terrier</option>
-                      <option value="Rottweiler">Rottweiler</option>
-                  </optgroup>
-                  <optgroup label="Cat">
-                      <option value="Siamese">Siamese</option>
-                      <option value="Persian">Persian</option>
-                      <option value="Maine Coon">Maine Coon</option>
-                      <option value="Ragdoll">Ragdoll</option>
-                      <option value="British Shorthair">British Shorthair</option>
-                      <option value="Sphynx">Sphynx</option>
-                      <option value="Bengal">Bengal</option>
-                      <option value="Abyssinian">Abyssinian</option>
-                      <option value="Scottish Fold">Scottish Fold</option>
-                      <option value="Burmese">Burmese</option>
-                  </optgroup>
-                  <optgroup label="Horse">
-                      <option value="Thoroughbred">Thoroughbred</option>
-                      <option value="Quarter Horse">Quarter Horse</option>
-                      <option value="Arabian">Arabian</option>
-                      <option value="Appaloosa">Appaloosa</option>
-                      <option value="Paint Horse">Paint Horse</option>
-                      <option value="Morgan">Morgan</option>
-                      <option value="Tennessee Walking Horse">Tennessee Walking Horse</option>
-                      <option value="Friesian">Friesian</option>
-                      <option value="Pony of the Americas">Pony of the Americas</option>
-                      <option value="Miniature Horse">Miniature Horse</option>
-                  </optgroup>
-                    </select>
-              </div>
+            
+          <div class="mb-3">
+            <label for="id_breed" class="form-label">Breed</label>
+            <select class="form-control editable-field" id="id_breed" name="breed">
+                        {% for value,display in BREED_CHOICES %}
+                            <option value="{{ value }}">{{ display}}</option>
+                        {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+          <label for="id_age" class="form-label">Age</label>
+          <select class="form-control editable-field" id="id_age" name="age">
+            {% for value,display in AGE %}
+                <option value="{{ value }}">{{ display}}</option>
+            {% endfor %}
+</select>
+      </div>
               <div class="mb-3">
                   <label for="id_sex" class="form-label">Sex</label>
                   <select id="id_sex" name="sex" class="form-control editable-field">
@@ -248,94 +184,23 @@
                 <label for="id_date_sold" class="form-label">Date Sold</label>
                 <input type="date" id="date_sold" name="date_sold" class="form-control editable-field">
             </div>
+              
               <div class="mb-3">
-                  <label for="id_age" class="form-label">Age</label>
-                  <input type="number" id="id_age" name="age" class="form-control editable-field">
-              </div>
-              <div class="mb-3">
-                  <label for="id_breed" class="form-label">Breed</label>
-                  <select class="form-control editable-field" id="id_breed" name="breed">
-                    <optgroup label="Cattle" aria-selected="">
-                      <option value="Angus">Angus</option>
-                      <option value="Hereford">Hereford</option>
-                      <option value="Charolais">Charolais</option>
-                      <option value="Simmental">Simmental</option>
-                      <option value="Limousin">Limousin</option>
-                      <option value="Texas Longhorn">Texas Longhorn</option>
-                      <option value="Holstein">Holstein</option>
-                      <option value="Jersey">Jersey</option>
-                      <option value="Gelbvieh">Gelbvieh</option>
-                      <option value="Brahman">Brahman</option>
-                  </optgroup>
-                  <optgroup label="Sheep">
-                      <option value="Merino">Merino</option>
-                      <option value="Dorper">Dorper</option>
-                      <option value="Suffolk">Suffolk</option>
-                      <option value="Rambouillet">Rambouillet</option>
-                      <option value="Hampshire">Hampshire</option>
-                      <option value="Shropshire">Shropshire</option>
-                      <option value="Dorset">Dorset</option>
-                      <option value="Cotswold">Cotswold</option>
-                      <option value="Lincoln">Lincoln</option>
-                      <option value="Targhee">Targhee</option>
-                  </optgroup>
-                  <optgroup label="Goat">
-                      <option value="Boer">Boer</option>
-                      <option value="Nubian">Nubian</option>
-                      <option value="Saanen">Saanen</option>
-                      <option value="Angora">Angora</option>
-                      <option value="LaMancha">LaMancha</option>
-                      <option value="Alpine">Alpine</option>
-                      <option value="Toggenburg">Toggenburg</option>
-                      <option value="Kiko">Kiko</option>
-                      <option value="Spanish">Spanish</option>
-                      <option value="Pygmy">Pygmy</option>
-                  </optgroup>     
-                    <optgroup label="Dog" >
-                      <option value="Labrador Retriever">Labrador Retriever</option>
-                      <option value="German Shepherd">German Shepherd</option>
-                      <option value="Golden Retriever">Golden Retriever</option>
-                      <option value="Bulldog">Bulldog</option>
-                      <option value="Beagle">Beagle</option>
-                      <option value="Poodle">Poodle</option>
-                      <option value="Boxer">Boxer</option>
-                      <option value="Dachshund">Dachshund</option>
-                      <option value="Yorkshire Terrier">Yorkshire Terrier</option>
-                      <option value="Rottweiler">Rottweiler</option>
-                  </optgroup>
-                  <optgroup label="Cat">
-                      <option value="Siamese">Siamese</option>
-                      <option value="Persian">Persian</option>
-                      <option value="Maine Coon">Maine Coon</option>
-                      <option value="Ragdoll">Ragdoll</option>
-                      <option value="British Shorthair">British Shorthair</option>
-                      <option value="Sphynx">Sphynx</option>
-                      <option value="Bengal">Bengal</option>
-                      <option value="Abyssinian">Abyssinian</option>
-                      <option value="Scottish Fold">Scottish Fold</option>
-                      <option value="Burmese">Burmese</option>
-                  </optgroup>
-                  <optgroup label="Horse">
-                      <option value="Thoroughbred">Thoroughbred</option>
-                      <option value="Quarter Horse">Quarter Horse</option>
-                      <option value="Arabian">Arabian</option>
-                      <option value="Appaloosa">Appaloosa</option>
-                      <option value="Paint Horse">Paint Horse</option>
-                      <option value="Morgan">Morgan</option>
-                      <option value="Tennessee Walking Horse">Tennessee Walking Horse</option>
-                      <option value="Friesian">Friesian</option>
-                      <option value="Pony of the Americas">Pony of the Americas</option>
-                      <option value="Miniature Horse">Miniature Horse</option>
-                  </optgroup>
-                    </select>
-              </div>
-              <div class="mb-3">
-                  <label for="id_sex" class="form-label">Sex</label>
-                  <select id="id_sex" name="sex" class="form-control editable-field">
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
+                <label for="id_breed" class="form-label">Breed</label>
+                <select class="form-control editable-field" id="id_breed" name="breed">
+                            {% for value,display in BREED_CHOICES %}
+                                <option value="{{ value }}">{{ display}}</option>
+                            {% endfor %}
                 </select>
-              </div>
+            </div>
+            <div class="mb-3">
+              <label for="id_age" class="form-label">Age</label>
+              <select class="form-control editable-field" id="id_age" name="age">
+                {% for value,display in AGE %}
+                    <option value="{{ value }}">{{ display}}</option>
+                {% endfor %}
+    </select>
+          </div>
               <div class="mb-3">
                   <label for="id_weight" class="form-label">Body Weight</label>
                   <input type="number" id="id_weight" name="weight" class="form-control editable-field">
@@ -552,12 +417,14 @@ $('#salesAddForm').submit(function(e) {
     });
      function operateFormatter(value, row, index) {
         return [
-          '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
-          '<i class="fa fa-edit"></i>',
-          '</a>  ',
-          '<a class="remove" href="javascript:void(0)" title="Remove">',
-          '<i class="fa fa-trash"></i>',
-          '</a>'
+         '<div class="btn-group" role="group" aria-label="Actions">',
+          '<a class="btn btn-warning btn-sm edit" id="edit" href="javascript:void(0)" title="Edit">',
+              '<i class="fa fa-edit"></i> Edit',
+          '</a>',
+          '<a class="btn btn-danger btn-sm remove" href="javascript:void(0)" title="Remove">',
+              '<i class="fa fa-trash"></i> Delete',
+          '</a>',
+      '</div>'
           
         ].join('')
       }
@@ -740,18 +607,18 @@ $('#salesAddForm').submit(function(e) {
             }
 },
 {
-    field: 'age',
-    title: 'Age',
-    label: 'Age',
-    sortable: true,
-    align: 'center'
-},
-{
     field: 'breed',
     title: 'Breed',
     label: 'Breed',
     sortable: true,
     align: 'center'
+},
+{
+  field: 'age',
+  title: 'Age',
+  label: 'Age',
+  sortable: true,
+  align: 'center'
 },
 {
     field: 'sex',

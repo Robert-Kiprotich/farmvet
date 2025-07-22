@@ -138,7 +138,7 @@
         
             <div class="mb-3">
                 <label for="positive_pd_months" class="form-label">Positive PD Months</label>
-                <input type="number" id="positive_pd_months" name="positive_pd_months" class="form-control">
+                <input type="number" id="positive_pd_months" name="positive_pd_months" class="form-control"  step="0.01">
             </div>
         
             <div class="mb-3">
@@ -175,12 +175,22 @@
                 <label for="contact" class="form-label">Contact</label>
                 <input type="text" id="contact" name="contact" class="form-control" required>
             </div>
-        
+            <div class="mb-3">
+              <label for="provided_by" class="form-label">Service Provided By</label>
+              <input type="text" id="provided_by" name="provided_by" class="form-control" required>
+          </div>
             <div class="mb-3">
                 <label for="vet_name" class="form-label">Vet Name</label>
                 <input type="text" id="vet_name" name="vet_name" class="form-control" required>
             </div>
-        
+            <div class="form-group">
+              <label for="species_targeted">Vet Category</label>
+              <select class="form-control editable-field" id="vet_category" name="vet_category">
+                  {% for value, display in VET_CATEGORY %}
+                      <option value="{{ value }}">{{ display }}</option>
+                  {% endfor %}
+              </select>
+          </div>
             <div class="mb-3">
                 <label for="vet_reg_no" class="form-label">Vet Registration Number</label>
                 <input type="text" id="vet_reg_no" name="vet_reg_no" class="form-control" required>
@@ -192,14 +202,11 @@
             </div>
         
             <div class="mb-3">
-                <label for="signature" class="form-label">Signature</label>
+                <label for="signature" class="form-label">Signature & Stamp</label>
                 <textarea id="signature" name="signature" class="form-control" rows="2"></textarea>
             </div>
         
-            <div class="mb-3">
-                <label for="stamp" class="form-label">Stamp</label>
-                <textarea id="stamp" name="stamp" class="form-control" rows="2"></textarea>
-            </div>
+            
         
             <div class="modal-footer">
                 <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -315,12 +322,22 @@
             <label for="contact" class="form-label">Contact</label>
             <input type="text" id="contact" name="contact" class="form-control editable-field" required>
         </div>
-        
+        <div class="mb-3">
+          <label for="provided_by" class="form-label">Service Provided By</label>
+          <input type="text" id="provided_by" name="provided_by" class="form-control" required>
+      </div>
         <div class="mb-3">
             <label for="vet_name" class="form-label">Vet Name</label>
             <input type="text" id="vet_name" name="vet_name" class="form-control editable-field" required>
         </div>
-        
+        <div class="form-group">
+          <label for="species_targeted">Vet Category</label>
+          <select class="form-control editable-field" id="vet_category" name="vet_category">
+              {% for value, display in VET_CATEGORY %}
+                  <option value="{{ value }}">{{ display }}</option>
+              {% endfor %}
+          </select>
+      </div>
         <div class="mb-3">
             <label for="vet_reg_no" class="form-label">Vet Registration Number</label>
             <input type="text" id="vet_reg_no" name="vet_reg_no" class="form-control editable-field" required>
@@ -332,15 +349,11 @@
         </div>
         
         <div class="mb-3">
-            <label for="signature" class="form-label">Signature</label>
+            <label for="signature" class="form-label">Signature & Stamp</label>
             <textarea id="signature" name="signature" class="form-control editable-field" rows="2"></textarea>
         </div>
         
-        <div class="mb-3">
-            <label for="stamp" class="form-label">Stamp</label>
-            <textarea id="stamp" name="stamp" class="form-control editable-field" rows="2"></textarea>
-        </div>
-        
+      
             
           <div class="modal-footer">
               <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -538,17 +551,18 @@ $('#pregAddForm').submit(function(e) {
         }
     });
 });
-     function operateFormatter(value, row, index) {
-        return [
-          '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
-          '<i class="fa fa-edit"></i>',
-          '</a>  ',
-          '<a class="remove" href="javascript:void(0)" title="Remove">',
-          '<i class="fa fa-trash"></i>',
-          '</a>'
-          
-        ].join('')
-      }
+function operateFormatter(value, row, index) {
+  return [
+     '<div class="btn-group" role="group" aria-label="Actions">',
+          '<a class="btn btn-warning btn-sm edit" id="edit" href="javascript:void(0)" title="Edit">',
+              '<i class="fa fa-edit"></i> Edit',
+          '</a>',
+          '<a class="btn btn-danger btn-sm remove" href="javascript:void(0)" title="Remove">',
+              '<i class="fa fa-trash"></i> Delete',
+          '</a>',
+      '</div>'
+  ].join('');
+}
 
      
       window.operateEvents = {
@@ -627,32 +641,39 @@ $('#pregAddForm').submit(function(e) {
 });
 
   },
-        'click .remove': function (e, value, row, index) {
-    // Send an AJAX request to the Django backend to delete the record
-    $.ajax({
-        url: `/pregnancy-diagnosis/delete/${row.id}/`, // Replace with the appropriate URL
-        type: 'DELETE',
-        headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrftoken
-    }, // Include CSRF token if required
-        success: function () {
-          
-            // If deletion is successful, remove the row from the Bootstrap Table
-            $table.bootstrapTable('remove', {
-                row: 'id',
-                values: [row.id]
-            });
-            window.location.reload();
-        },
-        error: function (xhr, textStatus, errorThrown) {
-            // Handle errors, if any
-            console.error('Error deleting record:', errorThrown);
-            // Optionally, you can display error messages or handle UI updates here
-        }
-    });
-
-}
+      'click .remove': function (e, value, row, index) {
+    // Show confirmation dialog
+    const confirmation = window.confirm("Are you sure you want to delete this record?");
+    
+    // If the user confirms, proceed with the deletion
+    if (confirmation) {
+        // Send an AJAX request to the Django backend to delete the record
+        $.ajax({
+            url: `/pregnancy-diagnosis/delete/${row.id}/`, // Replace with the appropriate URL
+            type: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            }, // Include CSRF token if required
+            success: function () {
+                // If deletion is successful, remove the row from the Bootstrap Table
+                $table.bootstrapTable('remove', {
+                    row: 'id',
+                    values: [row.id]
+                });
+                window.location.reload(); // Optionally reload the page after removal
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                // Handle errors, if any
+                console.error('Error deleting record:', errorThrown);
+                // Optionally, you can display error messages or handle UI updates here
+            }
+        });
+    } else {
+        // If the user cancels the action, do nothing (optional: add a cancel log message)
+        console.log('Deletion canceled');
+    }
+      }
       }
     
       function totalTextFormatter(data) {
@@ -797,6 +818,18 @@ $('#pregAddForm').submit(function(e) {
     align: 'center'
   },
   {
+    field: 'provided_by',
+    title: 'Service Provided By',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'vet_category',
+    title: 'Vet Category',
+    sortable: true,
+    align: 'center'
+  },
+  {
     field: 'vet_name',
     title: 'Vet Name',
     sortable: true,
@@ -816,16 +849,11 @@ $('#pregAddForm').submit(function(e) {
   },
   {
     field: 'signature',
-    title: 'Signature',
+    title: 'Signature & Stamp',
     sortable: true,
     align: 'center'
   },
-  {
-    field: 'stamp',
-    title: 'Stamp',
-    sortable: true,
-    align: 'center'
-  },
+  
          
           {
             field: 'operate',

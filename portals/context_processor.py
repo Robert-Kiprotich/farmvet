@@ -9,6 +9,18 @@ def all_officials(request):
     User = get_user_model()
     officials = User.objects.filter(is_official=True).order_by('first_name')
     return {'all_officials': officials}
+def all_vets(request):
+    User = get_user_model()
+    vets = User.objects.filter(is_vet_officer=True).order_by('first_name')
+    return {'all_vets': vets}
+
+def user_role(request):
+    if request.user.is_authenticated:
+        if hasattr(request.user, 'is_farmer') and request.user.is_farmer:
+            return {'role': 'farmer'}
+        elif hasattr(request.user, 'is_vet_officer') and request.user.is_vet_officer:
+            return {'role': 'vet'}
+    return {'role': 'guest'}
 
 def choices(request):
     return {
@@ -72,7 +84,47 @@ def choices(request):
         'EMP_STATUS_CHOICES':Practitioner.EMP_STATUS_CHOICES,
         'SL_STATUS':Slaughterhouse.SL_STATUS,
         'ML_LICENSE_CHOICES':Employee.ML_LICENSE_CHOICES,
-        'LICENSE_CHOICES':Butcher.LICENSE_CHOICES
-        
-          
+        'LICENSE_CHOICES':Butcher.LICENSE_CHOICES,
+        'CLINICAL_PROGNOSIS':ClinicalRecord.PROGNOSIS,
+        'PROGNOSIS':Referral.PROGNOSIS,
+        'REFERRAL_CHOICE':Referral.REFERRAL_CHOICE,
+        'FARM_MANAGER_CATEGORY':FarmConsultation.FARM_MANAGER_CATEGORY,
+        'PLAN_CHOICES':VeterinaryBilling.PLAN_CHOICES,
+        'PAYMENT_STATUS_CHOICES':VeterinaryBilling.PAYMENT_STATUS_CHOICES,
+        'ABORTION_STATUS':UterineIrrigationRecord.ABORTION_STATUS,
+        'RAB':UterineIrrigationRecord.RAB,
+        'LIVESTOCK_CATEGORIES':UterineIrrigationRecord.LIVESTOCK_CATEGORIES,
+        'LIVESTOCK_CATEGORY_CHOICES': EmergencyCare.LIVESTOCK_CATEGORY_CHOICES,
+        'EMERGENCY_CATEGORY_CHOICES': EmergencyCare.EMERGENCY_CATEGORY_CHOICES,
+        'CONDITION_CHOICES': EmergencyCare.CONDITION_CHOICES,
+        'PROGNOSIS_DIAGNOSIS_CHOICES': EmergencyCare.PROGNOSIS_DIAGNOSIS_CHOICES,
+        'REASONS':UterineIrrigationRecord.REASONS,
+        'ANIMAL_SPECIES':ArtificialInsemination.ANIMAL_SPECIES,
+        'VET_CATEGORY':ArtificialInsemination.VET_CATEGORY,
+        'MEAT_CATEGORY_CHOICES':DailyKill.MEAT_CATEGORY_CHOICES,
+        'RAB_STATUS':ArtificialInsemination.RAB,
+        'BREED':ArtificialInsemination.COW_BREEDS,
+        'SEMEN_SOURCE':ArtificialInsemination.SEMEN_SOURCE,
+        'EMERGENCY_CONDITIONS':VetJudgment.EMERGENCY_CONDITIONS,
+        'NON_EMERGENCY_CONDITIONS':VetJudgment.NON_EMERGENCY_CONDITIONS,
+        'TELEMEDICINE_CATEGORIES':VetJudgment.TELEMEDICINE_CATEGORIES,
+        'REQUEST_TYPES':VetJudgment.REQUEST_TYPES,
+        'LIVESTOCK_CATEGORIES':VetJudgment.LIVESTOCK_CATEGORIES,
+        'PROGNOSIS_CHOICES':VetJudgment.PROGNOSIS_CHOICES,
+        'PRACTITIONER_JUDGMENT':VetJudgment.PRACTITIONER_JUDGMENT,
+        'COMMUNICATION':ClientRequest.COMMUNICATION,
+        'BUYER':Buyer.BUYER_CATEGORIES,
+        'SALES_TO':SalesOfMilk.MILK_SALES_TO,
+        'PAYMENT':Buyer.PAYMENT_MODES,
+        'BREED_CHOICES':AnimalSale.BREED_CHOICES,
+        'AGE':AnimalSale.AGE,
+        'CHECKED_BY':DailyCheck.CHECKED_BY_CHOICES,
+        'SECTION_CHECK':DailyCheck.SECTION_CHOICES,
+        'VET_CAT_CH':Practitioner.VET_CATEGORY_CHOICES,
+        'SUB_COUNTY':BOMET_SUBCOUNTY_CHOICES,
+        'DESIGNATION':ApprovedDairyFarm.DESIGNATION_CHOICES,
+        'CLEANING_CATEGORY':SlaughterhouseHygiene.CLEANING_CATEGORY_CHOICES,
+        'CLEANING_PROCEDURE':SlaughterhouseHygiene.CLEANING_PROCEDURE_CHOICES,
+        'ASSET_TYPE':SlaughterhouseAsset.ASSET_TYPE_CHOICES,
+        'POSITION':ManagementCommittee.POSITION_CHOICES
     }

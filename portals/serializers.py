@@ -16,8 +16,18 @@ class PregnancyMonitoringSerializer(serializers.ModelSerializer):
 class HeatSignMonitoringSerializer(serializers.ModelSerializer):
     class Meta:
         model = HeatSignMonitoring
-        fields = ['id','user','name', 'reg_no', 'status', 'date_of_heat_sign', 'date_of_heat_monitoring','exp_date_of_repeated_heat', 'reason_skip_monitoring']
-
+        fields = [
+            'id',
+            'user',
+            'name',
+            'reg_no',
+            'status',
+            'date_of_heat_sign',
+            'date_of_repeat_monitoring',
+            'exp_date_of_repeated_heat',
+            'reason_skip_monitoring'
+        ]
+        read_only_fields = ['date_of_repeat_monitoring', 'exp_date_of_repeated_heat']
 class AnimalSaleSerializer(serializers.ModelSerializer):
     class Meta:
         model = AnimalSale
@@ -28,8 +38,8 @@ class AnimalSaleSerializer(serializers.ModelSerializer):
             'name',
             'reg_no',
             'date_sold',
-            'age',
             'breed',
+            'age',
             'sex',
             'weight',
             'selling_price',
@@ -217,6 +227,7 @@ class EmployeesSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'user',
+            'enrollment_date',
             'employee_name',
             'id_no',
             'phone_no',
@@ -301,41 +312,106 @@ class MonthlyMilkRecordSerializer(serializers.ModelSerializer):
             date__range=[start_date, end_date]
         ).aggregate(Sum('quantity'))['quantity__sum'] or 0.0
         return total_quantity
-    
+
+class BuyerSerializer(serializers.ModelSerializer):
+    user = serializers.SlugRelatedField(slug_field='username', read_only=True)
+
+    class Meta:
+        model = Buyer
+        fields = ['id','user','name', 'category', 'contact','date_of_enrollment','duration_of_supply','payment_mode','agreed_price_per_kg']
+
+class OtherExpenseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OtherExpense
+        fields = ['id', 'date', 'description', 'cost', 'comment']
+            
 class SalesOfMilkSerializer(serializers.ModelSerializer):
+    # accepts the buyer's ID in POST/PATCH/PUT
+    buyer = serializers.PrimaryKeyRelatedField(
+        queryset=Buyer.objects.all(),
+        write_only=True          # hide the numeric ID in the response (optional)
+    )
+    # shows the buyer's name in GET responses
+    buyer_name = serializers.CharField(
+        source='buyer.name',
+        read_only=True
+    )
+
     class Meta:
         model = SalesOfMilk
         fields = [
             'id',
-              'user',  
+            'user',
             'date_of_sales',
-            'number_of_cows_milked',
-            'total_kgs_milked',
             'milk_sales_to',
-            'buyer_contact',
-            'price_per_kg',
-            'total_cash_received',
+            'buyer',          # ID expected on write
+            'buyer_name',     # name returned on read
             'balance',
-            'comment'
+            'total_cash_received',
+            'comment',
         ]
 
+
+class PaymentsSerializer(serializers.ModelSerializer):
+    payment_received_from = serializers.CharField(source='buyer.name', read_only=True)
+    buyer = serializers.PrimaryKeyRelatedField(queryset=Buyer.objects.all(), write_only=True)
+    category_of_buyer = serializers.ReadOnlyField(source='buyer.category')
+    buyer_choices = serializers.SerializerMethodField()
+    category_choices = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Payments
+        fields = [
+            'id',
+            'user',
+            'category',
+            'buyer',
+            'buyer_choices',
+            'category_choices',
+            'category_of_buyer',
+            'date_of_payment',
+            'total_kg_supplied',
+            'price_per_kg',
+            'total_amount_to_receive',
+            'previous_balance',
+            'grand_total',
+            'amount_received',
+            'balance',
+            'payment_received_from',
+            'payment_received_by',
+            'contracts',
+            'remarks',
+        ]
+
+    def get_buyer_choices(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            buyers = Buyer.objects.filter(user=request.user)
+        else:
+            buyers = Buyer.objects.none()
+
+        return [{'id': b.id, 'name': b.name, 'category': b.category} for b in buyers]
+
+    def get_category_choices(self, obj):
+        return [{'value': key, 'label': val} for key, val in Payments.CATEGORIES]
+    
 class VeterinaryBillingSerializer(serializers.ModelSerializer):
     assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
     class Meta:
         model = VeterinaryBilling
-        fields = ['id','user','assigned_to', 'billing_category', 'total_amount_billed', 'total_paid', 'balance', 'mode_of_payment',
-                  'agreed_date', 'payment_plan', 'farmer_name', 'village', 'contact', 'vet_to_be_paid',
-                  'reg_no', 'vet_contact', 'signature', 'stamp', 'comment']
+        fields = ['id','user','assigned_to', 'billing_category','other_billing_category','total_amount_billed', 'total_paid', 'balance', 'mode_of_payment',
+                  'agreed_date', 'payment_plan', 'farmer_name', 'village', 'contact','provided_by','vet_to_be_paid','vet_category',
+                  'reg_no', 'vet_contact', 'signature']
         read_only_fields=['balance']
 
 class DewormingSerializer(serializers.ModelSerializer):
     assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
     class Meta:
         model = Deworming
-        fields = ['id','user','assigned_to', 'species_targeted', 'other', 'no_of_adults', 'no_of_young_ones', 'body_conditions',
+        fields = ['id','user','assigned_to', 'species_targeted', 'other','animal_name','no_of_adults', 'no_of_young_ones', 'body_conditions',
                     'deworming_date', 'drug_of_choice', 'parasites', 'withdrawal_period', 'side_effects',
-                    'nxt_deworming_date', 'farmer_name', 'village', 'contact', 'vet_name', 'reg_no', 'vet_contact',
-                    'signature', 'stamp']
+                    'nxt_deworming_date', 'farmer_name', 'village', 'contact','provided_by','vet_name','vet_category', 'reg_no', 'vet_contact',
+                    'signature']
 
 class ArtificialInseminationSerializer(serializers.ModelSerializer):
     assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
@@ -344,51 +420,17 @@ class ArtificialInseminationSerializer(serializers.ModelSerializer):
     class Meta:
         model = ArtificialInsemination
         fields = [
-            'id', 'user', 'assigned_to', 'assigned_to_official', 'farm_name', 'cow_name', 'reg_no', 'dam_details',
-            'sire_details', 'no_of_repeats', 'abortion_status', 'time_of_heat_sign', 'date_of_heat_sign',
-            'insemination_date', 'insemination_time', 'insemination_status', 'semen_type', 'breed_used', 'bull_name',
-            'bull_reg_no', 'semen_source', 'heat_sign_mtr_date', 'repeat_heat_date', 'first_pd_date',
-            'expected_delivery_date', 'owners_name', 'sub_county', 'ward', 'village', 'contact','provided_by','vet_name',
-            'vet_reg_no', 'vet_contact', 'signature_stamp'
+            'id', 'user', 'assigned_to', 'assigned_to_official', 'assigned_by', 'farm_name', 'species', 'cow_name', 
+            'reg_no', 'dam_details', 'sire_details', 'no_of_repeats', 'rab_status', 'abortion_status', 
+            'time_of_heat_sign', 'date_of_heat_sign', 'insemination_date', 'insemination_time', 'insemination_status', 
+            'semen_type', 'breed_used', 'other_breed', 'bull_name', 'bull_reg_no', 'semen_source', 'other_source', 
+            'heat_sign_mtr_date', 'repeat_heat_date', 'first_pd_date', 'expected_delivery_date', 'owners_name', 
+            'sub_county', 'ward', 'village', 'contact', 'provided_by', 'vet_name', 'vet_category', 'vet_reg_no', 
+            'vet_contact', 'signature_stamp'
         ]
-        read_only_fields = ['heat_sign_mtr_date', 'repeat_heat_date', 'first_pd_date', 'expected_delivery_date']
+        read_only_fields = ['assigned_by', 'heat_sign_mtr_date', 'repeat_heat_date', 'first_pd_date', 'expected_delivery_date']
 
-    def validate(self, data):
-        """
-        Automatically set `assigned_to` and `assigned_to_official` to None if they match the authenticated user.
-        """
-        user = self.context['request'].user
-
-        if 'assigned_to' in data and data['assigned_to'].username == user.username:
-            data['assigned_to'] = None
-
-        if 'assigned_to_official' in data and data['assigned_to_official'].username == user.username:
-            data['assigned_to_official'] = None
-
-        return data
-
-    def to_representation(self, instance):
-        """
-        Customize the representation to replace null values with 'None' labels.
-        """
-        representation = super().to_representation(instance)
-        if representation['assigned_to'] is None:
-            representation['assigned_to'] = "None"
-        if representation['assigned_to_official'] is None:
-            representation['assigned_to_official'] = "None"
-        return representation
-
-    def create(self, validated_data):
-        """
-        Handle creation of a new ArtificialInsemination record.
-        """
-        return super().create(validated_data)
-
-    def update(self, instance, validated_data):
-        """
-        Handle updates to an existing ArtificialInsemination record.
-        """
-        return super().update(instance, validated_data)
+   
 
 class PregnancyDiagnosisSerializer(serializers.ModelSerializer):
     assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
@@ -396,24 +438,24 @@ class PregnancyDiagnosisSerializer(serializers.ModelSerializer):
         model = PregnancyDiagnosis
         fields = ['id','user','assigned_to', 'cow_name', 'reg_no', 'category', 'date_of_ai', 'pg_diag_date', 'pd_results',
                   'pd_method', 'positive_pd_months', 'negative_pd_comment', 'pd_nxt_date', 'expctd_delivery_date',
-                  'comment', 'owners_name', 'village', 'contact', 'vet_name', 'vet_reg_no', 'vet_contact',
-                  'signature', 'stamp']
+                  'comment', 'owners_name', 'village', 'contact','provided_by','vet_name','vet_category', 'vet_reg_no', 'vet_contact',
+                  'signature']
 
 class FarmConsultationSerializer(serializers.ModelSerializer):
     assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
     class Meta:
         model = FarmConsultation
-        fields = ['id','user','assigned_to', 'area_of_interest', 'other_area_of_interest',  'recommendation', 
-                  'give_recommendation', 'manager', 'consultant', 'farmer_name', 'contact', 'village',
-                  'vet_name', 'vet_reg_no', 'vet_contact', 'signature', 'stamp', 'comment']
+        fields = ['id','user','assigned_to','visit_date','area_of_interest','other','recommendation', 
+                   'manager',  'farmer_name', 'contact', 'village','provided_by',
+                  'vet_name','vet_category', 'vet_reg_no', 'vet_contact', 'signature']
 
 class ReferralSerializer(serializers.ModelSerializer):
     assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
     class Meta:
         model = Referral
         fields = ['id','user','assigned_to', 'species', 'treatment_duration', 'previous_treatment_state', 'prognosis',
-                  'referral_date', 'referral_choice', 'r_vet_name', 'r_vet_contact', 'r_vet_reg_no',
-                  'farmer_name', 'village', 'contact', 'vet_name', 'vet_reg_no', 'vet_contact', 'signature',
+                  'referral_date', 'referral_choice', 'r_vet_name', 'r_vet_contact',
+                  'farmer_name', 'village', 'contact','provided_by','vet_name','vet_category', 'vet_reg_no', 'vet_contact', 'signature',
                   'stamp', 'comment']
         
 class SurgicalRecordSerializer(serializers.ModelSerializer):
@@ -438,15 +480,19 @@ class SurgicalRecordSerializer(serializers.ModelSerializer):
             'date_of_operation',
             'post_operation_management',
             'prognosis_of_patient',
+            'case_history',
             'comment',
             'owner_name',
             'owner_village',
             'owner_mobile_number',
             'vet_in_charge',
             'vet_registration_number',
+            'provided_by',
+            'practitioner',
+            'vet_category',
             'vet_mobile_number',
             'signature',
-            'stamp'
+            
         ]
 
 class SampleCollectionSerializer(serializers.ModelSerializer):
@@ -473,11 +519,13 @@ class SampleCollectionSerializer(serializers.ModelSerializer):
             'owner_name',
             'owner_village',
             'owner_mobile_number',
+            'provided_by',
             'vet_in_charge_name',
+            'vet_category',
             'vet_in_charge_registration_number',
             'vet_in_charge_mobile_number',
             'signature',
-            'stamp'
+            
         ]
 
 class SampleProcessingSerializer(serializers.ModelSerializer):
@@ -489,7 +537,7 @@ class SampleProcessingSerializer(serializers.ModelSerializer):
             'user',
             'assigned_to',
             'livestock_category',
-            'sample_type_received',
+            'type_of_sample_received',
             'sample_rating',
             'animal_name',
             'registration_number',
@@ -509,7 +557,7 @@ class SampleProcessingSerializer(serializers.ModelSerializer):
             'lab_technologist_mobile_number',
             'laboratory_name',
             'signature',
-            'stamp'
+            
         ]
 class LaboratoryRecordSerializer(serializers.ModelSerializer):
     assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
@@ -579,6 +627,7 @@ class VaccinationRecordSerializer(serializers.ModelSerializer):
             'user',
             'assigned_to',
             'assigned_to_official',
+            #'assigned_by',
             'species_targeted',
             'other_species',
             'number_of_animals_vaccinated',
@@ -604,47 +653,16 @@ class VaccinationRecordSerializer(serializers.ModelSerializer):
             'ward',
             'village',
             'contact',
+            'provided_by',
             'name_of_vet_incharge',
+            'vet_category',
             'registration_number',
             'mobile_number',
             'signature',
             
         ]
+        read_only_fields = ['assigned_by']
 
-    # def validate(self, data):
-    #     """
-    #     Automatically set `assigned_to` and `assigned_to_official` to None if they match the authenticated user.
-    #     """
-    #     user = self.context['request'].user
-        
-    #     if 'assigned_to' in data and data['assigned_to'].username == user.username:
-    #         data['assigned_to'] = None
-        
-    #     if 'assigned_to_official' in data and data['assigned_to_official'].username == user.username:
-    #         data['assigned_to_official'] = None
-        
-    #     return data
-
-    # def to_representation(self, instance):
-    #     representation = super().to_representation(instance)
-    #     # Replace null with a custom label
-    #     if representation['assigned_to'] is None:
-    #         representation['assigned_to'] = "None"
-    #     if representation['assigned_to_official'] is None:
-    #         representation['assigned_to_official'] = "None"
-    #     return representation
-
-    # def create(self, validated_data):
-    #     """
-    #     Handle creation of a new VaccinationRecord.
-    #     """
-    #     return super().create(validated_data)
-
-    # def update(self, instance, validated_data):
-    #     """
-    #     Handle updates to an existing VaccinationRecord.
-    #     """
-    #     return super().update(instance, validated_data)
     
 class PostMortemRecordSerializer(serializers.ModelSerializer):
     assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
@@ -657,6 +675,7 @@ class PostMortemRecordSerializer(serializers.ModelSerializer):
             'livestock_category',
             'other_livestock',
             'name_of_animal',
+            'reg_no',
             'sex',
             'age',
             'case_history',
@@ -669,6 +688,7 @@ class PostMortemRecordSerializer(serializers.ModelSerializer):
             'cadaver_open_for_pm',
             'reasons_for_not_opening',
             'major_pathological_conditions',
+            'cause_of_death',
             'sample_sent_to_lab',
             'cause_of_death_notifiable',
             'cause_of_death_zoonotic',
@@ -677,11 +697,13 @@ class PostMortemRecordSerializer(serializers.ModelSerializer):
             'owner_name',
             'owner_village',
             'owner_mobile_number',
+            'provided_by',
             'vet_in_charge_name',
+            'vet_category',
             'vet_in_charge_registration_number',
             'vet_in_charge_mobile_number',
             'signature',
-            'stamp'
+            
         ]
         
 class ClinicalRecordSerializer(serializers.ModelSerializer):
@@ -694,37 +716,37 @@ class ClinicalRecordSerializer(serializers.ModelSerializer):
             'assigned_to',
             'animal_species_affected',
             'other_species',
-            'number_of_animals_sick',
+            #'number_of_animals_sick',
             'name_of_animal_affected',
             'registration_number',
             'age_of_animal',
             'breed_of_animal',
             'nature_of_disease',
+            'case_history',
+            'refer_case_to_other_vet',
             'clinical_signs',
+            'prognosis',
             'differential_diagnosis',
             'final_diagnosis',
-            'case_history',
             'treatment_plan',
             'drugs_of_choice',
-            'prognosis',
             'date_of_start_dose',
             'final_treatment_date',
             'is_zoonotic',
             'precautions',
-            'refer_case_to_other_vet',
-            'is_disease_reportable',
-            'reason_if_not_reportable',
             'is_disease_notifiable',
             'notified_authority',
             'comment',
             'owner_name',
             'owner_village',
             'owner_contact',
+            'provided_by',
             'vet_in_charge_name',
+            'vet_category',
             'vet_registration_number',
             'vet_contact',
             'vet_signature',
-            'rubber_stamp'
+            
         ]
 class ClientSerializer(serializers.ModelSerializer):
     class Meta:
@@ -746,6 +768,7 @@ class DiseaseReportSerializer(serializers.ModelSerializer):
             'id',
             'user',
             'assigned_to_official',
+            'date',
             'livestock_category',
             'other_livestock_category',
             'number_of_animals_affected',
@@ -772,14 +795,17 @@ class DiseaseReportSerializer(serializers.ModelSerializer):
 # Slaughterhouse Serializer
 class SlaughterhouseSerializer(serializers.ModelSerializer):
     assigned_to_official = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+    assigned_to_vet = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
 
     class Meta:
         model = Slaughterhouse
         fields = [
             'id',
-            'user', 
-            'name', 
+            'user',
             'assigned_to_official',
+            'assigned_to_vet',
+            'reg_date',
+            'name', 
             'county', 
             'sub_county', 
             'location',
@@ -797,20 +823,26 @@ class SlaughterhouseSerializer(serializers.ModelSerializer):
 
 # Employee Serializer
 class EmployeeSerializer(serializers.ModelSerializer):
-    slaughterhouse = serializers.StringRelatedField()  
+    assigned_to_vet = serializers.SlugRelatedField(
+        slug_field='username',
+        queryset=User.objects.all()
+    )
+    slaughterhouse = serializers.CharField()
 
     class Meta:
         model = Employee
         fields = [
-            'id', 
-            'name', 
-            'id_number', 
-            'mobile_number', 
-            'position', 
-            'medical_license_status', 
-            'slaughterhouse'  
+            'id',
+            'user',
+            'assigned_to_vet',
+            'enrollment_date',
+            'slaughterhouse',
+            'name',
+            'id_number',
+            'mobile_number',
+            'position',
+            'medical_license_status',
         ]
-
 
 # Butcher Serializer
 class ButcherSerializer(serializers.ModelSerializer):
@@ -819,6 +851,7 @@ class ButcherSerializer(serializers.ModelSerializer):
         fields = [
             'id', 
             'user',
+            'enrollment_date',
             'name', 
             'id_number', 
             'mobile_number', 
@@ -839,30 +872,35 @@ class InvoiceSerializer(serializers.ModelSerializer):
             'user',
             'assigned_to',
             'invoice_category',
+            'other_invoice_category',
+            'invoice_particulars',
             'date_of_invoice',
             'total_amount_due',
+            'payment_method',
             'farmer_name',
             'village',
             'contact',
+            'provided_by',
             'vet_in_charge_of_invoice',
+            'vet_category',
             'vet_registration_number',
             'vet_contact',
             'signature',
-            'stamp'
+            
         ]
         
         
-class ChoiceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Choice
-        fields = ['id', 'text']
+# class ChoiceSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Choice
+#         fields = ['id', 'text']
 
-class QuestionSerializer(serializers.ModelSerializer):
-    choices = ChoiceSerializer(many=True, read_only=True)
+# class QuestionSerializer(serializers.ModelSerializer):
+#     choices = ChoiceSerializer(many=True, read_only=True)
 
-    class Meta:
-        model = Question
-        fields = ['id', 'text', 'choices']
+#     class Meta:
+#         model = Question
+#         fields = ['id', 'text', 'choices']
 
 # class UserAnswerSerializer(serializers.ModelSerializer):
 #     class Meta:
@@ -874,7 +912,7 @@ class QuestionSerializer(serializers.ModelSerializer):
         
 class ChoicesSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Choice
+        model = CpdChoices
         fields = ['id', 'text', 'is_correct']
 
 
@@ -883,13 +921,13 @@ class SectionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Section
-        fields = ['id', 'lesson_id', 'lesson', 'title', 'content','file','is_active','created_at']
+        fields = ['id', 'lesson_id', 'lesson', 'title', 'content','file','is_paid','created_at']
 
 class TutorialSerializer(serializers.ModelSerializer):
     lesson_data = SectionSerializer(many=True, read_only=True, source='sections')  # Include sections and their lesson_id
     class Meta:
         model = Tutorial
-        fields = ['id', 'user', 'lesson', 'lesson_data','cpd_number', 'unit_price', 'points', 'is_active']
+        fields = ['id', 'user', 'lesson', 'lesson_data','cpd_number', 'unit_price', 'points','presented_by','is_paid']
         
 class CommentSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source='author.username', read_only=True)
@@ -906,14 +944,14 @@ class CommentSerializer(serializers.ModelSerializer):
 #cpd quiz
 class CpdChoicesSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Choice
+        model = CpdChoices
         fields = ['id', 'choice_text','is_correct']
 
 class CpdQuestionsSerializer(serializers.ModelSerializer):
-    choices = ChoiceSerializer(many=True)
+    choices = CpdChoicesSerializer(many=True)
 
     class Meta:
-        model = Question
+        model = CpdQuestions
         fields = ['id', 'question_text', 'choices']
 
 class QuizResultSerializer(serializers.ModelSerializer):
@@ -924,6 +962,14 @@ class QuizResultSerializer(serializers.ModelSerializer):
         model = QuizResult
         fields = ['id', 'user', 'section', 'score', 'passed', 'timestamp']
         # read_only_fields = ['id', 'timestamp']
+# class QuestionResultSerializer(serializers.ModelSerializer):
+#     user = serializers.StringRelatedField()  
+      
+
+#     class Meta:
+#         model = QuestionResult
+#         fields = ['id', 'user', 'score', 'passed', 'timestamp']
+#         # read_only_fields = ['id', 'timestamp']
        
 class UserProgressSerializer(serializers.ModelSerializer):
     class Meta:
@@ -958,13 +1004,11 @@ class LivestockExaminationRecordSerializer(serializers.ModelSerializer):
         ]
 
 class CalvingRecordSerializer(serializers.ModelSerializer):
-    assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
     class Meta:
         model = CalvingRecord
         fields = [
             'id',
             'user',
-            'assigned_to',
             'date_of_calving',
             'insemination_date',
             'days_to_calving_down',
@@ -979,8 +1023,9 @@ class CalvingRecordSerializer(serializers.ModelSerializer):
             'comment',
             'created_at',
         ]
+        read_only_fields = ['days_to_calving_down', 'created_at']
 class AssessmentRecordSerializer(serializers.ModelSerializer):
-    assigned_to_official = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+    assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
 
 
     class Meta:
@@ -988,9 +1033,10 @@ class AssessmentRecordSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'user',
-            'assigned_to_official',
+            'assigned_to',
             'livestock_category',
             'other_category',
+            'breed',
             'date_of_assessment',
             'name_of_animal',
             'registration_number',
@@ -1013,6 +1059,8 @@ class AssessmentRecordSerializer(serializers.ModelSerializer):
         
 class DailyKillSerializer(serializers.ModelSerializer):
     assigned_to_official = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+    assigned_to_farmer = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+    assigned_by = serializers.StringRelatedField()
     
 
     class Meta:
@@ -1021,10 +1069,12 @@ class DailyKillSerializer(serializers.ModelSerializer):
             'id',
             'user',
             'assigned_to_official',
+            'assigned_to_farmer',
+            'assigned_by',
             'date',
             'livestock_category',
-            'number_of_females_killed',
-            'number_of_males_killed',
+            #'number_of_females_killed',
+            #'number_of_males_killed',
             'total_kills_per_day',
             'condemnation_done',
             'condemnation_status',
@@ -1102,6 +1152,7 @@ class PractitionerSerializer(serializers.ModelSerializer):
             'id',
             'user',
             'assigned_to_official',
+            'assigned_by',
             'first_name',
             'last_name',
             'reg_date',
@@ -1115,4 +1166,346 @@ class PractitionerSerializer(serializers.ModelSerializer):
             'vet_category',
             'registration_number',
             'employment_status'
+        ]
+        read_only_fields=['assigned_by']
+
+class UterineIrrigationRecordSerializer(serializers.ModelSerializer):
+    assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+    class Meta:
+        model = UterineIrrigationRecord
+        fields = [
+            'id',  
+            'user',
+            'assigned_to',
+            'livestock_category',
+            'name_of_animal',
+            'registration_number',
+            'registration_date',
+            'reason',
+            'number_of_repeats',
+            'abortion_status_history',
+            'rabies_status_history',
+            'exp_ex_date',
+            'previous_insemination_by',
+            'treatment_plan',
+            'drugs_of_choice',
+            'comment',
+            'owner_name',
+            'village',
+            'contact',
+            'service_provided_by',
+            'vet_in_charge',
+            'vet_category',
+            'registration_number_vet',
+            'contact_vet',
+            'sign_and_stamp',
+        ]
+
+
+
+class EmergencyCareSerializer(serializers.ModelSerializer):
+    assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+
+    class Meta:
+        model = EmergencyCare
+        fields = [
+            'id',
+            'user',
+            'assigned_to',
+            'date',
+            'livestock_category',
+            'other_category',
+            'number_of_animals_affected',
+            'name_of_affected_animal',
+            'registration_number',
+            #'registration_date',
+            'emergency_category',
+            'condition_of_emergency',
+            'case_history',
+            'clinical_signs',
+            'prognosis',
+            'differential_diagnosis',
+            'final_diagnosis',
+            'referral_status',
+            'treatment_plan',
+            'drugs_of_choice',
+            #'comment',
+            'owner_name',
+            'village',
+            'contact',
+            'service_provided_by',
+            'vet_category',
+            'vet_registration_number',
+            'vet_contact',
+            'signature_and_stamp',
+        ]
+class PriceListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PriceList
+        fields = [
+            'id',
+            'user',
+            'date_of_purchase',
+            'product_name',
+            'manufacturing_company',
+            'buying_price',
+            'retail_price',
+            'wholesale_price',
+            'expiring_date',
+        ]
+        
+class SupplierSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Supplier
+        fields = [
+            'id',
+            'user',
+            'date_of_enrollment',
+            'name',
+            'mobile_number',
+            'location',
+            'business_name',
+            'mode_of_payment',
+            'account_details',
+        ]
+        
+class CustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = [
+            'id',
+            'user',
+            'date_of_enrollment',
+            'name',
+            'mobile_number',
+            'location',
+            'remarks',
+        ]
+        
+class CreditorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Creditor
+        fields = [
+            'id',
+             'user',
+            'date_of_transaction',
+            'name',
+            'mobile_number',
+            'total_amount_to_pay',
+            'amount_paid',
+            'balance_to_pay',
+            'agreed_date_of_balance_payment',
+            'remarks',
+        ]
+class DebtorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Debtor
+        fields = [
+            'id',
+             'user',
+            'date_of_transaction',
+            'name',
+            'mobile_number',
+            'invoice_no',
+            'total_invoice_amount',
+            'correction_done',
+            'amount_of_correction',
+            'total_amount_to_pay',
+            'previous_balance',
+            'grand_total',
+            'amount_paid',
+            'balance_to_pay',
+            'remarks',
+        ]
+class ClientRequestSerializer(serializers.ModelSerializer):
+    assigned_to = serializers.SlugRelatedField(
+        slug_field='username', 
+        queryset=User.objects.filter(is_vet_officer=True)
+    )
+    assigned_by = serializers.SlugRelatedField(
+        slug_field='username', 
+        queryset=User.objects.filter(is_farmer=True),
+        required=False,  # Make it optional because we'll set it automatically
+        allow_null=True
+    )
+    consent_display = serializers.SerializerMethodField()  # Read-only display field
+    consent = serializers.BooleanField()  # Editable field
+
+    class Meta:
+        model = ClientRequest
+        fields = [
+            'id', 
+            'user',
+            'assigned_to',
+            'assigned_by', 
+            'farmer_name',
+            'contact',
+            'location',
+            'date_of_request',
+            'time_of_request',
+            'telemedicine_category',
+            'request_type', 
+            'communication_methods',
+            'emergency_condition',
+            'non_emergency_condition', 
+            'case_history',
+            'livestock_category', 
+            'other_livestock_category', 
+            'consultation_fee', 
+            'photo',
+            'consent', 
+            'status', 
+            'judgement',         
+            'consent_display',
+        ]
+        read_only_fields = ['user', 'farmer_name', 'contact', 'assigned_by', 'location']  # Prevent manual input
+
+    def get_consent_display(self, obj):
+        return "Yes" if obj.consent else "No"
+
+    def create(self, validated_data):
+        request = self.context["request"]  # Get the request object
+        user = request.user  # Get the authenticated user
+
+        validated_data["user"] = user  # Set the authenticated user as the request owner
+
+        # If 'assigned_to' exists, set 'assigned_by' to the authenticated user
+        if "assigned_to" in validated_data and validated_data["assigned_to"]:
+            validated_data["assigned_by"] = user
+
+        return super().create(validated_data)
+
+class VetJudgmentSerializer(serializers.ModelSerializer):
+    assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.filter(is_farmer=True))
+
+    class Meta:
+        model = VetJudgment
+        fields = [
+            'id', 
+            'user',
+            'assigned_to', 
+            'date_of_judgment', 
+            'telemedicine_category', 
+            'request_type', 
+            'emergency_condition',
+            'non_emergency_condition',
+            'livestock_category',
+            'other_livestock_category',
+            'tentative_diagnosis',
+            'prognosis',
+            'practitioner_judgment',
+            'prescription_details',
+            'vet_name', 
+            'kvb_no', 
+            'vet_category', 
+            'vet_contact', 
+            'referral_details',
+        ]
+        read_only_fields = ['vet_name', 'kvb_no', 'vet_category', 'vet_contact']  # Prevent manual input
+        
+class DailyCheckSerializer(serializers.ModelSerializer):
+    #check_section_display = serializers.CharField(source='get_check_section_display', read_only=True)
+    #section_status_display = serializers.CharField(source='get_section_status_display', read_only=True)
+
+    class Meta:
+        model = DailyCheck
+        fields = [
+            'id',
+            'user',
+            'date_of_check',
+            'time_of_check',
+            'check_section',
+            'remarks',
+            'checked_by',
+            'contact',
+        ]
+       # read_only_fields = ['user']
+class ManagementCommitteeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ManagementCommittee
+        fields = [
+            'id',
+            'user',
+            'name',
+            'id_number',
+            'contact',
+            'position',
+            'date_of_enrolment',
+            'date_of_election',
+            'time_period',
+            'next_election_date',
+            'remarks',
+        ]
+
+
+class HidesAndSkinsRecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HidesAndSkinsRecord
+        fields = [
+            'id',
+             'user',
+            'date_of_kills',
+            'category',
+            'number_collected',
+            'date_of_transportation',
+            'means_of_transportation',
+            'reg_no_of_vehicle',
+            'taken_by',
+            'contact',
+            'remarks',
+        ]
+class ApprovedDairyFarmSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ApprovedDairyFarm
+        fields = [
+            'id',
+            
+            'date_of_approval',
+            'name_of_farm',
+            'county',
+            'sub_county',
+            'location',
+            'name_of_owner',
+            'contact',
+            'farm_breeding_level',
+            'average_milk_per_cow',
+            'highest_milk_producer',
+            'approved_by',
+            'designation',
+            'officer_contact',
+            'comment',
+        ]
+class SlaughterhouseHygieneSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SlaughterhouseHygiene
+        fields = [
+            'id',
+             'user',
+            'date_of_cleaning',
+            'cleaning_category',
+            'cleaning_procedure',
+            'state_other_cleaning',
+            'cleaning_done_by',
+            'contact_of_cleaner',
+            'supervised_by',
+            'supervisor_contact',
+            'remarks',
+        ]
+
+
+class SlaughterhouseAssetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SlaughterhouseAsset
+        fields = [
+            'id',
+             'user',
+            'date_of_entry',
+            'type_of_asset',
+            'other_asset',
+            'model_number',
+            'registration_number',
+            'original_cost',
+            'appossession_value',
+            'depossession_value',
+            'remarks',
         ]

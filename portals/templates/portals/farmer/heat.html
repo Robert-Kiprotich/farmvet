@@ -109,18 +109,14 @@
                     <input type="date" name="date_of_heat_sign" id="id_date_of_heat_sign" class="form-control editable-field">
                     <div class="invalid-feedback">Please provide a valid date.</div>
                 </div>
-                <div class="mb-3">
-                  <label for="id_date_of_heat_monitoring" class="form-label">Date Of Repeat Monitoring</label>
-                  <input type="date" name="date_of_heat_monitoring" id="id_date_of_heat_monitoring" class="form-control editable-field">
-                  <div class="invalid-feedback">Please provide a valid date.</div>
-              </div>
-                <div class="mb-3">
+                
+                <!--<div class="mb-3">
                     <label for="id_exp_date_of_repeated_heat" class="form-label">Expected Date Of Repeat Heat</label>
                     <input type="date" name="exp_date_of_repeated_heat" id="id_exp_date_of_repeated_heat" class="form-control editable-field">
                     <div class="invalid-feedback">Please provide a valid date.</div>
-                </div>
+                </div>-->
                 <div class="mb-3">
-                    <label for="id_reason_skip_monitoring" class="form-label">Reason To Skip Monitoring</label>
+                    <label for="id_reason_skip_monitoring" class="form-label">Reason To Skip Insemination</label>
                     <textarea name="reason_skip_monitoring" id="id_reason_skip_monitoring" class="form-control editable-field" rows="3"></textarea>
                     <div class="invalid-feedback">Please provide a reason.</div>
                 </div>
@@ -173,18 +169,10 @@
                     <input type="date" name="date_of_heat_sign" id="id_date_of_heat_sign" class="form-control editable-field">
                     <div class="invalid-feedback">Please provide a valid date.</div>
                 </div>
+                
+               
                 <div class="mb-3">
-                  <label for="id_date_of_heat_monitoring" class="form-label">Date Of Repeat Monitoring</label>
-                  <input type="date" name="date_of_heat_monitoring" id="id_date_of_heat_monitoring" class="form-control editable-field">
-                  <div class="invalid-feedback">Please provide a valid date.</div>
-              </div>
-                <div class="mb-3">
-                    <label for="id_exp_date_of_repeated_heat" class="form-label">Expected Date Of Repeat Heat</label>
-                    <input type="date" name="exp_date_of_repeated_heat" id="id_exp_date_of_repeated_heat" class="form-control editable-field">
-                    <div class="invalid-feedback">Please provide a valid date.</div>
-                </div>
-                <div class="mb-3">
-                    <label for="id_reason_skip_monitoring" class="form-label">Reason To Skip Monitoring</label>
+                    <label for="id_reason_skip_monitoring" class="form-label">Reason To  Skip Insemination</label>
                     <textarea name="reason_skip_monitoring" id="id_reason_skip_monitoring" class="form-control editable-field" rows="3"></textarea>
                     <div class="invalid-feedback">Please provide a reason.</div>
                 </div>
@@ -384,12 +372,14 @@ $('#heatAddForm').submit(function(e) {
     });
      function operateFormatter(value, row, index) {
         return [
-          '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
-          '<i class="fa fa-edit"></i>',
-          '</a>  ',
-          '<a class="remove" href="javascript:void(0)" title="Remove">',
-          '<i class="fa fa-trash"></i>',
-          '</a>'
+         '<div class="btn-group" role="group" aria-label="Actions">',
+          '<a class="btn btn-warning btn-sm edit" id="edit" href="javascript:void(0)" title="Edit">',
+              '<i class="fa fa-edit"></i> Edit',
+          '</a>',
+          '<a class="btn btn-danger btn-sm remove" href="javascript:void(0)" title="Remove">',
+              '<i class="fa fa-trash"></i> Delete',
+          '</a>',
+      '</div>'
           
         ].join('')
       }
@@ -573,8 +563,8 @@ $('#heatAddForm').submit(function(e) {
            
           },
           {
-            field: 'date_of_heat_monitoring',
-            title: 'Date Of Repeat Monitoring',
+            field: 'date_of_repeat_monitoring',
+            title: 'Date Of Heat Signs Monitoring',
             sortable: true,
             align: 'center',
             formatter: function (value, row) {
@@ -594,7 +584,7 @@ $('#heatAddForm').submit(function(e) {
           },
           {
             field: 'reason_skip_monitoring',
-            title: 'Reason To Skip Monitoring',
+            title: 'Reason To Skip Insemination',
             sortable: true,
             align: 'center',
           },

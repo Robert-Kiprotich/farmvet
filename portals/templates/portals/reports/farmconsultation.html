@@ -94,101 +94,96 @@
                   {% endfor %}
               </select>
             </div>
+            <!-- Other (for area of interest) -->
+          <div class="form-group">
+            <label for="other">Date Of Visit</label>
+            <input type="date" class="form-control editable-field" id="visit_date" name="visit_date" placeholder="Specify if other">
+        </div>
             <div class="form-group">
               <label for="area_of_interest">Area of Interest</label>
-              <select class="form-control" id="area_of_interest" name="area_of_interest">
-                <option value="Dairy">Dairy</option>
-                <option value="Beef Production">Beef Production</option>
-                <option value="Poultry Production">Poultry Production</option>
-                <option value="Goat Production">Goat Production</option>
-                <option value="Pets">Pets</option>
-                <option value="Other">Other</option>
+              <select class="form-control editable-field" id="area_of_interest" name="area_of_interest">
+                  <option value="Dairy">Dairy</option>
+                  <option value="Beef Production">Beef Production</option>
+                  <option value="Poultry Production">Poultry Production</option>
+                  <option value="Goat Production">Goat Production</option>
+                  <option value="Pets">Pets</option>
+                  <option value="Other">Other</option>
               </select>
-            </div>
+          </div>
           
-            <!-- Other (for area of interest) -->
-            <div class="form-group">
-              <label for="other_area_of_interest">Other Area of Interest</label>
-              <input type="text" class="form-control" id="other_area_of_interest" name="other_area_of_interest" placeholder="Specify if other">
-            </div>
+          <!-- Other (for area of interest) -->
+          <div class="form-group">
+              <label for="other">Other Livestock</label>
+              <input type="text" class="form-control editable-field" id="other" name="other" placeholder="Specify if other">
+          </div>
           
-            <!-- Recommendation -->
-            <div class="form-group">
+          <!-- Recommendation -->
+          <div class="form-group">
               <label for="recommendation">Recommendation</label>
-              <textarea class="form-control" id="recommendation" name="recommendation" rows="3"></textarea>
-            </div>
+              <textarea class="form-control editable-field" id="recommendation" name="recommendation" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="manager">Manager Category</label>
+            <select id="manager" name="manager" class="form-control .editable-field">
+                {% for value, label in FARM_MANAGER_CATEGORY %}
+                    <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
           
-            <!-- Give Recommendation -->
-            <div class="form-group">
-              <label for="give_recommendation">Give Recommendation</label>
-              <textarea class="form-control" id="give_recommendation" name="give_recommendation" rows="3"></textarea>
-            </div>
-          
-            <!-- Manager -->
-            <div class="form-group">
-              <label for="manager">Manager</label>
-              <input type="text" class="form-control" id="manager" name="manager" placeholder="Enter manager's name">
-            </div>
-          
-            <!-- Consultant -->
-            <div class="form-group">
-              <label for="consultant">Consultant</label>
-              <input type="text" class="form-control" id="consultant" name="consultant" placeholder="Enter consultant's name">
-            </div>
-          
-            <!-- Farmer Name -->
-            <div class="form-group">
+          <!-- Farmer Name -->
+          <div class="form-group">
               <label for="farmer_name">Farmer Name</label>
-              <input type="text" class="form-control" id="farmer_name" name="farmer_name" placeholder="Enter farmer's name">
-            </div>
+              <input type="text" class="form-control editable-field" id="farmer_name" name="farmer_name" placeholder="Enter farmer's name">
+          </div>
           
-            <!-- Contact -->
-            <div class="form-group">
+          <!-- Contact -->
+          <div class="form-group">
               <label for="contact">Farmer Contact</label>
-              <input type="text" class="form-control" id="contact" name="contact" placeholder="Enter contact">
-            </div>
+              <input type="text" class="form-control editable-field" id="contact" name="contact" placeholder="Enter contact">
+          </div>
           
-            <!-- Village -->
-            <div class="form-group">
+          <!-- Village -->
+          <div class="form-group">
               <label for="village">Village</label>
-              <input type="text" class="form-control" id="village" name="village" placeholder="Enter village">
-            </div>
-          
-            <!-- Vet Name -->
-            <div class="form-group">
-              <label for="vet_name">Vet Name</label>
-              <input type="text" class="form-control" id="vet_name" name="vet_name" placeholder="Enter vet's name">
-            </div>
-          
-            <!-- Vet Registration Number -->
-            <div class="form-group">
+              <input type="text" class="form-control editable-field" id="village" name="village" placeholder="Enter village">
+          </div>
+          <!-- Farmer Name -->
+          <div class="form-group">
+            <label for="farmer_name">Services Provided By</label>
+            <input type="text" class="form-control editable-field" id="provided_by" name="provided_by" placeholder="Services Provided By">
+        </div>
+          <!-- Vet Name -->
+          <div class="form-group">
+              <label for="vet_name">Vet In Charge</label>
+              <input type="text" class="form-control editable-field" id="vet_name" name="vet_name" placeholder="Enter vet's name">
+          </div>
+          <div class="form-group">
+            <label for="species_targeted">Vet Category</label>
+            <select class="form-control editable-field" id="vet_category" name="vet_category">
+                {% for value, display in VET_CATEGORY %}
+                    <option value="{{ value }}">{{ display }}</option>
+                {% endfor %}
+            </select>
+        </div>
+          <!-- Vet Registration Number -->
+          <div class="form-group">
               <label for="vet_reg_no">Vet Registration Number</label>
-              <input type="text" class="form-control" id="vet_reg_no" name="vet_reg_no" placeholder="Enter vet registration number">
-            </div>
+              <input type="text" class="form-control editable-field" id="vet_reg_no" name="vet_reg_no" placeholder="Enter vet registration number">
+          </div>
           
-            <!-- Vet Contact -->
-            <div class="form-group">
+          <!-- Vet Contact -->
+          <div class="form-group">
               <label for="vet_contact">Vet Contact</label>
-              <input type="text" class="form-control" id="vet_contact" name="vet_contact" placeholder="Enter vet contact">
-            </div>
+              <input type="text" class="form-control editable-field" id="vet_contact" name="vet_contact" placeholder="Enter vet contact">
+          </div>
           
-            <!-- Signature -->
-            <div class="form-group">
-              <label for="signature">Signature</label>
-              <textarea class="form-control" id="signature" name="signature" rows="2" placeholder="Enter signature"></textarea>
-            </div>
+          <!-- Signature -->
+          <div class="form-group">
+              <label for="signature">Signature & Stamp</label>
+              <textarea class="form-control editable-field" id="signature" name="signature" rows="2" placeholder="Enter signature"></textarea>
+          </div>
           
-            <!-- Stamp -->
-            <div class="form-group">
-              <label for="stamp">Stamp</label>
-              <textarea class="form-control" id="stamp" name="stamp" rows="2" placeholder="Enter stamp"></textarea>
-            </div>
-          
-            <!-- Comment -->
-            <div class="form-group">
-              <label for="comment">Comment</label>
-              <textarea class="form-control" id="comment" name="comment" rows="3" placeholder="Enter comment"></textarea>
-            </div>
             <div class="modal-footer">
                 <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 <button type="submit" id="submit" class="btn btn-primary">Save</button>
@@ -223,6 +218,10 @@
             </select>
           </div>
           <div class="form-group">
+            <label for="other">Date Of Visit</label>
+            <input type="date" class="form-control editable-field" id="visit_date" name="visit_date" placeholder="Specify if other">
+        </div>
+          <div class="form-group">
             <label for="area_of_interest">Area of Interest</label>
             <select class="form-control editable-field" id="area_of_interest" name="area_of_interest">
                 <option value="Dairy">Dairy</option>
@@ -236,8 +235,8 @@
         
         <!-- Other (for area of interest) -->
         <div class="form-group">
-            <label for="other_area_of_interest">Other Area of Interest</label>
-            <input type="text" class="form-control editable-field" id="other_area_of_interest" name="other_area_of_interest" placeholder="Specify if other">
+            <label for="other">Other Livestock</label>
+            <input type="text" class="form-control editable-field" id="other" name="other" placeholder="Specify if other">
         </div>
         
         <!-- Recommendation -->
@@ -245,25 +244,14 @@
             <label for="recommendation">Recommendation</label>
             <textarea class="form-control editable-field" id="recommendation" name="recommendation" rows="3"></textarea>
         </div>
-        
-        <!-- Give Recommendation -->
         <div class="form-group">
-            <label for="give_recommendation">Give Recommendation</label>
-            <textarea class="form-control editable-field" id="give_recommendation" name="give_recommendation" rows="3"></textarea>
-        </div>
-        
-        <!-- Manager -->
-        <div class="form-group">
-            <label for="manager">Manager</label>
-            <input type="text" class="form-control editable-field" id="manager" name="manager" placeholder="Enter manager's name">
-        </div>
-        
-        <!-- Consultant -->
-        <div class="form-group">
-            <label for="consultant">Consultant</label>
-            <input type="text" class="form-control editable-field" id="consultant" name="consultant" placeholder="Enter consultant's name">
-        </div>
-        
+          <label for="manager">Manager Category</label>
+          <select id="manager" name="manager" class="form-control .editable-field">
+              {% for value, label in FARM_MANAGER_CATEGORY %}
+                  <option value="{{ value }}">{{ label }}</option>
+              {% endfor %}
+          </select>
+      </div>
         <!-- Farmer Name -->
         <div class="form-group">
             <label for="farmer_name">Farmer Name</label>
@@ -281,13 +269,24 @@
             <label for="village">Village</label>
             <input type="text" class="form-control editable-field" id="village" name="village" placeholder="Enter village">
         </div>
-        
+        <!-- Farmer Name -->
+        <div class="form-group">
+          <label for="farmer_name">Services Provided By</label>
+          <input type="text" class="form-control editable-field" id="provided_by" name="provided_by" placeholder="Services Provided By">
+      </div>
         <!-- Vet Name -->
         <div class="form-group">
-            <label for="vet_name">Vet Name</label>
+            <label for="vet_name">Vet In Charge</label>
             <input type="text" class="form-control editable-field" id="vet_name" name="vet_name" placeholder="Enter vet's name">
         </div>
-        
+        <div class="form-group">
+          <label for="species_targeted">Vet Category</label>
+          <select class="form-control editable-field" id="vet_category" name="vet_category">
+              {% for value, display in VET_CATEGORY %}
+                  <option value="{{ value }}">{{ display }}</option>
+              {% endfor %}
+          </select>
+      </div>
         <!-- Vet Registration Number -->
         <div class="form-group">
             <label for="vet_reg_no">Vet Registration Number</label>
@@ -302,20 +301,8 @@
         
         <!-- Signature -->
         <div class="form-group">
-            <label for="signature">Signature</label>
+            <label for="signature">Signature & Stamp</label>
             <textarea class="form-control editable-field" id="signature" name="signature" rows="2" placeholder="Enter signature"></textarea>
-        </div>
-        
-        <!-- Stamp -->
-        <div class="form-group">
-            <label for="stamp">Stamp</label>
-            <textarea class="form-control editable-field" id="stamp" name="stamp" rows="2" placeholder="Enter stamp"></textarea>
-        </div>
-        
-        <!-- Comment -->
-        <div class="form-group">
-            <label for="comment">Comment</label>
-            <textarea class="form-control editable-field" id="comment" name="comment" rows="3" placeholder="Enter comment"></textarea>
         </div>
         
             
@@ -515,17 +502,18 @@ $('#consultAddForm').submit(function(e) {
         }
     });
 });
-     function operateFormatter(value, row, index) {
-        return [
-          '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
-          '<i class="fa fa-edit"></i>',
-          '</a>  ',
-          '<a class="remove" href="javascript:void(0)" title="Remove">',
-          '<i class="fa fa-trash"></i>',
-          '</a>'
-          
-        ].join('')
-      }
+function operateFormatter(value, row, index) {
+  return [
+     '<div class="btn-group" role="group" aria-label="Actions">',
+          '<a class="btn btn-warning btn-sm edit" id="edit" href="javascript:void(0)" title="Edit">',
+              '<i class="fa fa-edit"></i> Edit',
+          '</a>',
+          '<a class="btn btn-danger btn-sm remove" href="javascript:void(0)" title="Remove">',
+              '<i class="fa fa-trash"></i> Delete',
+          '</a>',
+      '</div>'
+  ].join('');
+}
 
      
       window.operateEvents = {
@@ -605,31 +593,38 @@ $('#consultAddForm').submit(function(e) {
 
   },
         'click .remove': function (e, value, row, index) {
-    // Send an AJAX request to the Django backend to delete the record
-    $.ajax({
-        url: `/farm-consultation/delete/${row.id}/`, // Replace with the appropriate URL
-        type: 'DELETE',
-        headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrftoken
-    }, // Include CSRF token if required
-        success: function () {
-          
-            // If deletion is successful, remove the row from the Bootstrap Table
-            $table.bootstrapTable('remove', {
-                row: 'id',
-                values: [row.id]
-            });
-            window.location.reload();
-        },
-        error: function (xhr, textStatus, errorThrown) {
-            // Handle errors, if any
-            console.error('Error deleting record:', errorThrown);
-            // Optionally, you can display error messages or handle UI updates here
-        }
-    });
-
-}
+    // Show confirmation dialog
+    const confirmation = window.confirm("Are you sure you want to delete this record?");
+    
+    // If the user confirms, proceed with the deletion
+    if (confirmation) {
+        // Send an AJAX request to the Django backend to delete the record
+        $.ajax({
+            url: `/farm-consultation/delete/${row.id}/`, // Replace with the appropriate URL
+            type: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            }, // Include CSRF token if required
+            success: function () {
+                // If deletion is successful, remove the row from the Bootstrap Table
+                $table.bootstrapTable('remove', {
+                    row: 'id',
+                    values: [row.id]
+                });
+                window.location.reload(); // Optionally reload the page after removal
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                // Handle errors, if any
+                console.error('Error deleting record:', errorThrown);
+                // Optionally, you can display error messages or handle UI updates here
+            }
+        });
+    } else {
+        // If the user cancels the action, do nothing (optional: add a cancel log message)
+        console.log('Deletion canceled');
+    }
+      }
       }
     
       function totalTextFormatter(data) {
@@ -670,42 +665,33 @@ $('#consultAddForm').submit(function(e) {
             sortable: true,
             align: 'center'
           },
+          {
+            field: 'visit_date',
+            title: 'Date Of Visit',
+            sortable: true,
+            align: 'center'
+          },
         {
             field: 'area_of_interest',
             title: 'Area of Interest',
             sortable: true,
             align: 'center'
         },
-        {
-            field: 'other_area_of_interest',
-            title: 'Other Area of Interest',
-            sortable: true,
-            align: 'center'
-        },
+       
         {
             field: 'recommendation',
             title: 'Recommendation',
             sortable: true,
             align: 'center'
         },
-        {
-            field: 'give_recommendation',
-            title: 'Give Recommendation',
-            sortable: true,
-            align: 'center'
-        },
+        
         {
             field: 'manager',
             title: 'Manager',
             sortable: true,
             align: 'center'
         },
-        {
-            field: 'consultant',
-            title: 'Consultant',
-            sortable: true,
-            align: 'center'
-        },
+        
         {
             field: 'farmer_name',
             title: 'Farmer Name',
@@ -725,10 +711,22 @@ $('#consultAddForm').submit(function(e) {
             align: 'center'
         },
         {
+          field: 'provided_by',
+          title: 'Service Provided By',
+          sortable: true,
+          align: 'center'
+      },
+        {
             field: 'vet_name',
             title: 'Vet Name',
             sortable: true,
             align: 'center'
+        },
+        {
+          field: 'vet_category',
+          title: 'Vet Category',
+          sortable: true,
+          align: 'center'
         },
         {
             field: 'vet_reg_no',
@@ -744,22 +742,11 @@ $('#consultAddForm').submit(function(e) {
         },
         {
             field: 'signature',
-            title: 'Signature',
+            title: 'Signature & Stamp',
             sortable: true,
             align: 'center'
         },
-        {
-            field: 'stamp',
-            title: 'Stamp',
-            sortable: true,
-            align: 'center'
-        },
-        {
-            field: 'comment',
-            title: 'Comment',
-            sortable: true,
-            align: 'center'
-        },
+        
          
           {
             field: 'operate',

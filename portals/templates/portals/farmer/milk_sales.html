@@ -64,14 +64,21 @@
           <div class="col-md-12">
             <div class="card">
               <div class="card-header">
-<h4 class="">Sales Of Milk</h4>
-    <!-- Content Wrapper. Contains page content -->
-    <div class="px-5 my-1 text-center">
-    </div>
+<h4 class="">Milk  Supply</h4>
+                
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#milksalesAddModal">
       Add Record
        </button>
+       <select class="form-control form-control-sm w-auto"  id="sales-type" hidden>
+            <option value="">Filter By</option>
+            <option value="All">All</option>
+            <option value="Neighbour">Neighbour</option>
+            <option value="Hotel">Hotel</option>
+            <option value="Cooperative">Cooperative</option>
+            <option value="Institution">Institution</option>
+          </select>
          <!-- form modal -->
+        
          <div class="modal fade" id="milksalesAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
               <div class="modal-content">
@@ -86,52 +93,44 @@
                       {% csrf_token %}
                       <input type="hidden" id="pk" name="id">
                       <div class="mb-3">
-                        <label for="date_of_sales" class="form-label">Date of Sales</label>
+                        <label for="date_of_sales" class="form-label">Date of Supply</label>
                         <input type="date" class="form-control editable-field" id="date_of_sales" name="date_of_sales" required>
                         <div class="invalid-feedback">Please provide a valid date.</div>
                     </div>
+                   
+                    
                     <div class="mb-3">
-                        <label for="number_of_cows_milked" class="form-label">Number of Cows Milked</label>
-                        <input type="number" class="form-control editable-field" id="number_of_cows_milked" name="number_of_cows_milked" required>
-                        <div class="invalid-feedback">Please provide a valid number of cows milked.</div>
-                    </div>
+                      <label for="milk_sales_to" class="form-label">Category of the buyer</label>
+                      <select class="form-control editable-field" id="milk_sales_to" name="milk_sales_to" required>
+                          <option value="">Select</option>
+                          {% for value, label in SALES_TO %}
+                              <option value="{{ value }}">{{ label }}</option>
+                          {% endfor %}
+                      </select>
+                      <div class="invalid-feedback">Please select a valid option.</div>
+                  </div>
+                  <div class="mb-3">
+                    <label for="buyer" class="form-label">Name of the Buyer</label>
+                    <select class="form-control" id="buyer" name="buyer" required>
+                        <option value="">Select</option>
+                        <!-- Options will be dynamically populated -->
+                    </select>
+                    <div class="invalid-feedback">Please select a valid option.</div>
+                </div>
+                   
                     <div class="mb-3">
-                        <label for="total_kgs_milked" class="form-label">Total Kgs Milked</label>
-                        <input type="number" step="0.01" class="form-control editable-field" id="total_kgs_milked" name="total_kgs_milked" required>
-                        <div class="invalid-feedback">Please provide a valid total kgs milked.</div>
-                    </div>
+                      <label for="balance" class="form-label">Contact</label>
+                      <input type="text"  class="form-control editable-field" id="balance" name="balance">
+                      <div class="invalid-feedback">Please provide a valid balance.</div>
+                  </div>
                     <div class="mb-3">
-                        <label for="milk_sales_to" class="form-label">Milk Sales To</label>
-                        <select class="form-control editable-field" id="milk_sales_to" name="milk_sales_to" required>
-                            <option value="">Select</option>
-                            <option value="Neighbour">Neighbour</option>
-                            <option value="Hotel">Hotel</option>
-                            <option value="Cooperative">Cooperative</option>
-                        </select>
-                        <div class="invalid-feedback">Please select a valid option.</div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="buyer_contact" class="form-label">Buyer Contact</label>
-                        <input type="text" class="form-control editable-field" id="buyer_contact" name="buyer_contact" required>
-                        <div class="invalid-feedback">Please provide a valid contact.</div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="price_per_kg" class="form-label">Price per Kg</label>
-                        <input type="number" step="0.01" class="form-control editable-field" id="price_per_kg" name="price_per_kg" required>
-                        <div class="invalid-feedback">Please provide a valid price per kg.</div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="total_cash_received" class="form-label">Total Cash Received</label>
+                        <label for="total_cash_received" class="form-label">Total Kgs/Litres Supplied</label>
                         <input type="number" step="0.01" class="form-control editable-field" id="total_cash_received" name="total_cash_received" required>
                         <div class="invalid-feedback">Please provide a valid total cash received.</div>
                     </div>
+                    
                     <div class="mb-3">
-                        <label for="balance" class="form-label">Balance</label>
-                        <input type="number"  class="form-control editable-field" id="balance" name="balance">
-                        <div class="invalid-feedback">Please provide a valid balance.</div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="comment" class="form-label">Comment</label>
+                        <label for="comment" class="form-label">Remarks</label>
                         <textarea class="form-control editable-field" id="comment" name="comment" rows="3"></textarea>
                         <div class="invalid-feedback">Please provide a valid comment.</div>
                     </div>
@@ -162,52 +161,44 @@
                       {% csrf_token %}
                       <input type="hidden" id="id" name="id">
                       <div class="mb-3">
-                        <label for="date_of_sales" class="form-label">Date of Sales</label>
+                        <label for="date_of_sales" class="form-label">Date of Supply</label>
                         <input type="date" class="form-control editable-field" id="date_of_sales" name="date_of_sales" required>
                         <div class="invalid-feedback">Please provide a valid date.</div>
                     </div>
+                   
+                   
                     <div class="mb-3">
-                        <label for="number_of_cows_milked" class="form-label">Number of Cows Milked</label>
-                        <input type="number" class="form-control editable-field" id="number_of_cows_milked" name="number_of_cows_milked" required>
-                        <div class="invalid-feedback">Please provide a valid number of cows milked.</div>
-                    </div>
+                      <label for="milk_sales_to" class="form-label">Category of the buyer</label>
+                      <select class="form-control editable-field" id="milk_sales_to" name="milk_sales_to" required>
+                          <option value="">Select</option>
+                          {% for value, label in SALES_TO %}
+                              <option value="{{ value }}">{{ label }}</option>
+                          {% endfor %}
+                      </select>
+                      <div class="invalid-feedback">Please select a valid option.</div>
+                  </div>
+                  <div class="mb-3">
+                    <label for="buyer" class="form-label">Name of the Buyer</label>
+                    <select class="form-control" id="buyer" name="buyer" required>
+                        <option value="">Select</option>
+                        <!-- Options will be dynamically populated -->
+                    </select>
+                    <div class="invalid-feedback">Please select a valid option.</div>
+                </div>
+                   
                     <div class="mb-3">
-                        <label for="total_kgs_milked" class="form-label">Total Kgs Milked</label>
-                        <input type="number" step="0.01" class="form-control editable-field" id="total_kgs_milked" name="total_kgs_milked" required>
-                        <div class="invalid-feedback">Please provide a valid total kgs milked.</div>
-                    </div>
+                      <label for="balance" class="form-label">Contact</label>
+                      <input type="text"  class="form-control editable-field" id="balance" name="balance">
+                      <div class="invalid-feedback">Please provide a valid balance.</div>
+                  </div>
                     <div class="mb-3">
-                        <label for="milk_sales_to" class="form-label">Milk Sales To</label>
-                        <select class="form-control editable-field" id="milk_sales_to" name="milk_sales_to" required>
-                            <option value="">Select...</option>
-                            <option value="Neighbour">Neighbour</option>
-                            <option value="Hotel">Hotel</option>
-                            <option value="Cooperative">Cooperative</option>
-                        </select>
-                        <div class="invalid-feedback">Please select a valid option.</div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="buyer_contact" class="form-label">Buyer Contact</label>
-                        <input type="text" class="form-control editable-field" id="buyer_contact" name="buyer_contact" required>
-                        <div class="invalid-feedback">Please provide a valid contact.</div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="price_per_kg" class="form-label">Price per Kg</label>
-                        <input type="number" step="0.01" class="form-control editable-field" id="price_per_kg" name="price_per_kg" required>
-                        <div class="invalid-feedback">Please provide a valid price per kg.</div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="total_cash_received" class="form-label">Total Cash Received</label>
+                        <label for="total_cash_received" class="form-label">Total Kgs/Litres Supplied</label>
                         <input type="number" step="0.01" class="form-control editable-field" id="total_cash_received" name="total_cash_received" required>
                         <div class="invalid-feedback">Please provide a valid total cash received.</div>
                     </div>
+                    
                     <div class="mb-3">
-                        <label for="balance" class="form-label">Balance</label>
-                        <input type="number"  class="form-control editable-field" id="balance" name="balance" value="0.00">
-                        <div class="invalid-feedback">Please provide a valid balance.</div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="comment" class="form-label">Comment</label>
+                        <label for="comment" class="form-label">Remarks</label>
                         <textarea class="form-control editable-field" id="comment" name="comment" rows="3"></textarea>
                         <div class="invalid-feedback">Please provide a valid comment.</div>
                     </div>
@@ -222,7 +213,21 @@
             </div>
           </div>
           <!-- edit modal end -->
-   
+    <!-- Display Modal  Modal -->
+    <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content" id="invoice">
+          <h2 class="text-center">Farm Records</h2>
+       <h3 class="text-center">Milk Supply Records </h3>
+          <div class="modal-body" id="modalBody">
+          </div>
+          <div class="modal-footer" id="modal-footer">
+            <button type="button" class="btn btn-secondary" id="closeModalBtn1">Close</button>
+            <button type="button" id="download" class="btn btn-primary">Download Pdf</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /. Display  modal -->
   
      
     <!--edit Modal  -->
@@ -230,22 +235,7 @@
      
     <!-- edit modal end -->
     
-    <!-- Display Modal  Modal -->
-    <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-       
-          <div class="modal-content" id="invoice">
-            <h2 class="text-center">Farm Records</h2>
-            <h3 class="text-center">Milk Sales Records</h3>
-            <div class="modal-bcody" id="modalBody">
-            </div>
-            <div class="modal-footer" id="modal-footer">
-              <button type="button" class="btn btn-secondary" id="closeModalBtn1">Close</button>
-              <button type="button" id="download" class="btn btn-primary">Download Pdf</button>
-            </div>
-          </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-      </div><!-- /. Display  modal -->
-<!-- sucess Modal -->
+   
 
     
     <style>
@@ -302,6 +292,33 @@
       data-url="{% url 'sales_of_milk_list' %}"
       data-response-handler="responseHandler">
     </table>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      document.getElementById('milk_sales_to').addEventListener('change', function () {
+          const category = this.value;
+          const buyerSelect = document.getElementById('buyer');
+  
+          buyerSelect.innerHTML = '<option value="">Select</option>';
+  
+          if (category) {
+              fetch(`/buyers-category/?category=${category}`)
+                  .then(response => response.json())
+                  .then(data => {
+                      data.forEach(buyer => {
+                          console.log(data);
+                          const option = document.createElement('option');
+                          option.value = buyer.id;
+                          option.text = `${buyer.name} (${buyer.category})`;
+                          buyerSelect.appendChild(option);
+                      });
+                  })
+                  .catch(error => {
+                      console.error('Error fetching buyers:', error);
+                  });
+          }
+      });
+  });
+</script>
     <script>
 function getCookie(name) {
     let cookieValue = null;
@@ -330,14 +347,41 @@ const csrftoken = getCookie('csrftoken');
           return row.id
         })
       }
-    
-      function responseHandler(res) {
-        return {
-                total: res.count,
-                rows: res.results
-            };
-      }
+      let originalRows = [];
 
+  function responseHandler(res) {
+    // Save full data for client-side filtering
+    originalRows = res.results;
+    return {
+      total: res.results.length,
+      rows: res.results
+    };
+  }
+
+  function filterTableByType(type) {
+    let filtered = [];
+
+    if (type === 'All') {
+      filtered = originalRows;
+    } else {
+      filtered = originalRows.filter(row => row.milk_sales_to === type);
+    }
+
+    $('#table').bootstrapTable('load', filtered);
+  }
+
+  $(document).ready(function () {
+    $('#sales-type').on('change', function () {
+      const selectedType = $(this).val();
+      filterTableByType(selectedType);
+    });
+
+    // Load "All" by default once table is initialized
+    $('#table').on('load-success.bs.table', function () {
+      $('#sales-type').val('All');
+    });
+  });
+     
       function detailFormatter(index, row) {
     var html = '<table class="table">';
     var columns = $('#table').bootstrapTable('getOptions').columns[0]; 
@@ -412,12 +456,14 @@ $('#milksalesAddForm').submit(function(e) {
     });
      function operateFormatter(value, row, index) {
         return [
-          '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
-          '<i class="fa fa-edit"></i>',
-          '</a>  ',
-          '<a class="remove" href="javascript:void(0)" title="Remove">',
-          '<i class="fa fa-trash"></i>',
-          '</a>'
+          '<div class="btn-group" role="group" aria-label="Actions">',
+          '<a class="btn btn-warning btn-sm edit" id="edit" href="javascript:void(0)" title="Edit">',
+              '<i class="fa fa-edit"></i> Edit',
+          '</a>',
+          '<a class="btn btn-danger btn-sm remove" href="javascript:void(0)" title="Remove">',
+              '<i class="fa fa-trash"></i> Delete',
+          '</a>',
+      '</div>'
           
         ].join('')
       }
@@ -578,59 +624,40 @@ $('#milksalesAddForm').submit(function(e) {
         return moment(value).format('DD-MM-YYYY'); 
     }
 },
+
 {
-    field: 'number_of_cows_milked',
-    title: 'Number of Cows Milked',
-    label: 'Number of Cows Milked',
-    sortable: true,
-    align: 'center'
-},
-{
-    field: 'total_kgs_milked',
-    title: 'Total Kgs Milked',
-    label: 'Total Kgs Milked',
+    field: 'buyer_name',
+    title: 'Buyer Name',
+    label: 'Buyer Name',
     sortable: true,
     align: 'center'
 },
 {
     field: 'milk_sales_to',
-    title: 'Milk Sales To',
-    label: 'Milk Sales To',
+    title: 'Buyer Category',
+    label: 'Buyer category',
     sortable: true,
     align: 'center'
 },
 {
-    field: 'buyer_contact',
-    title: 'Buyer Contact',
-    label: 'Buyer Contact',
-    sortable: true,
-    align: 'center'
-},
-{
-    field: 'price_per_kg',
-    title: 'Price per Kg',
-    label: 'Price per Kg',
-    sortable: true,
-    align: 'center'
+  field: 'balance',
+  title: 'Contact',
+  label: 'Contact',
+  sortable: true,
+  align: 'center'
 },
 {
     field: 'total_cash_received',
-    title: 'Total Cash Received',
-    label: 'Total Cash Received',
+    title: 'Total Kgs/ltrs Supplied',
+    label: 'Total Kgs/ltrs Supplied',
     sortable: true,
     align: 'center'
 },
-{
-    field: 'balance',
-    title: 'Balance',
-    label: 'Balance',
-    sortable: true,
-    align: 'center'
-},
+
 {
     field: 'comment',
     title: 'Comment',
-    label: 'Comment',
+    label: 'Remarks',
     sortable: true,
     align: 'center'
 },
@@ -736,7 +763,7 @@ $('#milksalesAddForm').submit(function(e) {
   <script src="{% static 'portals/assets/js/scripts.js' %}"></script>
  
       
-</div>
+
 <!-- /.row (main row) -->
 </div><!-- /.container-fluid -->
 <!-- end  of template -->

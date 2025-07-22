@@ -442,11 +442,7 @@ $('#cpdAddForm').submit(function(e) {
           return sum + i
         }, 0)
       }
-  let sectionListUrl = "{% url 'section-list' lesson_id=1 %}".replace(/1\/?$/, '');
-
-if (sectionListUrl.endsWith('/')) {
-    sectionListUrl = sectionListUrl.slice(0, -1);
-}
+  
             
             
       function initTable() {
@@ -479,7 +475,7 @@ if (sectionListUrl.endsWith('/')) {
           },
           {
             field: 'passed',
-            title: 'Passed',
+            title: 'Status',
             sortable: true,
             align: 'center'
           },

@@ -3,7 +3,11 @@
 {% load static %}
 
 {% block content %}
-{% include 'portals/sidebarVet.html' %}
+{% if role == "farmer" %}
+    {% include 'portals/sidebarFarmer.html' %}
+{% elif role == "vet" %}
+    {% include 'portals/sidebarVet.html' %}
+{% endif %}
 <main class="page-content">
 <div class="container-fluid">
       <!-- Navbar -->
@@ -86,6 +90,19 @@
             <form id="pregAddForm" >
               {% csrf_token %}
               <input type="hidden" id="id"  name="id" >
+              <div class="mb-3">
+                <label for="position" class="form-label">Assign Vet</label>
+                <select class="form-control" id="assigned_to_vet" name="assigned_to_vet">
+                    <option value="">Select Vet</option>
+                    {% for vet in all_vets %}
+                        <option value="{{ vet.username }}">{{ vet.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+              <div class="mb-3">
+                <label for="enrollment_date" class="form-label">Date Of Enrollment</label>
+                <input type="date" class="form-control" id="enrollment_date" name="enrollment_date">
+            </div>
                <div class="mb-3">
                 <label for="position" class="form-label">Slaughterhouse</label>
                 <input type="text" class="form-control" id="slaughterhouse" name="slaughterhouse">
@@ -152,6 +169,10 @@
             {% csrf_token %}
             <input type="hidden" id="id" name="id">
             <div class="mb-3">
+              <label for="enrollment_date" class="form-label">Date Of Enrollment</label>
+              <input type="date" class="form-control" id="enrollment_date" name="enrollment_date">
+          </div>
+            <div class="mb-3">
                 <label for="position" class="form-label">Slaughterhouse</label>
                 <input type="text" class="form-control" id="slaughterhouse" name="slaughterhouse">
             </div>
@@ -208,7 +229,7 @@
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
           <h2 class="text-center">Veterinary Professional Services</h2>
-       <h3 class="text-center">Pregnancy Diagnosis Records</h3>
+       <h3 class="text-center">Employee Records</h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -387,18 +408,18 @@ $('#pregAddForm').submit(function(e) {
         }
     });
 });
-     function operateFormatter(value, row, index) {
-        return [
-          '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
-          '<i class="fa fa-edit"></i>',
-          '</a>  ',
-          '<a class="remove" href="javascript:void(0)" title="Remove">',
-          '<i class="fa fa-trash"></i>',
-          '</a>'
-          
-        ].join('')
-      }
-
+function operateFormatter(value, row, index) {
+  return [
+     '<div class="btn-group" role="group" aria-label="Actions">',
+          '<a class="btn btn-warning btn-sm edit" id="edit" href="javascript:void(0)" title="Edit">',
+              '<i class="fa fa-edit"></i> Edit',
+          '</a>',
+          '<a class="btn btn-danger btn-sm remove" href="javascript:void(0)" title="Remove">',
+              '<i class="fa fa-trash"></i> Delete',
+          '</a>',
+      '</div>'
+  ].join('');
+}
      
       window.operateEvents = {
         'click .edit': function(e, value, row, index) {
@@ -476,32 +497,39 @@ $('#pregAddForm').submit(function(e) {
 });
 
   },
-        'click .remove': function (e, value, row, index) {
-    // Send an AJAX request to the Django backend to delete the record
-    $.ajax({
-        url: `/employee/delete/${row.id}/`, // Replace with the appropriate URL
-        type: 'DELETE',
-        headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrftoken
-    }, // Include CSRF token if required
-        success: function () {
-          
-            // If deletion is successful, remove the row from the Bootstrap Table
-            $table.bootstrapTable('remove', {
-                row: 'id',
-                values: [row.id]
-            });
-            window.location.reload();
-        },
-        error: function (xhr, textStatus, errorThrown) {
-            // Handle errors, if any
-            console.error('Error deleting record:', errorThrown);
-            // Optionally, you can display error messages or handle UI updates here
-        }
-    });
-
-}
+       'click .remove': function (e, value, row, index) {
+    // Show confirmation dialog
+    const confirmation = window.confirm("Are you sure you want to delete this record?");
+    
+    // If the user confirms, proceed with the deletion
+    if (confirmation) {
+        // Send an AJAX request to the Django backend to delete the record
+        $.ajax({
+            url: `/employee/delete/${row.id}/`, // Replace with the appropriate URL
+            type: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            }, // Include CSRF token if required
+            success: function () {
+                // If deletion is successful, remove the row from the Bootstrap Table
+                $table.bootstrapTable('remove', {
+                    row: 'id',
+                    values: [row.id]
+                });
+                window.location.reload(); // Optionally reload the page after removal
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                // Handle errors, if any
+                console.error('Error deleting record:', errorThrown);
+                // Optionally, you can display error messages or handle UI updates here
+            }
+        });
+    } else {
+        // If the user cancels the action, do nothing (optional: add a cancel log message)
+        console.log('Deletion canceled');
+    }
+      }
       }
     
       function totalTextFormatter(data) {
