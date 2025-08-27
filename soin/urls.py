@@ -626,7 +626,43 @@ urlpatterns = [
     path('api/assets/list/', SlaughterhouseAssetList.as_view(), name='asset-list'),
     path('api/assets/update/<int:pk>/', SlaughterhouseAssetUpdate.as_view(), name='asset-update'),
     path('api/assets/delete/<int:pk>/', SlaughterhouseAssetDelete.as_view(), name='asset-delete'),
+    
+    path("dairy/", dairy_cow_page, name="dairy_page"),
+    path("dairy/data/", livestock_data, {"livestock_type": "dairy_cow"}, name="dairy_data"),
+
+    path("beef/", beef_page, name="beef_page"),
+    path("beef/data/", livestock_data, {"livestock_type": "beef"}, name="beef_data"),
+
+    path("sheep/", sheep_page, name="sheep_page"),
+    path("sheep/data/", livestock_data, {"livestock_type": "sheep"}, name="sheep_data"),
+
+    path("goat/", goat_page, name="goat_page"),
+    path("goat/data/",livestock_data, {"livestock_type": "goat"}, name="goat_data"),
+    
+    path('livestock-registration/', livestock_registration, name='livestock_registration'),
+    path('api/livestock/create/', LivestockRegistrationCreate.as_view(), name='livestock-create'),
+    path('api/livestock/list/', LivestockRegistrationList.as_view(), name='livestock-list'),
+    path('api/livestock/update/<int:pk>/', LivestockRegistrationUpdate.as_view(), name='livestock-update'),
+    path('api/livestock/delete/<int:pk>/', LivestockRegistrationDelete.as_view(), name='livestock-delete'),
+    
+     path('e-prescriptions/', eprescription, name='eprescriptions'),
+    path('e-prescriptions/create/', VeterinaryEPrescriptionCreate.as_view(), name='vet_eprescription_create'),
+    path('e-prescription/', VeterinaryEPrescriptionList.as_view(), name='eprescription_list'),
+    path('e-prescriptions/update/<int:pk>/', VeterinaryEPrescriptionUpdate.as_view(), name='vet_eprescription_update'),
+    path('e-prescriptions/delete/<int:pk>/', VeterinaryEPrescriptionDelete.as_view(), name='vet_eprescription_delete'),
+
+    path('routine/', routine, name='routine'),
+    path('routine-management/create/', RoutineManagementCreate.as_view(), name='routine_management_create'),
+    path('routine-management/', RoutineManagementList.as_view(), name='routine_management_list'),
+    path('routine-management/update/<int:pk>/', RoutineManagementUpdate.as_view(), name='routine_management_update'),
+    path('routine-management/delete/<int:pk>/', RoutineManagementDelete.as_view(), name='routine_management_delete'),
+
+    path('abortion/', abortion, name='abortion'),
+    path('abortion-records/create/', AbortionRecordCreate.as_view(), name='abortion_record_create'),
+    path('abortion-records/', AbortionRecordList.as_view(), name='abortion_record_list'),
+    path('abortion-records/update/<int:pk>/', AbortionRecordUpdate.as_view(), name='abortion_record_update'),
+    path('abortion-records/delete/<int:pk>/', AbortionRecordDelete.as_view(), name='abortion_record_delete'),
 ]
-# if  not settings.DEBUG:
+
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

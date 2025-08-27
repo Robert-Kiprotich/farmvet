@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block content %}
-{% include 'portals/sidebarOfficial.html' %}
+{% include 'portals/sidebarVet.html' %}
 <main class="page-content">
 <div class="container-fluid">
       <!-- Navbar -->
@@ -64,18 +64,17 @@
           <div class="col-md-12">
             <div class="card">
               <div class="card-header">
-<h4 class="">No Objection Records</h4>
+<h4 class="">Dairy Cow</h4>
     <!-- Content Wrapper. Contains page content -->
     <div class="px-5 my-1 text-center">
     </div>
    
-
     <!-- Display Modal  Modal -->
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <h2 class="text-center">Veterinary Professional Services</h2>
-       <h3 class="text-center">No Objection Records </h3>
+          <h2 class="text-center">Farmer Records</h2>
+       <h3 class="text-center">Dairy Cow </h3> 
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -86,10 +85,6 @@
       </div><!-- /.modal-dialog -->
     </div><!-- /. Display  modal -->
 <!-- sucess Modal -->
-
-
-
-    
     <style>
       /* .select,
       #locale {
@@ -141,7 +136,7 @@
       data-page-list="[10, 25, 50, 100, all]"
       data-show-footer="true"
       data-side-pagination="server"
-      data-url="{% url 'no-objection-list' %}"
+      data-url="{% url 'dairy_data' %}"
       data-response-handler="responseHandler">
     </table>
     <script>
@@ -180,79 +175,196 @@ const csrftoken = getCookie('csrftoken');
                 total: res.count,
                 rows: res.results
             };
+           
       }
       function detailFormatter(index, row) {
         var html = '<table class="table">';
         var columns = $('#table').bootstrapTable('getOptions').columns[0]; 
-    
+        
+        // Create table rows
         $.each(columns, function (index, column) {
             if (column.field !== 'state' && column.field !== 'operate') {
                 html += '<tr>';
                 html += '<td><b>' + column.title + '</b></td>'; 
                 var key = column.field;
                 var value = row[key];
-    
-                // Format dates
+                
+                // Check if the value is a valid date and format it
                 if (moment(value, moment.ISO_8601, true).isValid()) {
                     value = moment(value).format('DD-MM-YYYY');
                 }
-    
-                // Handle files (photo, uploaded_report, etc.)
-                if (value && (column.field === 'photo' || column.field === 'uploaded_report')) {
-                    let fileExt = value.split('.').pop().toLowerCase();
-    
-                    if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
-                        // Image preview
-                        value = `<img src="${value}" alt="${column.title}" width="100" height="100" class="img-thumbnail">`;
-                    } 
-                    else if (fileExt === 'pdf') {
-                        // PDF button
-                        value = `<a href="${value}" target="_blank" class="btn btn-sm btn-primary">
-                                    📄 View PDF
-                                 </a>`;
-                    } 
-                    else if (['doc', 'docx'].includes(fileExt)) {
-                        // Word file button
-                        value = `<a href="${value}" target="_blank" class="btn btn-sm btn-success">
-                                    📝 Open Word
-                                 </a>`;
-                    } 
-                    else {
-                        // Generic file button
-                        value = `<a href="${value}" target="_blank" class="btn btn-sm btn-secondary">
-                                    ⬇ Download
-                                 </a>`;
-                    }
-                }
-    
-                html += '<td>' + (value || '') + '</td>'; 
+                if (column.field === 'photo' && value) {
+                  value = `
+                     
+                          <img src="${value}" alt="Photo" width="50" height="50" class="img-thumbnail">
+                  `;
+              }
+                html += '<td>' + value + '</td>'; 
                 html += '</tr>';
             }
         });
     
         html += '</table>';
         $('#modalBody').html(html);
-    
+        
         $('#dsModal').modal('show');
-    
-        $('#closeModalBtn, #closeModalBtn1').on('click', function() {
+        
+        $('#closeModalBtn').on('click', function() {
+            $('#dsModal').modal('hide');
+        });
+        $('#closeModalBtn1').on('click', function() {
             $('#dsModal').modal('hide');
         });
     }
+$('#JudgeAddForm').submit(function(e) {
+    e.preventDefault(); // Prevent the default form submission
     
+    // Serialize form data
+    var formData = $(this).serialize();
+    console.log(formData);
+    
+    // Send AJAX judge
+    $.ajax({
+        type: 'POST',
+        url: "/vet-judgments/create/",
+        data: formData,
+        success: function(data) {
+            $('#JudgeAddModal').modal('hide');
+            $('#statusSuccessModal').modal('show');
+            // Redirect after 3 seconds
+            setTimeout(function() {
+                window.location.reload(); // Reload the page
+            }, 1000); 
+            // Handle success response
+            console.log('Form submitted successfully');
+            console.log(data);   
+        },
+        error: function(xhr, textStatus, errorThrown) {
+            console.error('Error submitting form:', errorThrown);
+            console.log('Response:', xhr.responseText);
 
+            alert(xhr.responseText)
+            //alert('Error: ' + xhr.responseText);
+        }
+    });
+});
      function operateFormatter(value, row, index) {
         return [
-          
+          '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
+          '<i class="fa fa-edit"></i>',
+          '</a>  ',
+          '<a class="remove" href="javascript:void(0)" title="Remove">',
+          '<i class="fa fa-trash"></i>',
+          '</a>'
           
         ].join('')
       }
 
      
       window.operateEvents = {
-       
-  },
+        'click .edit': function(e, value, row, index) {
+    // Fetch the ID from the row data (assuming 'id' is a property in your data)
+    const objectId = row.id;
+    console.log(objectId)
+
+    // Check if ID is available before proceeding
+    if (!objectId) {
+      console.error('Error: Missing ID in row data');
+      return;
+    }
+
+    $('#JudgeEditModal').modal('show');
+
+    // Populate form fields after the modal is shown (ensures elements exist)
+    $('#JudgeEditModal').on('shown.bs.modal', function () {
+      const formFields = $('#JudgeEditModal .editable-field');
+      
+
+      formFields.each(function(i, field) {
+    const fieldName = $(field).attr('name');
+    const fieldValue = row[fieldName];
+
+    if ($(field).is('select')) {
         
+        $(field).val(fieldValue || ''); 
+    } else {
+
+        $(field).val(fieldValue || ''); 
+    }
+});
+    });
+
+    $('#cancel').click(function() {
+      $('#JudgeEditModal').modal('hide');
+    });
+    $('#canceless').click(function() {
+      $('#JudgeEditModal').modal('hide');
+    });
+
+    e.preventDefault();
+
+    
+    $('#submitjudge').on('click', function () {
+      const formFields = $('#JudgeEditModal .editable-field');
+    
+      formFields.each(function (i, field) {
+        const fieldName = $(field).attr('name');
+        const fieldValue = $(field).val();
+    
+        row[fieldName] = fieldValue; 
+      });
+       
+      fetch(`/client-judges/update/${row.id}/`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify(row)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Success:', data);
+        
+        window.location.reload()
+       
+          
+    })
+    .then(data=>{
+      $('#statusSuccessModal').modal('show');
+    
+    })
+    .catch(error => console.error('Error:', error));
+    });
+
+  },
+        'click .remove': function (e, value, row, index) {
+    // Send an AJAX judge to the Django backend to delete the record
+    $.ajax({
+        url: `/client-judges/delete/${row.id}/`, // Replace with the appropriate URL
+        type: 'DELETE',
+        headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
+    }, // Include CSRF token if required
+        success: function () {
+          
+            // If deletion is successful, remove the row from the Bootstrap Table
+            $table.bootstrapTable('remove', {
+                row: 'id',
+                values: [row.id]
+            });
+            window.location.reload();
+        },
+        error: function (xhr, textStatus, errorThrown) {
+            // Handle errors, if any
+            console.error('Error deleting record:', errorThrown);
+            // Optionally, you can display error messages or handle UI updates here
+        }
+    });
+
+}
+      }
     
       function totalTextFormatter(data) {
         return 'Total'
@@ -279,45 +391,67 @@ const csrftoken = getCookie('csrftoken');
       locale: $('#locale').val(),
       columns: [
         [
-          {
+        {
             field: 'state',
             checkbox: true,
             rowspan: 2,
             align: 'center',
             valign: 'middle'
           },
-          
-          
           {
-            field: 'assigned_to_official',
-            title: 'Farmer Name',
+            field: 'livestock_type',
+            title: 'Livestock Type',
             sortable: true,
             align: 'center'
           },
           {
-            field: 'date_of_confirmation',
-            title: 'Date of Confirmation',
+            field: 'date_of_registration',
+            title: 'Date of Registration',
             sortable: true,
             align: 'center',
-            formatter: function (value, row) {
+            formatter: function (value) {
               return moment(value).format('DD-MM-YYYY');
             }
           },
           {
-            field: 'sub_county_district',
-            title: 'Sub-County/District',
+            field: 'breed',
+            title: 'Breed',
             sortable: true,
             align: 'center'
           },
           {
-            field: 'ward_level',
-            title: 'Ward Level',
+            field: 'sex',
+            title: 'Sex',
             sortable: true,
             align: 'center'
           },
           {
-            field: 'confirmed_by',
-            title: 'Confirmed By',
+            field: 'age',
+            title: 'Age',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'body_weight',
+            title: 'Body Weight',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'colour',
+            title: 'Colour',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'number_of_births',
+            title: 'Number of Births',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'given_name',
+            title: 'Given Name',
             sortable: true,
             align: 'center'
           },
@@ -328,54 +462,135 @@ const csrftoken = getCookie('csrftoken');
             align: 'center'
           },
           {
-            field: 'phone_number',
-            title: 'Phone Number',
+            field: 'breeding_level',
+            title: 'Breeding Level',
             sortable: true,
             align: 'center'
           },
           {
-            field: 'uploaded_no_objection_form',
-            title: 'Uploaded Form',
+            field: 'dam_details',
+            title: 'Dam Details',
             sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'sire_details',
+            title: 'Sire Details',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'origin',
+            title: 'Origin',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'country_of_importation',
+            title: 'Country of Importation',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'source',
+            title: 'Source',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'farm_name',
+            title: 'Farm Name',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'owner_name',
+            title: 'Owner Name',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'owner_phone',
+            title: 'Owner Phone',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'owner_id_number',
+            title: 'Owner ID Number',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'county',
+            title: 'County',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'sub_county',
+            title: 'Sub-County',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'village',
+            title: 'Village',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'service_provided_by',
+            title: 'Service Provided By',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'practitioner_name',
+            title: 'Practitioner Name',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'reg_number',
+            title: 'Practitioner Reg Number',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'contact',
+            title: 'Contact',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'signature_and_stamp',
+            title: 'Signature & Stamp',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'photo',
+            title: 'Photo',
+            sortable: false,
             align: 'center',
-            formatter: function (value, row, index) {
-                if (!value) return ''; // no file uploaded
-        
-                // Get file extension
-                let fileExt = value.split('.').pop().toLowerCase();
-        
-                if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
-                    // Show thumbnail for images
-                    return `<img src="${value}" 
-                                alt="Report" 
-                                width="50" height="50" 
-                                class="img-thumbnail">`;
-                } 
-                else if (fileExt === 'pdf') {
-                    // Button for PDFs
-                    return `<button class="btn btn-sm btn-primary" 
-                                onclick="window.open('${value}', '_blank')">
-                                📄 View PDF
-                            </button>`;
-                } 
-                else if (['doc', 'docx'].includes(fileExt)) {
-                    // Button for Word docs
-                    return `<button class="btn btn-sm btn-success" 
-                                onclick="window.open('${value}', '_blank')">
-                                📝 Open Word
-                            </button>`;
-                } 
-                else {
-                    // Generic download
-                    return `<button class="btn btn-sm btn-secondary" 
-                                onclick="window.open('${value}', '_blank')">
-                                ⬇ Download
-                            </button>`;
-                }
+            formatter: function (value) {
+              return `<img src="${value}" alt="Photo" style="width:60px;height:60px;border-radius:6px;">`;
             }
-        },
+          },
+
+
+          {
+            field: 'operate',
+            title: 'Item Operate',
+            align: 'center',
+            clickToSelect: false,
+            events: window.operateEvents,
+            formatter: operateFormatter
+          }
         ],
         [
+        
         ]
         ]
     })
@@ -455,6 +670,7 @@ const csrftoken = getCookie('csrftoken');
   <script src="{% static 'portals/assets/js/core/bootstrap.min.js' %}"></script>
   <script src="{% static 'portals/assets/js/main.js' %}"></script>
   <script src="{% static 'portals/assets/js/scripts.js' %}"></script>
+  <script src="{% static 'portals/assets/js/modal.js' %}"></script>
   
   
   <!--  Notifications Plugin    -->

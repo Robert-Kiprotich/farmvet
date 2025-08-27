@@ -485,8 +485,6 @@ class SurgicalRecordSerializer(serializers.ModelSerializer):
             'owner_name',
             'owner_village',
             'owner_mobile_number',
-            'vet_in_charge',
-            'vet_registration_number',
             'provided_by',
             'practitioner',
             'vet_category',
@@ -1509,3 +1507,143 @@ class SlaughterhouseAssetSerializer(serializers.ModelSerializer):
             'depossession_value',
             'remarks',
         ]
+class LivestockRegistrationSerializer(serializers.ModelSerializer):
+    
+
+    class Meta:
+        model = LivestockRegistration
+        fields = [
+            "id",
+            "user",
+            "livestock_type",
+            "date_of_registration",
+            "breed",
+            "sex",
+            "age",
+            "body_weight",
+            "colour",
+            "number_of_births",
+            "given_name",
+            "registration_number",
+            "breeding_level",
+            "dam_details",
+            "sire_details",
+            "origin",
+            "country_of_importation",
+            "source",
+            "farm_name",
+            "owner_name",
+            "owner_phone",
+            "owner_id_number",
+            "county",
+            "sub_county",
+            "village",
+            "service_provided_by",
+            "practitioner_name",
+            "reg_number",
+            "contact",
+            "signature_and_stamp",
+            "photo",
+            
+        ]
+        
+class VeterinaryEPrescriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VeterinaryEPrescription
+        fields = [
+            "id",
+            "user",
+            "pharmacy_name",
+            "location",
+            "vet_practitioner_incharge",
+            "kvb_no",
+            "licence_no",
+            "contact",
+            "sign",
+            "signed_on",
+            "drug_category",
+            "prescription_target",
+            "date_of_prescription",
+            "livestock_type",
+            "breed",
+            "age",
+            "drug_trade_name",
+            "manufacturing_company",
+            "batch_number",
+            "drug_dosage",
+            "route_of_administration",
+            "drug_volume",
+            "clinical_use",
+            "duration_of_treatment",
+            "withdrawal_period",
+            "quantity_purchased",
+            "storage_condition",
+            "side_effect",
+            "expiry_date",
+            "vets_comments",
+            "buyer_name",
+            "buyer_category",
+            "buyer_kvb_no",
+            "buyer_licence_no",
+            "buyer_signature",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
+        
+class RoutineManagementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RoutineManagement
+        fields = [
+            "id",
+            "user",
+            "date_of_service",
+            "livestock_category",
+            "number_of_animals",
+            "animal_name",
+            "reg_no",
+            "age",
+            "routine_management",
+            "other_management_practice",
+            "owner_name",
+            "village",
+            "contact",
+            "service_provided_by",
+            "vet_practitioner_incharge",
+            "vet_category",
+            "vet_reg_no",
+            "signature_and_stamp",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
+        
+class AbortionRecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AbortionRecord
+        fields = [
+            "id",
+            "user",
+            "livestock_category",
+            "number_of_animals_aborted",
+            "animal_name",
+            "reg_no",
+            "date_of_insemination",
+            "date_of_abortion",
+            "reason_for_abortion",
+            "other_reason",
+            "treatment_given",
+            "remarks",
+            "owner_name",
+            "contact",
+            "village",
+            "service_provided_by",
+            "vet_practitioner_name",
+            "vet_category",
+            "vet_reg_no",
+            "vet_contact",
+            "signature_and_stamp",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]

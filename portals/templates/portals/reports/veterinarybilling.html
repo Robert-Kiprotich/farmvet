@@ -186,7 +186,15 @@
               <input type="text" id="vet_to_be_paid" name="vet_to_be_paid" class="form-control" maxlength="255">
               <div class="invalid-feedback">Please provide valid vet details.</div>
           </div>
-          
+          <div class="mb-3">
+            <label for="vet_category" class="form-label">Vet Category</label>
+            <select class="form-select" id="vet_category" name="vet_category" required>
+              <option value="" selected disabled>-- Select Category --</option>
+              <option value="surgeon">Surgeon</option>
+              <option value="technologist">Technologist</option>
+              <option value="technician">Technician</option>
+            </select>
+          </div>
           <div class="mb-3">
               <label for="reg_no" class="form-label">Vet Registration Number</label>
               <input type="text" id="reg_no" name="reg_no" class="form-control" maxlength="255">
@@ -331,7 +339,15 @@
             <input type="text" id="vet_to_be_paid" name="vet_to_be_paid" class="form-control editable-field" maxlength="255">
             <div class="invalid-feedback">Please provide valid vet details.</div>
         </div>
-        
+        <div class="mb-3">
+          <label for="vet_category" class="form-label">Vet Category</label>
+          <select class="form-select" id="vet_category" name="vet_category" required>
+            <option value="" selected disabled>-- Select Category --</option>
+            <option value="surgeon">Surgeon</option>
+            <option value="technologist">Technologist</option>
+            <option value="technician">Technician</option>
+          </select>
+        </div>
         <div class="mb-3">
             <label for="reg_no" class="form-label">Vet Registration Number</label>
             <input type="text" id="reg_no" name="reg_no" class="form-control editable-field" maxlength="255">

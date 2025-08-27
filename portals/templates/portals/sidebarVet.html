@@ -73,6 +73,10 @@
                           </a>
                         </li>
                         <li>
+                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'routine'%}">Routine Management</a>
+                          </a>
+                        </li>
+                        <li>
                           <a class="dropdown-item" style="font-weight: bold;" href="{% url 'consultation'%}">Farm Consultation Records</a>
                           </a>
                         </li>
@@ -116,6 +120,9 @@
                       </li>
                       <li>
                         <a class="dropdown-item" style="font-weight: bold;" href="{% url 'ui-irrigation' %}">Uterine Irrigation</a>
+                      </li>
+                      <li>
+                        <a class="dropdown-item" style="font-weight: bold;" href="{% url 'abortion' %}">Abortion Records</a>
                       </li>
                        
                     </ul>
@@ -168,27 +175,43 @@
                     </ul>
                 </div>
             </li> 
+
+            <li class="sidebar-dropdown">
+              <a href="#" style="font-weight: bold;">
+                  <i class=""></i>
+                  <span >Livestock Registration</span>
+              </a>
+              <div class="sidebar-submenu">
+                  <ul>
+                    <li>
+                      <a class="dropdown-item" style="font-weight: bold;" href="{% url 'livestock_registration' %}">Livestock Registration</a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" style="font-weight: bold;" href="{% url 'dairy_page' %}">Dairy</a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" style="font-weight: bold;" href="{% url 'beef_page' %}">Beef</a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" style="font-weight: bold;" href="{% url 'sheep_page' %}">Sheep</a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" style="font-weight: bold;" href="{% url 'goat_page' %}">Goats</a>
+                    </li>
+                  </ul>
+              </div>
+          </li> 
+
+
               </ul>
             </div>
           </li>
 
-          <li class="sidebar-dropdown">
-            <a href="#">
-              <i class="fas fa-tint"></i>
-              <span>Approved Dairy Farms</span>
-            </a>
-            <div class="sidebar-submenu">
-              <ul>
-                <li>
-                  <a style="font-weight: bold;" href="{% url 'approved-dairy-farms' %}">Approved Farms</a>
-                </li>
-              </ul>
-            </div>
-          </li>
+          
           <li class="sidebar-dropdown">
             <a href="#">
               <i class="fa fa-chart-line"></i>
-              <span>Vets List</span>
+              <span>Practitioners List</span>
             </a>
             <div class="sidebar-submenu">
               <ul>
@@ -262,6 +285,9 @@
                 </li>
                 <li>
                   <a style="font-weight: bold;" href="{% url 'debtor' %}">Debtors</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="{% url 'eprescriptions' %}">E-Prescriptions</a>
                 </li>
               </ul>
             </div>

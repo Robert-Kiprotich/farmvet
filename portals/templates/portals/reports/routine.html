@@ -64,16 +64,16 @@
           <div class="col-md-12">
             <div class="card">
               <div class="card-header">
-<h4 class="">Monthly Report</h4>
+<h4 class="">Routine Management Records</h4>
     <!-- Content Wrapper. Contains page content -->
     <div class="px-5 my-1 text-center">
     </div>
    
-   <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#ReportAddModal">
+   <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#AiAddModal">
     Add Record
     </button>
      <!-- form modal -->
-     <div class="modal fade" id="ReportAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+     <div class="modal fade" id="AiAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
@@ -83,55 +83,109 @@
             </button>
           </div>
           <div class="modal-body">
-            <form id="ReportAddForm"  enctype="multipart/form-data">
+            <form id="AiAddForm"  enctype="multipart/form-data">
               {% csrf_token %}
-              <input type="hidden" id="id"  name="id">
+              <input type="hidden" id="id"  name="id" >
               <div class="mb-3">
-                <label for="assigned_to" class="form-label">Assign To Official</label>
-                <select name="assigned_to_official" id="assigned_to_official" class="form-control">
-                  <option value="" disabled selected>Select Official</option>
-                 
-                  {% for official in all_officials %}
-                      <option value="{{ official.username }}">{{ official.username }}</option>
-                  {% endfor %}
-              </select>
-            </div>  
-            <div class="mb-3">
-                <label for="date_of_submission" class="form-label">Date of Submission</label>
-                <input type="date" class="form-control" id="date_of_submission" name="date_of_submission" required>
+                <label for="date_of_service" class="form-label">Date of Service</label>
+                <input type="date" class="form-control" id="date_of_service" name="date_of_service" required>
               </div>
-        
+            
               <div class="mb-3">
-                <label for="sub_county" class="form-label">Sub-County</label>
-                <input type="text" class="form-control" id="sub_county" name="sub_county" required>
+                <label for="livestock_category" class="form-label">Livestock Category</label>
+                <select class="form-control" id="livestock_category" name="livestock_category" required>
+                  <option value="dairy cow">Dairy Cow</option>
+                  <option value="beef">Beef</option>
+                  <option value="sheep">Sheep</option>
+                  <option value="goat">Goat</option>
+                  <option value="pig">Pig</option>
+                  <option value="poultry">Poultry</option>
+                  <option value="other">Other</option>
+                </select>
               </div>
-        
+            
               <div class="mb-3">
-                <label for="ward_level" class="form-label">Ward Level</label>
-                <input type="text" class="form-control" id="ward_level" name="ward_level" required>
+                <label for="number_of_animals" class="form-label">Number of Animals</label>
+                <input type="number" class="form-control" id="number_of_animals" name="number_of_animals" required>
               </div>
-        
+            
               <div class="mb-3">
-                <label for="submitted_by" class="form-label">Submitted By</label>
-                <input type="text" class="form-control" id="submitted_by" name="submitted_by" required>
+                <label for="animal_name" class="form-label">Animal Name</label>
+                <input type="text" class="form-control" id="animal_name" name="animal_name">
               </div>
-        
+            
               <div class="mb-3">
-                <label for="registration_number" class="form-label">Registration Number</label>
-                <input type="text" class="form-control" id="registration_number" name="registration_number" required>
+                <label for="reg_no" class="form-label">Registration No</label>
+                <input type="text" class="form-control" id="reg_no" name="reg_no">
               </div>
-        
+            
               <div class="mb-3">
-                <label for="phone_number" class="form-label">Phone Number</label>
-                <input type="tel" class="form-control" id="phone_number" name="phone_number" required>
+                <label for="age" class="form-label">Age</label>
+                <input type="text" class="form-control" id="age" name="age">
               </div>
-        
+            
               <div class="mb-3">
-                <label for="uploaded_report" class="form-label">Upload Report</label>
-                <input type="file" class="form-control-file" id="uploaded_report" name="uploaded_report" required>
+                <label for="routine_management" class="form-label">Routine Management</label>
+                <select class="form-control" id="routine_management" name="routine_management" required>
+                  <option value="dehorning">Dehorning</option>
+                  <option value="castration">Castration</option>
+                  <option value="hoof trimming">Hoof Trimming</option>
+                  <option value="iron injection">Iron Injection</option>
+                  <option value="debeaking">Debeaking</option>
+                  <option value="shearing">Shearing</option>
+                  <option value="other">Other</option>
+                </select>
               </div>
-           
-        
+            
+              <div class="mb-3">
+                <label for="other_management_practice" class="form-label">Other Management Practice</label>
+                <input type="text" class="form-control" id="other_management_practice" name="other_management_practice">
+              </div>
+            
+              <div class="mb-3">
+                <label for="owner_name" class="form-label">Owner Name</label>
+                <input type="text" class="form-control" id="owner_name" name="owner_name" required>
+              </div>
+            
+              <div class="mb-3">
+                <label for="village" class="form-label">Village</label>
+                <input type="text" class="form-control" id="village" name="village">
+              </div>
+            
+              <div class="mb-3">
+                <label for="contact" class="form-label">Contact</label>
+                <input type="text" class="form-control" id="contact" name="contact">
+              </div>
+            
+              <div class="mb-3">
+                <label for="service_provided_by" class="form-label">Service Provided By</label>
+                <input type="text" class="form-control" id="service_provided_by" name="service_provided_by" required>
+              </div>
+            
+              <div class="mb-3">
+                <label for="vet_practitioner_incharge" class="form-label">Vet Practitioner Incharge</label>
+                <input type="text" class="form-control" id="vet_practitioner_incharge" name="vet_practitioner_incharge">
+              </div>
+            
+              <div class="mb-3">
+                <label for="vet_category" class="form-label">Vet Category</label>
+                <select class="form-control" id="vet_category" name="vet_category">
+                  <option value="">-- Select --</option>
+                  <option value="surgeon">Surgeon</option>
+                  <option value="technologist">Technologist</option>
+                  <option value="technician">Technician</option>
+                </select>
+              </div>
+            
+              <div class="mb-3">
+                <label for="vet_reg_no" class="form-label">Vet Reg No</label>
+                <input type="text" class="form-control" id="vet_reg_no" name="vet_reg_no">
+              </div>
+            
+              <div class="mb-3">
+                <label for="signature_and_stamp" class="form-label">Signature and Stamp</label>
+                <input type="text" class="form-control" id="signature_and_stamp" name="signature_and_stamp">
+              </div>
             <div class="modal-footer">
                 <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 <button type="submit" id="submit" class="btn btn-primary">Save</button>
@@ -154,67 +208,119 @@
             </button>
           </div>
           <div class="modal-body">
-          <form id="ReportEditForm" class="form-group"  enctype="multipart/form-data">
+          <form id="AiEditForm" class="form-group"  enctype="multipart/form-data">
             {% csrf_token %}
             <input type="hidden" id="id" name="id">
-            
             <div class="mb-3">
-              <label for="assigned_to" class="form-label">Assign To Official(Optional)</label>
-              <select name="assigned_to_official" id="assigned_to_official" class="form-control">
-                <option value="" disabled selected>Select Official</option>
-                <option value="{{request.user.username}}">None</option>
-                {% for official in all_officials %}
-                    <option value="{{ official.username }}">{{ official.username }}</option>
-                {% endfor %}
-            </select>
-          </div>      
-          <div class="mb-3">
-            <label for="date_of_submission" class="form-label">Date of Submission</label>
-            <input type="date" class="form-control" id="date_of_submission" name="date_of_submission" required>
-          </div>
-    
-          <div class="mb-3">
-            <label for="sub_county" class="form-label">Sub-County</label>
-            <input type="text" class="form-control" id="sub_county" name="sub_county" required>
-          </div>
-    
-          <div class="mb-3">
-            <label for="ward_level" class="form-label">Ward Level</label>
-            <input type="text" class="form-control" id="ward_level" name="ward_level" required>
-          </div>
-    
-          <div class="mb-3">
-            <label for="submitted_by" class="form-label">Submitted By</label>
-            <input type="text" class="form-control" id="submitted_by" name="submitted_by" required>
-          </div>
-    
-          <div class="mb-3">
-            <label for="registration_number" class="form-label">Registration Number</label>
-            <input type="text" class="form-control" id="registration_number" name="registration_number" required>
-          </div>
-    
-          <div class="mb-3">
-            <label for="phone_number" class="form-label">Phone Number</label>
-            <input type="tel" class="form-control" id="phone_number" name="phone_number" required>
-          </div>
-    
-          <div class="mb-3">
-            <label for="uploaded_report" class="form-label">Upload Report</label>
-            <input type="file" class="form-control-file" id="uploaded_report" name="uploaded_report" required>
-          </div>
-    
-
-
+                <label for="date_of_service" class="form-label">Date of Service</label>
+                <input type="date" class="form-control" id="date_of_service" name="date_of_service" required>
+              </div>
+            
+              <div class="mb-3">
+                <label for="livestock_category" class="form-label">Livestock Category</label>
+                <select class="form-control" id="livestock_category" name="livestock_category" required>
+                  <option value="dairy_cow">Dairy Cow</option>
+                  <option value="beef">Beef</option>
+                  <option value="sheep">Sheep</option>
+                  <option value="goat">Goat</option>
+                  <option value="pig">Pig</option>
+                  <option value="poultry">Poultry</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            
+              <div class="mb-3">
+                <label for="number_of_animals" class="form-label">Number of Animals</label>
+                <input type="number" class="form-control" id="number_of_animals" name="number_of_animals" required>
+              </div>
+            
+              <div class="mb-3">
+                <label for="animal_name" class="form-label">Animal Name</label>
+                <input type="text" class="form-control" id="animal_name" name="animal_name">
+              </div>
+            
+              <div class="mb-3">
+                <label for="reg_no" class="form-label">Registration No</label>
+                <input type="text" class="form-control" id="reg_no" name="reg_no">
+              </div>
+            
+              <div class="mb-3">
+                <label for="age" class="form-label">Age</label>
+                <input type="text" class="form-control" id="age" name="age">
+              </div>
+            
+              <div class="mb-3">
+                <label for="routine_management" class="form-label">Routine Management</label>
+                <select class="form-control" id="routine_management" name="routine_management" required>
+                  <option value="dehorning">Dehorning</option>
+                  <option value="castration">Castration</option>
+                  <option value="hoof trimming">Hoof Trimming</option>
+                  <option value="iron injection">Iron Injection</option>
+                  <option value="debeaking">Debeaking</option>
+                  <option value="shearing">Shearing</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            
+              <div class="mb-3">
+                <label for="other_management_practice" class="form-label">Other Management Practice</label>
+                <input type="text" class="form-control" id="other_management_practice" name="other_management_practice">
+              </div>
+            
+              <div class="mb-3">
+                <label for="owner_name" class="form-label">Owner Name</label>
+                <input type="text" class="form-control" id="owner_name" name="owner_name" required>
+              </div>
+            
+              <div class="mb-3">
+                <label for="village" class="form-label">Village</label>
+                <input type="text" class="form-control" id="village" name="village">
+              </div>
+            
+              <div class="mb-3">
+                <label for="contact" class="form-label">Contact</label>
+                <input type="text" class="form-control" id="contact" name="contact">
+              </div>
+            
+              <div class="mb-3">
+                <label for="service_provided_by" class="form-label">Service Provided By</label>
+                <input type="text" class="form-control" id="service_provided_by" name="service_provided_by" required>
+              </div>
+            
+              <div class="mb-3">
+                <label for="vet_practitioner_incharge" class="form-label">Vet Practitioner Incharge</label>
+                <input type="text" class="form-control" id="vet_practitioner_incharge" name="vet_practitioner_incharge">
+              </div>
+            
+              <div class="mb-3">
+                <label for="vet_category" class="form-label">Vet Category</label>
+                <select class="form-control" id="vet_category" name="vet_category">
+                  <option value="">-- Select --</option>
+                  <option value="surgeon">Surgeon</option>
+                  <option value="technologist">Technologist</option>
+                  <option value="technician">Technician</option>
+                </select>
+              </div>
+            
+              <div class="mb-3">
+                <label for="vet_reg_no" class="form-label">Vet Reg No</label>
+                <input type="text" class="form-control" id="vet_reg_no" name="vet_reg_no">
+              </div>
+            
+              <div class="mb-3">
+                <label for="signature_and_stamp" class="form-label">Signature and Stamp</label>
+                <input type="text" class="form-control" id="signature_and_stamp" name="signature_and_stamp">
+              </div>
           <div class="modal-footer">
               <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-              <button type="" id="submitReport" class="btn btn-primary">Save</button>
+              <button type="" id="submitAi" class="btn btn-primary">Save</button>
           </div>
-          </div>
+          
         </form>
-        
         </div>
       </div>
     </div>
+  </div>
     <!-- edit modal end -->
     
     <!-- Display Modal  Modal -->
@@ -222,7 +328,7 @@
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
           <h2 class="text-center">Veterinary Professional Services</h2>
-       <h3 class="text-center">Monthly Report </h3>
+       <h3 class="text-center">Routine Management Records </h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -260,6 +366,8 @@
         border: 1px solid black;
         border-collapse: collapse;
         font-size: medium;
+        width: 100%;
+        
       }
       </style>
       <div class="select" hidden>
@@ -281,14 +389,14 @@
       data-show-export="false"
       data-click-to-select="true"
       data-detail-formatter="detailFormatter"
-      data-minimum-count-columns="15"
+      data-minimum-count-columns="1"
       data-show-pagination-switch="true"
       data-pagination="true"
       data-id-field="id"
       data-page-list="[10, 25, 50, 100, all]"
       data-show-footer="true"
       data-side-pagination="server"
-      data-url="{% url 'monthly-report-list' %}"
+      data-url="{% url 'routine_management_list' %}"
       data-response-handler="responseHandler">
     </table>
     <script>
@@ -329,96 +437,118 @@ const csrftoken = getCookie('csrftoken');
             };
       }
       function detailFormatter(index, row) {
-        var html = '<table class="table">';
-        var columns = $('#table').bootstrapTable('getOptions').columns[0]; 
+    var html = '<table class="table">';
+    var columns = $('#table').bootstrapTable('getOptions').columns[0]; 
     
-        $.each(columns, function (index, column) {
-            if (column.field !== 'state' && column.field !== 'operate') {
-                html += '<tr>';
-                html += '<td><b>' + column.title + '</b></td>'; 
-                var key = column.field;
-                var value = row[key];
-    
-                // Format dates
-                if (moment(value, moment.ISO_8601, true).isValid()) {
-                    value = moment(value).format('DD-MM-YYYY');
-                }
-    
-                // Handle files (photo, uploaded_report, etc.)
-                if (value && (column.field === 'photo' || column.field === 'uploaded_report')) {
-                    let fileExt = value.split('.').pop().toLowerCase();
-    
-                    if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
-                        // Image preview
-                        value = `<img src="${value}" alt="${column.title}" width="100" height="100" class="img-thumbnail">`;
-                    } 
-                    else if (fileExt === 'pdf') {
-                        // PDF button
-                        value = `<a href="${value}" target="_blank" class="btn btn-sm btn-primary">
-                                    📄 View PDF
-                                 </a>`;
-                    } 
-                    else if (['doc', 'docx'].includes(fileExt)) {
-                        // Word file button
-                        value = `<a href="${value}" target="_blank" class="btn btn-sm btn-success">
-                                    📝 Open Word
-                                 </a>`;
-                    } 
-                    else {
-                        // Generic file button
-                        value = `<a href="${value}" target="_blank" class="btn btn-sm btn-secondary">
-                                    ⬇ Download
-                                 </a>`;
-                    }
-                }
-    
-                html += '<td>' + (value || '') + '</td>'; 
-                html += '</tr>';
+    // Create table rows
+    $.each(columns, function (index, column) {
+        if (column.field !== 'state' && column.field !== 'operate') {
+            html += '<tr>';
+            html += '<td><b>' + column.title + '</b></td>'; 
+            var key = column.field;
+            var value = row[key];
+            
+            // Check if the value is a valid date and format it
+            if (moment(value, moment.ISO_8601, true).isValid()) {
+                value = moment(value).format('DD-MM-YYYY');
             }
-        });
-    
-        html += '</table>';
-        $('#modalBody').html(html);
-    
-        $('#dsModal').modal('show');
-    
-        $('#closeModalBtn, #closeModalBtn1').on('click', function() {
-            $('#dsModal').modal('hide');
-        });
-    }
-$('#ReportAddForm').submit(function(e) {
-    e.preventDefault(); // Prevent the default form submission
 
-    // Create a FormData object
-    let formData = new FormData($('#ReportAddForm')[0]);
-    console.log([...formData]); // Log FormData for debugging
-
-    // Send AJAX request
-    $.ajax({
-        type: 'POST',
-        url: "/monthly-reports/create/",
-        data: formData,
-        processData: false, 
-        contentType: false, 
-        success: function(data) {
-            $('#ReportAddModal').modal('hide');
-            $('#statusSuccessModal').modal('show');
-            // Redirect after 3 seconds
-            setTimeout(function() {
-                window.location.reload(); // Reload the page
-            }, 1000);
-            // Handle success response
-            console.log('Form submitted successfully');
-            console.log(data);
-        },
-        error: function(xhr, textStatus, errorThrown) {
-            console.error('Error submitting form:', errorThrown);
-            console.log('Response:', xhr.responseText);
-
-            // Optionally, you can display the error in a modal or alert
-            alert('Error: ' + xhr.responseText);
+            html += '<td>' + value + '</td>'; 
+            html += '</tr>';
         }
     });
+
+    html += '</table>';
+    
+
+    
+    
+   
+    $('#modalBody').html(html);
+    
+    
+    $('#dsModal').modal('show');
+
+    
+    $('#closeModalBtn').on('click', function() {
+        $('#dsModal').modal('hide');
+    });
+    $('#closeModalBtn1').on('click', function() {
+        $('#dsModal').modal('hide');
+    });
+}
+$('#AiAddForm').submit(function(e) {
+  e.preventDefault();
+  var formData = new FormData(this);
+  var jsonObject = {};
+  formData.forEach(function(value, key) {
+      jsonObject[key] = value;
+  });
+
+  console.log(jsonObject);
+
+  var csrftoken = getCookie('csrftoken');
+  $.ajax({
+    method: 'POST',
+    url: "/routine-management/create/",
+    data: JSON.stringify(jsonObject),
+    beforeSend: function(xhr) {
+      xhr.setRequestHeader('X-CSRFToken', csrftoken);
+      xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+    }
+  }).done(function(data) {
+    console.log('POST response data:', data);
+    $('#AiAddModal').modal('hide');
+    $('#statusSuccessModal').modal('show');
+    setTimeout(function() {
+      window.location.reload();
+    }, 500);
+  }).fail(function(xhr, textStatus, errorThrown) {
+    $('#AiAddModal').modal('hide');
+
+    let errorMessage = 'An unexpected error occurred.';
+    let errorHtml = '';
+
+    if (xhr.status === 400) {
+      try {
+        var errors = JSON.parse(xhr.responseText);
+
+        if (typeof errors === 'object') {
+          // Handle field-specific errors
+          errorHtml += '<ul>';
+          $.each(errors, function(field, messages) {
+            if (Array.isArray(messages)) {
+              errorHtml += '<li><strong>' + field + ':</strong> ' + messages.join(', ') + '</li>';
+              // Highlight the field with error
+              var fieldSelector = `[name="${field}"]`;
+              $(fieldSelector).addClass('is-invalid'); // Bootstrap error style
+            }
+          });
+          errorHtml += '</ul>';
+        } else {
+          errorHtml = '<p>' + errors.message + '</p>';
+        }
+      } catch (e) {
+        errorHtml = '<p>' + xhr.responseText + '</p>';
+      }
+    } else {
+      errorHtml = '<p>' + (xhr.responseText || errorThrown || errorMessage) + '</p>';
+    }
+
+    console.error('Error submitting form:', errorHtml);
+    $('#errorModalBody').html(errorHtml);
+    $('#statusErrorsModal').modal('show');
+
+    // Remove error highlighting on input focus
+    $('input, select, textarea').on('focus', function() {
+      $(this).removeClass('is-invalid');
+    });
+
+  });
+
+  $('#errorButton').click(function() {
+    $('#statusErrorsModal').modal('hide');
+  });
 });
 
 function operateFormatter(value, row, index) {
@@ -450,8 +580,8 @@ function operateFormatter(value, row, index) {
     $('#AiEditModal').modal('show');
 
     // Populate form fields after the modal is shown (ensures elements exist)
-    $('#ReportEditModal').on('shown.bs.modal', function () {
-    const formFields = $('#ReportEditModal .editable-field');
+    $('#AiEditModal').on('shown.bs.modal', function () {
+    const formFields = $('#AiEditModal .editable-field');
 
     formFields.each(function (i, field) {
         const fieldName = $(field).attr('name');
@@ -469,14 +599,14 @@ function operateFormatter(value, row, index) {
 
 // Close modal on cancel buttons
 $('#cancel, #canceless').on('click', function () {
-    $('#ReportEditModal').modal('hide');
+    $('#AiEditModal').modal('hide');
 });
 
 // Handle form submission
-$('#submitReport').on('click', function (e) {
+$('#submitAi').on('click', function (e) {
     e.preventDefault(); // Prevent the default form submission behavior
 
-    const formFields = $('#ReportEditModal .editable-field');
+    const formFields = $('#AiEditModal .editable-field');
 
     // Update the `row` object with the form field values
     formFields.each(function (i, field) {
@@ -486,7 +616,7 @@ $('#submitReport').on('click', function (e) {
     });
 
     // Send the data to the server using fetch API
-    fetch(`/monthly-reports/update/${row.id}/`, {
+    fetch(`/routine-management/update/${row.id}/`, {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',
@@ -499,7 +629,7 @@ $('#submitReport').on('click', function (e) {
             console.log('Success:', data);
 
             // Show the success modal
-            $('#ReportEditModal').modal('hide');
+            $('#AiEditModal').modal('hide');
             $('#statusSuccessModal').modal('show');
 
             // Reload the page after the success modal is shown
@@ -512,7 +642,7 @@ $('#submitReport').on('click', function (e) {
         .catch(error => console.error('Error:', error));
 });
         },
-        'click .remove': function (e, value, row, index) {
+    'click .remove': function (e, value, row, index) {
     // Show confirmation dialog
     const confirmation = window.confirm("Are you sure you want to delete this record?");
     
@@ -520,7 +650,7 @@ $('#submitReport').on('click', function (e) {
     if (confirmation) {
         // Send an AJAX request to the Django backend to delete the record
         $.ajax({
-            url: `/monthly-reports/delete/${row.id}/`, // Replace with the appropriate URL
+            url: `/routine-management/delete/${row.id}/`, // Replace with the appropriate URL
             type: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -544,9 +674,8 @@ $('#submitReport').on('click', function (e) {
         // If the user cancels the action, do nothing (optional: add a cancel log message)
         console.log('Deletion canceled');
     }
-      }
-      }
-    
+  }
+}
       function totalTextFormatter(data) {
         return 'Total'
       }
@@ -569,103 +698,35 @@ $('#submitReport').on('click', function (e) {
       // Process the fetched data and initialize Bootstrap Table
     $table.bootstrapTable('destroy').bootstrapTable({
       height: 550,
+      resizable: true,
       locale: $('#locale').val(),
       columns: [
         [
-          {
+          
+        {
             field: 'state',
             checkbox: true,
             rowspan: 2,
             align: 'center',
             valign: 'middle'
           },
-          {
-            field: 'assigned_to_official',
-            title: 'Official Name',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'date_of_submission',
-            title: 'Date of Submission',
-            sortable: true,
-            align: 'center',
-            formatter: function (value) {
-              return moment(value).format('DD-MM-YYYY'); // Formatting the date
-            }
-          },
-          {
-            field: 'sub_county',
-            title: 'Sub-County',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'ward_level',
-            title: 'Ward Level',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'submitted_by',
-            title: 'Submitted By',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'registration_number',
-            title: 'Registration Number',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'phone_number',
-            title: 'Phone Number',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'uploaded_report',
-            title: 'Uploaded Report',
-            sortable: true,
-            align: 'center',
-            formatter: function (value, row, index) {
-                if (!value) return ''; // no file uploaded
-        
-                // Get file extension
-                let fileExt = value.split('.').pop().toLowerCase();
-        
-                if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
-                    // Show thumbnail for images
-                    return `<img src="${value}" 
-                                alt="Report" 
-                                width="50" height="50" 
-                                class="img-thumbnail">`;
-                } 
-                else if (fileExt === 'pdf') {
-                    // Button for PDFs
-                    return `<button class="btn btn-sm btn-primary" 
-                                onclick="window.open('${value}', '_blank')">
-                                📄 View PDF
-                            </button>`;
-                } 
-                else if (['doc', 'docx'].includes(fileExt)) {
-                    // Button for Word docs
-                    return `<button class="btn btn-sm btn-success" 
-                                onclick="window.open('${value}', '_blank')">
-                                📝 Open Word
-                            </button>`;
-                } 
-                else {
-                    // Generic download
-                    return `<button class="btn btn-sm btn-secondary" 
-                                onclick="window.open('${value}', '_blank')">
-                                ⬇ Download
-                            </button>`;
-                }
-            }
-        },
-         
+          { field: 'state', checkbox: true, align: 'center', valign: 'middle' },
+  { field: 'date_of_service', title: 'Date of Service', sortable: true, align: 'center' },
+  { field: 'livestock_category', title: 'Livestock Category', sortable: true, align: 'center' },
+  { field: 'number_of_animals', title: 'Number of Animals', sortable: true, align: 'center' },
+  { field: 'animal_name', title: 'Animal Name', sortable: true, align: 'center' },
+  { field: 'reg_no', title: 'Registration No', sortable: true, align: 'center' },
+  { field: 'age', title: 'Age', sortable: true, align: 'center' },
+  { field: 'routine_management', title: 'Routine Management', sortable: true, align: 'center' },
+  { field: 'other_management_practice', title: 'Other Management Practice', sortable: true, align: 'center' },
+  { field: 'owner_name', title: 'Owner Name', sortable: true, align: 'center' },
+  { field: 'village', title: 'Village', sortable: true, align: 'center' },
+  { field: 'contact', title: 'Contact', sortable: true, align: 'center' },
+  { field: 'service_provided_by', title: 'Service Provided By', sortable: true, align: 'center' },
+  { field: 'vet_practitioner_incharge', title: 'Vet Practitioner Incharge', sortable: true, align: 'center' },
+  { field: 'vet_category', title: 'Vet Category', sortable: true, align: 'center' },
+  { field: 'vet_reg_no', title: 'Vet Reg No', sortable: true, align: 'center' },
+  { field: 'signature_and_stamp', title: 'Signature and Stamp', sortable: true, align: 'center' },
           {
             field: 'operate',
             title: 'Item Operate',

@@ -175,7 +175,7 @@ class OfficialSignUpForm(UserCreationForm):
 	county=forms.CharField()
 	sub_county=forms.CharField()
 	employment_number=forms.CharField()
-	designation=forms.ChoiceField(choices=[('director', 'Director'), ('svo', 'Svo')], label='Select Designation')
+	designation=forms.ChoiceField(choices=[('director', 'Director'), ('svco', 'Svco')], label='Select Designation')
 
 	
 

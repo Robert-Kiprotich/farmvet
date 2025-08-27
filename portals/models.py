@@ -235,8 +235,7 @@ class SurgicalRecord(models.Model):
 	owner_name = models.CharField(max_length=100)
 	owner_village = models.CharField(max_length=100)
 	owner_mobile_number = models.CharField(max_length=15)
-	vet_in_charge = models.CharField(max_length=100)
-	vet_registration_number = models.CharField(max_length=100)
+
 	provided_by= models.CharField(max_length=100)
 	practitioner= models.CharField(max_length=100)
 	vet_category=models.CharField(max_length=20,choices=VET_CATEGORY)
@@ -2833,13 +2832,12 @@ class EmergencyCare(models.Model):
 
 	user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)
 	assigned_to = models.ForeignKey(User, on_delete=models.CASCADE,related_name='emergency', limit_choices_to={'is_farmer': True})
-	date=models.DateField()
+	date=models.DateField(null=True, blank=True)
 	livestock_category = models.CharField(max_length=20, choices=LIVESTOCK_CATEGORY_CHOICES)
 	other_category = models.CharField(max_length=100, blank=True, null=True)
 	number_of_animals_affected = models.IntegerField()
 	name_of_affected_animal = models.CharField(max_length=100)
 	registration_number = models.CharField(max_length=50, blank=True, null=True)
-	#registration_date=models.DateField()
 	emergency_category = models.CharField(max_length=50, choices=EMERGENCY_CATEGORY_CHOICES)
 	condition_of_emergency = models.CharField(max_length=20, choices=CONDITION_CHOICES)
 	case_history = models.CharField(max_length=100,blank=True, null=True)
@@ -3079,4 +3077,237 @@ class SlaughterhouseAsset(models.Model):
 
     def __str__(self):
         return f"{self.type_of_asset} - {self.model_number}"
+    
+class LivestockRegistration(models.Model):
+	LIVESTOCK_TYPES = [
+		('dairy_cow', 'Dairy Cow'),
+		('beef', 'Beef'),
+		('sheep', 'Sheep'),
+		('goat', 'Goat'),
+	]
+
+	SEX_CHOICES = [
+		('male', 'Male'),
+		('female', 'Female'),
+	]
+
+	ORIGIN_CHOICES = [
+		('kenya', 'Kenya'),
+		('imported', 'Imported'),
+	]
+
+	SOURCE_CHOICES = [
+		('farm', 'Farm'),
+		('market', 'Market'),
+	]
+	user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+	livestock_type = models.CharField(max_length=20, choices=LIVESTOCK_TYPES)
+	date_of_registration = models.DateField()
+	breed = models.CharField(max_length=100)
+	sex = models.CharField(max_length=6, choices=SEX_CHOICES)
+	age = models.PositiveIntegerField(help_text="Age in months/years")
+	body_weight = models.DecimalField(max_digits=6, decimal_places=2, help_text="Weight in KG")
+	colour = models.CharField(max_length=50)
+	number_of_births = models.PositiveIntegerField(default=0)
+	given_name = models.CharField(max_length=100, blank=True, null=True)
+	registration_number = models.CharField(max_length=100)
+	breeding_level = models.CharField(max_length=100, blank=True, null=True)
+	dam_details = models.CharField(max_length=255, blank=True, null=True)
+	sire_details = models.CharField(max_length=255, blank=True, null=True)
+	origin = models.CharField(max_length=10, choices=ORIGIN_CHOICES)
+	country_of_importation = models.CharField(max_length=100, blank=True, null=True)
+	source = models.CharField(max_length=20, choices=SOURCE_CHOICES)
+	farm_name = models.CharField(max_length=150)
+	owner_name = models.CharField(max_length=150)
+	owner_phone = models.CharField(max_length=20)
+	owner_id_number = models.CharField(max_length=50)
+	county = models.CharField(max_length=100)
+	sub_county = models.CharField(max_length=100)
+	village = models.CharField(max_length=100)
+	service_provided_by = models.CharField(max_length=150)
+	practitioner_name = models.CharField(max_length=150)
+	reg_number = models.CharField(max_length=100)
+	contact = models.CharField(max_length=20)
+	signature_and_stamp = models.CharField(max_length=255, blank=True, null=True)
+	photo = models.ImageField(upload_to="livestock_photos/", blank=True, null=True)
+
+
+	def __str__(self):
+		return f"{self.livestock_type} - {self.registration_number}"
+
+class VeterinaryEPrescription(models.Model):
+    # --- Choice constants ---
+	DRUG_CATEGORIES = [
+		('I', 'I'),
+		('II', 'II'),
+		('III', 'III'),
+		('IV', 'IV'),
+	]
+
+	PRESCRIPTION_TARGETS = [
+		('vet practitioner', 'Vet Practitioner'),
+		('farmer', 'Farmer'),
+	]
+
+	LIVESTOCK_TYPES = [
+		('dairy cow', 'Dairy Cow'),
+		('beef', 'Beef'),
+		('sheep', 'Sheep'),
+		('goat', 'Goat'),
+	]
+
+	user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+	pharmacy_name = models.CharField(max_length=150)
+	location = models.CharField(max_length=200, blank=True)
+	vet_practitioner_incharge = models.CharField(max_length=120)
+	kvb_no = models.CharField("K.V.B No", max_length=50, blank=True)
+	licence_no = models.CharField(max_length=50, blank=True)
+	contact = models.CharField(max_length=120, blank=True)
+	sign = models.CharField(max_length=120, blank=True)
+	signed_on = models.DateField(blank=True, null=True)
+	drug_category = models.CharField(max_length=3, choices=DRUG_CATEGORIES, blank=True)
+	prescription_target = models.CharField(max_length=20, choices=PRESCRIPTION_TARGETS, blank=True)
+	date_of_prescription = models.DateField()
+	livestock_type = models.CharField(max_length=20, choices=LIVESTOCK_TYPES)
+	breed = models.CharField(max_length=80, blank=True)
+	age = models.CharField(max_length=40, blank=True, help_text="e.g., 2 years, 8 months")
+	drug_trade_name = models.CharField(max_length=120)
+	manufacturing_company = models.CharField(max_length=150, blank=True)
+	batch_number = models.CharField(max_length=60, blank=True)
+	drug_dosage = models.CharField(max_length=120, blank=True, help_text="e.g., 10 mg/kg BID")
+	route_of_administration = models.CharField(max_length=80, blank=True, help_text="e.g., IM, IV, PO")
+	drug_volume = models.CharField(max_length=60, blank=True, help_text="e.g., 10 ml, 1 vial")
+	clinical_use = models.CharField(max_length=200, blank=True)
+	duration_of_treatment = models.CharField(max_length=80, blank=True)
+	withdrawal_period = models.CharField(max_length=80, blank=True)
+	quantity_purchased = models.CharField(max_length=60, blank=True)
+	storage_condition = models.CharField(max_length=150, blank=True)
+	side_effect = models.CharField(max_length=200, blank=True)
+	expiry_date = models.DateField(blank=True, null=True)
+	vets_comments = models.TextField(blank=True)
+	buyer_name = models.CharField(max_length=120, blank=True)
+	buyer_category = models.CharField(max_length=20, choices=PRESCRIPTION_TARGETS, blank=True)
+	buyer_kvb_no = models.CharField("Buyer K.V.B No", max_length=50, blank=True)
+	buyer_licence_no = models.CharField(max_length=50, blank=True)
+	buyer_signature = models.CharField(max_length=120, blank=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		ordering = ["-date_of_prescription", "-id"]
+		verbose_name = "Veterinary e-Prescription"
+		verbose_name_plural = "Veterinary e-Prescriptions"
+
+	def __str__(self):
+		return f"{self.drug_trade_name} for {self.livestock_type} on {self.date_of_prescription:%Y-%m-%d}"
+
+class RoutineManagement(models.Model):
+    LIVESTOCK_CATEGORIES = [
+        ('dairy cow', 'Dairy Cow'),
+        ('beef', 'Beef'),
+        ('sheep', 'Sheep'),
+        ('goat', 'Goat'),
+        ('pig', 'Pig'),
+        ('poultry', 'Poultry'),
+        ('other', 'Other'),
+    ]
+
+    ROUTINE_MANAGEMENT_CHOICES = [
+        ('dehorning', 'Dehorning'),
+        ('castration', 'Castration'),
+        ('hoof trimming', 'Hoof Trimming'),
+        ('iron injection', 'Iron Injection'),
+        ('debeaking', 'Debeaking'),
+        ('shearing', 'Shearing'),
+        ('other', 'Other'),
+    ]
+
+    VET_CATEGORIES = [
+        ('surgeon', 'Surgeon'),
+        ('technologist', 'Technologist'),
+        ('technician', 'Technician'),
+    ]
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    date_of_service = models.DateField()
+    livestock_category = models.CharField(max_length=20, choices=LIVESTOCK_CATEGORIES)
+    number_of_animals = models.PositiveIntegerField()
+    animal_name = models.CharField(max_length=100, blank=True)
+    reg_no = models.CharField("Registration No", max_length=50, blank=True)
+    age = models.CharField(max_length=50, blank=True)
+    routine_management = models.CharField(max_length=30, choices=ROUTINE_MANAGEMENT_CHOICES)
+    other_management_practice = models.CharField(max_length=150, blank=True)
+    owner_name = models.CharField(max_length=120)
+    village = models.CharField(max_length=120, blank=True)
+    contact = models.CharField(max_length=120, blank=True)
+    service_provided_by = models.CharField(max_length=120)
+    vet_practitioner_incharge = models.CharField(max_length=120, blank=True)
+    vet_category = models.CharField(max_length=20, choices=VET_CATEGORIES, blank=True)
+    vet_reg_no = models.CharField("Vet Reg No", max_length=50, blank=True)
+    signature_and_stamp = models.CharField(max_length=150, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-date_of_service", "-id"]
+        verbose_name = "Routine Management"
+        verbose_name_plural = "Routine Management Records"
+
+    def __str__(self):
+        return f"{self.livestock_category} - {self.date_of_service}"
+    
+class AbortionRecord(models.Model):
+    LIVESTOCK_CATEGORIES = [
+        ('dairy cow', 'Dairy Cow'),
+        ('beef', 'Beef'),
+        ('sheep', 'Sheep'),
+        ('goat', 'Goat'),
+        ('pig', 'Pig'),
+        ('poultry', 'Poultry'),
+        ('other', 'Other'),
+    ]
+
+    REASONS_FOR_ABORTION = [
+        ('infection', 'Infection'),
+        ('deworming', 'Deworming'),
+        ('injuries', 'Injuries'),
+        ('shock', 'Shock'),
+        ('bull mounting', 'Bull Mounting'),
+        ('other', 'Other'),
+    ]
+
+    VET_CATEGORIES = [
+        ('surgeon', 'Surgeon'),
+        ('technologist', 'Technologist'),
+        ('technician', 'Technician'),
+    ]
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    livestock_category = models.CharField(max_length=20, choices=LIVESTOCK_CATEGORIES)
+    number_of_animals_aborted = models.PositiveIntegerField()
+    animal_name = models.CharField(max_length=100, blank=True)
+    reg_no = models.CharField("Registration No", max_length=50, blank=True)
+    date_of_insemination = models.DateField(blank=True, null=True)
+    date_of_abortion = models.DateField()
+    reason_for_abortion = models.CharField(max_length=30, choices=REASONS_FOR_ABORTION)
+    other_reason = models.CharField(max_length=150, blank=True)
+    treatment_given = models.CharField(max_length=200, blank=True)
+    remarks = models.TextField(blank=True)
+    owner_name = models.CharField(max_length=120)
+    contact = models.CharField(max_length=120, blank=True)
+    village = models.CharField(max_length=120, blank=True)
+    service_provided_by = models.CharField(max_length=120)
+    vet_practitioner_name = models.CharField(max_length=120, blank=True)
+    vet_category = models.CharField(max_length=20, choices=VET_CATEGORIES, blank=True)
+    vet_reg_no = models.CharField("Vet Reg No", max_length=50, blank=True)
+    vet_contact = models.CharField(max_length=120, blank=True)
+    signature_and_stamp = models.CharField(max_length=150, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-date_of_abortion", "-id"]
+        verbose_name = "Abortion Record"
+        verbose_name_plural = "Abortion Records"
+
+    def __str__(self):
+        return f"{self.livestock_category} - Abortion on {self.date_of_abortion}"
 

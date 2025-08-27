@@ -3861,3 +3861,173 @@ class SlaughterhouseAssetDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()         
+
+def livestock_registration(request):
+    return render(request, 'portals/reports/live_registration.html', {})
+def livestock_data(request, livestock_type):
+    records = LivestockRegistration.objects.filter(
+        livestock_type=livestock_type
+    ).order_by('-id').values()
+
+    data = {
+        "count": records.count(),
+        "next": None,
+        "previous": None,
+        "results": list(records)
+    }
+
+    return JsonResponse(data, safe=False)
+# Template render views
+def dairy_cow_page(request):
+    return render(request, 'portals/reports/dairy.html')
+
+def beef_page(request):
+    return render(request, 'portals/reports/beef.html')
+
+def sheep_page(request):
+    return render(request, 'portals/reports/sheep.html')
+
+def goat_page(request):
+    return render(request, 'portals/reports/goat.html')
+class LivestockRegistrationCreate(generics.CreateAPIView):
+    queryset = LivestockRegistration.objects.all()
+    serializer_class = LivestockRegistrationSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+class LivestockRegistrationList(generics.ListAPIView):
+    serializer_class = LivestockRegistrationSerializer
+    permission_classes = [Is_Vet]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return LivestockRegistration.objects.filter(user=self.request.user).order_by('-id')
+
+class LivestockRegistrationUpdate(generics.UpdateAPIView):
+    queryset = LivestockRegistration.objects.all()
+    serializer_class = LivestockRegistrationSerializer
+    permission_classes = [Is_Vet]
+
+class LivestockRegistrationDelete(generics.DestroyAPIView):
+    queryset = LivestockRegistration.objects.all()
+    serializer_class = LivestockRegistrationSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+            
+def eprescription(request):
+    return render(request, 'portals/reports/eprescription.html', {})            
+            
+class VeterinaryEPrescriptionCreate(generics.CreateAPIView):
+    queryset = VeterinaryEPrescription.objects.all()
+    serializer_class = VeterinaryEPrescriptionSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+
+class VeterinaryEPrescriptionList(generics.ListAPIView):
+    serializer_class = VeterinaryEPrescriptionSerializer
+    permission_classes = [Is_Vet]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return VeterinaryEPrescription.objects.filter(user=self.request.user).order_by('-id')
+
+
+class VeterinaryEPrescriptionUpdate(generics.UpdateAPIView):
+    queryset = VeterinaryEPrescription.objects.all()
+    serializer_class = VeterinaryEPrescriptionSerializer
+    permission_classes = [Is_Vet]
+
+
+class VeterinaryEPrescriptionDelete(generics.DestroyAPIView):
+    queryset = VeterinaryEPrescription.objects.all()
+    serializer_class = VeterinaryEPrescriptionSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+def routine(request):
+    return render(request, 'portals/reports/routine.html', {})
+class RoutineManagementCreate(generics.CreateAPIView):
+    queryset = RoutineManagement.objects.all()
+    serializer_class = RoutineManagementSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+
+class RoutineManagementList(generics.ListAPIView):
+    serializer_class = RoutineManagementSerializer
+    permission_classes = [Is_Vet]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return RoutineManagement.objects.filter(user=self.request.user).order_by('-id')
+
+
+class RoutineManagementUpdate(generics.UpdateAPIView):
+    queryset = RoutineManagement.objects.all()
+    serializer_class = RoutineManagementSerializer
+    permission_classes = [Is_Vet]
+
+
+class RoutineManagementDelete(generics.DestroyAPIView):
+    queryset = RoutineManagement.objects.all()
+    serializer_class = RoutineManagementSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+            
+            
+def abortion(request):
+    return render(request, 'portals/reports/abortion.html', {})            
+class AbortionRecordCreate(generics.CreateAPIView):
+    queryset = AbortionRecord.objects.all()
+    serializer_class = AbortionRecordSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+
+class AbortionRecordList(generics.ListAPIView):
+    serializer_class = AbortionRecordSerializer
+    permission_classes = [Is_Vet]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return AbortionRecord.objects.filter(user=self.request.user).order_by('-id')
+
+
+class AbortionRecordUpdate(generics.UpdateAPIView):
+    queryset = AbortionRecord.objects.all()
+    serializer_class = AbortionRecordSerializer
+    permission_classes = [Is_Vet]
+
+
+class AbortionRecordDelete(generics.DestroyAPIView):
+    queryset = AbortionRecord.objects.all()
+    serializer_class = AbortionRecordSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()

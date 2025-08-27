@@ -57,7 +57,7 @@
                 <li class="sidebar-dropdown">
                   <a href="#" style="font-weight: bold;">
                     
-                    <span >Dairy Cattle</span>
+                    <span >Dairy Production</span>
                     
                   </a>
                   <div class="sidebar-submenu">
@@ -81,31 +81,95 @@
                         <a class="dropdown-item" style="font-weight: bold;" href="{% url 'dead_animal' %}">Dead Animal Registration </a>
                         </a>
                       <li/> 
+                      <li class="sidebar-dropdown">
+                        <a href="#">
+                          
+                          <span style="font-weight: bold;">Approved Dairy Farms</span>
+                        </a>
+                        <div class="sidebar-submenu">
+                          <ul>
+                            <li>
+                              <a style="font-weight: bold;" href="{% url 'approved-dairy-farms' %}">Approved Farms</a>
+                            </li>
+                          </ul>
+                        </div>
+                      </li>
+                      <li class="sidebar-dropdown">
+                        <a href="#">
+                          
+                          <span style="font-weight: bold;">Milk records</span>
+                        </a>
+                        <div class="sidebar-submenu">
+                          <ul>
+                            <li>
+                              <a style="font-weight: bold;" href="{% url 'lactation' %}">Lactating Cows</a>
+                            </li>
+                            <li>
+                              <a style="font-weight: bold;" href="{% url 'milk-record' %}">Daily Milk Records</a>
+                            </li>
+                            <li>
+                              <a style="font-weight: bold;" href="{% url 'weekly-record' %}">Weekly Milk Records</a>
+                            </li>
+                            <li>
+                              <a style="font-weight: bold;" href="{% url 'monthly-record' %}">Monthly Milk Records</a>
+                            </li>
+                           
+                          </ul>
+                        </div>
+                      </li> 
+                      <li class="sidebar-dropdown">
+                        <a href="#">
+                         
+                          <span style="font-weight: bold;">Monitoring</span>
+                        </a>
+                        <div class="sidebar-submenu">
+                          <ul>
+                            <li>
+                              <a style="font-weight: bold;" href="{% url 'daily-checks' %}">Daily Checks</a>
+                            </li>
+                            <li>
+                              <a style="font-weight: bold;" href="{% url 'heat_sign_monitoring' %}">Heat Signs Monitoring</a>
+                            </li>
+                            <li>
+                              <a style="font-weight: bold;" href="{% url 'pregnancy_monitoring' %}">Pregnancy Monitoring</a>
+                            </li>
+                          </ul>
+                        </div>
+                      </li>
                     </ul>
                 </li>
                 <ul>
                   <li class="sidebar-dropdown">
                     <a href="#" style="font-weight: bold;">
-                      <span >Beef Cattle</span>
+                      <span >Beef Production</span>
                     </a>
                     <div class="sidebar-submenu">
                       <ul>
-                        
+                        <li>
+                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'calving-record' %}">Calving</a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'calf' %}">Calf Registration</a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'new_animal' %}">Register new animal</a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'livestock' %}">Livestock Inventory Form</a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'culling' %}">Culling</a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'dead_animal' %}">Dead Animal Registration </a>
+                          </a>
+                        <li/> 
                       </ul>
                   </li>
                 </ul>
-                <ul>
-                  <li class="sidebar-dropdown">
-                    <a href="#" style="font-weight: bold;">
-                      <span >Sheep Production</span>
-                    </a>
-                    <div class="sidebar-submenu">
-                      <ul>
-                        
-                      </ul>
-                  </li>
-                </ul>
-                <ul>
+                
+
+                {% comment %} <ul>
                   <li class="sidebar-dropdown">
                     <a href="#" style="font-weight: bold;">
                       <span >Goat Production</span>
@@ -126,31 +190,31 @@
                         
                       </ul>
                   </li>
+                </ul> {% endcomment %}
+                <ul>
+                  <li class="sidebar-dropdown">
+                    <a href="#" style="font-weight: bold;">
+                      <span >Employee Records</span>
+                    </a>
+                    <div class="sidebar-submenu">
+                      <ul>
+                        <li>
+                          <a class="dropdown-item" style="font-weight: bold;"  href="{%url 'employee'%}">Employees</a>
+                        </li>
+                      </ul>
+                  </li>
                 </ul>
-
 
             </div>
             
           </li>
 
 
-          <li class="sidebar-dropdown">
-            <a href="#">
-              <i class="fas fa-tint"></i>
-              <span>Approved Dairy Farms</span>
-            </a>
-            <div class="sidebar-submenu">
-              <ul>
-                <li>
-                  <a style="font-weight: bold;" href="{% url 'approved-dairy-farms' %}">Approved Farms</a>
-                </li>
-              </ul>
-            </div>
-          </li>
+          
           <li class="sidebar-dropdown">
             <a href="#">
               <i class="fa fa-list"></i>
-              <span>Vet List</span>
+              <span>Practitioners List</span>
             </a>
             <div class="sidebar-submenu">
               <ul>
@@ -163,7 +227,7 @@
           <li class="sidebar-dropdown">
             <a href="#">
               <i class="fa fa-clipboard"></i>
-              <span>Vet Records</span>
+              <span>Veterinary Records</span>
              
             </a>
             <div class="sidebar-submenu">
@@ -339,50 +403,7 @@
           </li>
 
          
-          <li class="sidebar-dropdown">
-            <a href="#">
-              <i class="fas fa-tint"></i>
-              <span>Milk records</span>
-            </a>
-            <div class="sidebar-submenu">
-              <ul>
-                <li>
-                  <a style="font-weight: bold;" href="{% url 'lactation' %}">Lactating Cows</a>
-                </li>
-                <li>
-                  <a style="font-weight: bold;" href="{% url 'milk-record' %}">Daily Milk Records</a>
-                </li>
-                <li>
-                  <a style="font-weight: bold;" href="{% url 'weekly-record' %}">Weekly Milk Records</a>
-                </li>
-                <li>
-                  <a style="font-weight: bold;" href="{% url 'monthly-record' %}">Monthly Milk Records</a>
-                </li>
-               
-              </ul>
-            </div>
-          </li>
           
-           
-          <li class="sidebar-dropdown">
-            <a href="#">
-              <i class="fa fa-chart-line"></i>
-              <span>Monitoring</span>
-            </a>
-            <div class="sidebar-submenu">
-              <ul>
-                <li>
-                  <a style="font-weight: bold;" href="{% url 'daily-checks' %}">Daily Checks</a>
-                </li>
-                <li>
-                  <a style="font-weight: bold;" href="{% url 'heat_sign_monitoring' %}">Heat Signs Monitoring</a>
-                </li>
-                <li>
-                  <a style="font-weight: bold;" href="{% url 'pregnancy_monitoring' %}">Pregnancy Monitoring</a>
-                </li>
-              </ul>
-            </div>
-          </li>
           <li class="sidebar-dropdown">
             <a href="#">
               <i class="fas fa-balance-scale"></i>
@@ -431,9 +452,7 @@
                     </a>
                     <div class="sidebar-submenu">
                       <ul>
-                        <li>
-                          <a class="dropdown-item" style="font-weight: bold;"  href="{%url 'employee'%}">Employees</a>
-                        </li>
+                       
                         <li>
                           <a style="font-weight: bold;" href="{% url 'management-committee' %}">Management Commitees</a>
                         </li>
