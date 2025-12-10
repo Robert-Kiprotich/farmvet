@@ -198,7 +198,7 @@ const csrftoken = getCookie('csrftoken');
                 }
     
                 // Handle files (photo, uploaded_report, etc.)
-                if (value && (column.field === 'photo' || column.field === 'uploaded_report')) {
+                if (value && (column.field === 'photo' || column.field === 'uploaded_no_objection_form')) {
                     let fileExt = value.split('.').pop().toLowerCase();
     
                     if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {

@@ -3,9 +3,49 @@
 {% load static %}
 
 {% block content %}
+<style>
+  .whatsapp-button {
+    position: fixed;
+    top: 80px; 
+    right: 20px;
+    background: #25D366; /* WhatsApp green */
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 10px 22px;
+    font-weight: 600;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    cursor: pointer;
+    z-index: 9999;
+    transition: all 0.3s ease-in-out;
+    animation: fadeInRight 0.8s ease-in-out;
+  }
 
+  .whatsapp-button:hover {
+    background: #20b857; /* darker WhatsApp green */
+    transform: scale(1.08);
+    color: white;
+  }
+
+  @keyframes fadeInRight {
+    from { opacity: 0; transform: translateX(40px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+</style>
+
+
+<button class="whatsapp-button" id="whatsappBtn">
+  <i class="fa-solid fa-message"></i> Chat With Us
+</button>
     <section id="hero">
+      
       <div class="hero-container">
+
+       
         <div id="heroCarousel" class="carousel slide carousel-fade" data-ride="carousel">
 
           <ol class="carousel-indicators" id="hero-carousel-indicators"></ol>
@@ -69,10 +109,10 @@
 
         </div>
       </div>
+      
     </section><!-- End Hero -->
 
     <main id="main">
-
       <!-- ======= Featured Section ======= -->
       <section id="featured" class="featured">
         <div class="container">
@@ -82,21 +122,21 @@
               <div class="icon-box">
                 <i class="icofont-computer"></i>
                 <h3><a href="">Vision</a></h3>
-                <p>To provide you with the highest quality of veterinary services. We have high expectations of ourselves, so we aim to do the very best for you and your animal.</p>
+                <p>Transforming livestock health and farm management through innovative digital solutions.</p>
               </div>
             </div>
             <div class="col-lg-4 mt-4 mt-lg-0">
               <div class="icon-box">
                 <i class="icofont-image"></i>
                 <h3><a href="">Mision</a></h3>
-                <p>To provide excellent veterinary service by utilizing the highest standard of care and staying abreast of the most recent advancements in our field.</p>
+                <p>To empower veterinarians and farmers with seamless, data-driven online records, enhancing efficiency, animal health, and productivity.</p>
               </div>
             </div>
             <div class="col-lg-4 mt-4 mt-lg-0">
               <div class="icon-box">
                 <i class="icofont-tasks-alt"></i>
-                <h3><a href="">motto</a></h3>
-                <p>Comprehensive care with a personal touch.</p>
+                <h3><a href="">Motto</a></h3>
+                <p>Smart Records Healthy Livestock.</p>
               </div>
             </div>
           </div>
@@ -104,7 +144,7 @@
         </div>
       </section><!-- End Featured Section -->
 
-      <!-- ======= About Section ======= -->
+      {% comment %} <!-- ======= About Section ======= -->
       <section id="about" class="about">
         <div class="container">
 
@@ -128,7 +168,7 @@
           </div>
 
         </div>
-      </section><!-- End About Section -->
+      </section><!-- End About Section --> {% endcomment %}
 
       <!-- ======= Clients Section ======= -->
 
@@ -158,5 +198,15 @@
       </section><!-- End Clients Section -->
 
     </main><!-- End #main -->
-
+    <script>
+      // Replace with your WhatsApp number in international format, without + or dashes
+      const whatsappNumber = "254727091292"; 
+      const defaultMessage = "Hello Soin Veterinary Services, I am Contacting You From Your Website Requesting for Assistance";
+    
+      document.getElementById("whatsappBtn").addEventListener("click", function() {
+        // Opens WhatsApp chat in a new tab
+        const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(defaultMessage)}`;
+        window.open(url, "_blank");
+      });
+    </script>
  {% endblock content %}   

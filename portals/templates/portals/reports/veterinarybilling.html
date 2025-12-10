@@ -176,11 +176,7 @@
               <input type="text" id="contact" name="contact" class="form-control" maxlength="15">
               <div class="invalid-feedback">Please provide a valid contact number.</div>
           </div>
-          <div class="mb-3">
-            <label for="provided_by" class="form-label">Service Provided By</label>
-            <input type="text" id="provided_by" name="provided_by" class="form-control editable-field" maxlength="15">
-            <div class="invalid-feedback">Please provide a valid contact number.</div>
-        </div>
+         
           <div class="mb-3">
               <label for="vet_to_be_paid" class="form-label">Billing Vet Details</label>
               <input type="text" id="vet_to_be_paid" name="vet_to_be_paid" class="form-control" maxlength="255">
@@ -328,11 +324,7 @@
             <input type="text" id="contact" name="contact" class="form-control editable-field" maxlength="15">
             <div class="invalid-feedback">Please provide a valid contact number.</div>
         </div>
-        <div class="mb-3">
-          <label for="provided_by" class="form-label">Service Provided By</label>
-          <input type="text" id="provided_by" name="provided_by" class="form-control editable-field" maxlength="15">
-          <div class="invalid-feedback">Please provide a valid contact number.</div>
-      </div>
+       
         
         <div class="mb-3">
             <label for="vet_to_be_paid" class="form-label">Billing Vet Details</label>
@@ -383,8 +375,8 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <h2 class="text-center">Veterinary Professional Services</h2>
-       <h3 class="text-center">Receipt Records </h3>
+          <h2 class="text-center text-uppercase">{{ request.user.business_name }}</h2>
+          <h3 class="text-center">Receipt Records </h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -795,12 +787,7 @@ $('#vetBillingAddForm').submit(function(e) {
             sortable: true,
             align: 'center'
           },
-          {
-            field: 'provided_by',
-            title: 'Service Provided By',
-            sortable: true,
-            align: 'center'
-          },
+          
           {
             field: 'vet_to_be_paid',
             title: 'Billing Vet Details',

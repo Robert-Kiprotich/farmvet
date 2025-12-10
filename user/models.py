@@ -6,6 +6,7 @@ class User(AbstractUser):
     is_vet_officer = models.BooleanField(default=False)
     is_farmer = models.BooleanField(default=False)
     is_official = models.BooleanField(default=False)
+    is_cooperative = models.BooleanField(default=False)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     email = models.EmailField(null=True, blank=True)
@@ -18,6 +19,8 @@ class User(AbstractUser):
     supervisor=models.CharField(max_length=100,null=True)
     registration_number = models.CharField(max_length=100,null=True)
     licence_number=models.CharField(max_length=100,null=True)
+    business_name=models.CharField(max_length=100,default="SOIN VETERINARY SERVICES")
+    #agree_to_privacy = models.BooleanField(default=False)
     
     
 
@@ -40,6 +43,18 @@ class Official(models.Model):
     county = models.CharField(max_length=50)
     sub_county = models.CharField(max_length=100)
     employment_number=models.CharField(max_length=100)
+    designation=models.CharField(max_length=50)
+
+
+    def __str__(self):
+        return f'Name: {self.user.username}'
+    
+class DairyCooperative(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    county = models.CharField(max_length=50)
+    sub_county = models.CharField(max_length=100)
+    cooperative_name=models.CharField(max_length=100)
+    reg_no=models.CharField(max_length=50)
     designation=models.CharField(max_length=50)
 
 

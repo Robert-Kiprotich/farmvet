@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model, logout
 
 from django.contrib.auth import login, authenticate
-from .models import User, Vet_Officer, Farmer, Official
+from .models import User, Vet_Officer, Farmer, Official,DairyCooperative
 from django.contrib.auth.forms import AuthenticationForm
 from rest_framework.permissions import BasePermission   
 
@@ -101,6 +101,37 @@ def farmer_signup_view(request):
 
 	return render(request, 'user/farmerregister.html', context)
 
+def cooperative_signup_view(request):
+	if request.method == 'POST':
+		form = forms.CooperativeSignUpForm(request.POST)
+		if form.is_valid():
+			user = form.save(commit=False)
+			user.is_cooperative = True
+			user.first_name = form.cleaned_data.get('first_name')
+			user.last_name = form.cleaned_data.get('last_name')
+			user.email = form.cleaned_data.get('email')
+			user.phone_number = form.cleaned_data.get('phone_number')
+			user.save()
+			cooperative = DairyCooperative.objects.create(user=user)
+			cooperative.cooperative_name = form.cleaned_data.get('cooperative_name')
+			cooperative.sub_county = form.cleaned_data.get('sub_county')
+			cooperative.location = form.cleaned_data.get('location')
+			cooperative.save()
+			username = form.cleaned_data.get('username')
+			messages.success(request, f'Account created for {username}. You can now login')
+			return redirect('cooperative-login')
+
+	else:
+		form = forms.CooperativeSignUpForm()
+
+	context = {
+		'form':form
+	}
+
+	return render(request, 'user/cooperativereg.html', context)
+
+
+
 
 		
 
@@ -153,6 +184,37 @@ def official_login(request):
 			messages.error(request, 'Invalid Credentials')
 
 	return render(request, 'user/officiallogin.html', {'form': form})
+
+def cooperative_login(request):
+	form = AuthenticationForm()
+	if request.method == 'POST':  
+		username = request.POST['username']
+		password = request.POST['password']
+		user = authenticate(username=username, password=password)
+		
+		if user is not None:
+			# Check if any user is already logged in, log them out first
+			if request.user.is_authenticated:
+				logout(request)
+			
+			if user.is_authenticated and user.is_cooperative:
+				login(request, user)
+				return redirect('cooperative-portal')
+			elif user.is_authenticated and user.is_farmer:
+				messages.warning(request, 'Kindly login as a farmer')
+				return redirect('farmer-login')
+
+			elif user.is_authenticated and user.is_vet_officer:
+				messages.warning(request, 'Kindly login as a veterinary  officer')
+				return redirect('vet-login')
+			elif user.is_authenticated and user.is_official:
+				messages.warning(request, 'Kindly login as a Government  official')
+				return redirect('official-login')
+		else:
+			messages.error(request, 'Invalid Credentials')
+
+	return render(request, 'user/cooperative.html', {'form': form})
+
 
 def farmer_login(request):
 	form = AuthenticationForm()

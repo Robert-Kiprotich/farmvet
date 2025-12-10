@@ -1,3 +1,7 @@
+import os
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
 from django.shortcuts import render, redirect
 from user.models import *
 from .forms import *
@@ -19,7 +23,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from django.views import View
 import json
-import os 
+
 import base64
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
@@ -47,6 +51,7 @@ from django.templatetags.static import static
 from django.utils.timezone import now
 from  .credentials import *
 from .token import *
+from rest_framework.pagination import PageNumberPagination
 
 
 logger = logging.getLogger(__name__)
@@ -65,8 +70,15 @@ def official_check(user):
     if not user.is_authenticated:
         return False
     return user.is_official
+def cooperative_check(user):
+    if not user.is_authenticated:
+        return False
+    return user.is_cooperative
 
 
+
+def csrf_failure(request, reason=""):
+    return render(request, "portals/csrf_failure.html", {"reason": reason})
 
 @user_passes_test(vet_check, login_url='vet-login')
 def portal_vet(request):
@@ -77,6 +89,15 @@ def portal_vet(request):
        
     }
     return render(request, 'portals/dashboardVet.html', context)
+@user_passes_test(cooperative_check, login_url='cooperative-login')
+def cooperative(request):
+    dairy_coop = DairyCooperative.objects.all()
+    context = {
+        'all_coops': dairy_coop,
+         'role': 'cooperative',
+       
+    }
+    return render(request, 'portals/dashboardCoop.html', context)
 
 @user_passes_test(official_check, login_url='official-login')
 def portal_official(request):
@@ -2545,6 +2566,67 @@ def generate_certificate(request, first_name, last_name):
 
     return response
 
+def get_certificate(request, first_name, last_name):
+    template_path = os.path.join(settings.STATIC_ROOT, "portals", "assets", "img", "certificate_1.png")
+    template = cv2.imread(template_path)
+    if template is None:
+        return HttpResponse("Certificate template not found", status=500)
+
+    registration_number = request.user.registration_number
+    date = now()
+    date_string = date.strftime('%d/%m/%Y')
+
+    
+    font = cv2.FONT_HERSHEY_COMPLEX
+    font_scale = 2
+    font_color = (0, 0, 255)
+    thickness = 3
+
+    
+    canvas_width = template.shape[1]
+    y_coordinate = 680
+    spacing = 50  
+
+   
+    first_name_size = cv2.getTextSize(first_name, font, font_scale, thickness)[0]
+    last_name_size = cv2.getTextSize(last_name, font, font_scale, thickness)[0]
+    total_name_width = first_name_size[0] + spacing + last_name_size[0]
+
+    if total_name_width <= canvas_width:
+        first_name_coords = ((canvas_width - total_name_width) // 2, y_coordinate)
+        last_name_coords = (first_name_coords[0] + first_name_size[0] + spacing, y_coordinate)
+    else:
+        
+        first_name_coords = (100, y_coordinate)
+        last_name_coords = (first_name_coords[0] + first_name_size[0] + spacing, y_coordinate)
+
+    
+    date_coords = (300, 950)
+    signature_coords = (1200, 950)
+    kvb_no_coords = (910, 760)
+
+    
+    cv2.putText(template, first_name, first_name_coords, font, font_scale, font_color, thickness, cv2.LINE_AA)
+    cv2.putText(template, last_name, last_name_coords, font, font_scale, font_color, thickness, cv2.LINE_AA)
+
+    
+    cv2.putText(template, date_string, date_coords, font, 1, (0, 0, 0), 2, cv2.LINE_AA)
+
+    
+    #cv2.putText(template, "Authorized Signature", signature_coords, font, 1, (0, 0, 0), 2, cv2.LINE_AA)
+    cv2.putText(template, registration_number, kvb_no_coords, font, 1, (0, 0, 0), 2, cv2.LINE_AA)
+
+    
+    success, buffer = cv2.imencode(".jpg", template)
+    if not success:
+        return HttpResponse("Error generating certificate", status=500)
+
+    
+    response = HttpResponse(buffer.tobytes(), content_type="image/jpeg")
+    response["Content-Disposition"] = f'attachment; filename="{first_name}_certificate.jpg"'
+
+    return response
+
 
 
 class QuizResultList(generics.ListAPIView):
@@ -3517,156 +3599,246 @@ class VetJudgmentDelete(generics.DestroyAPIView):
             instance.delete()
   
 def payment(request, lesson_id):
-    return render(request, 'portals/reports/payment.html', {'lesson_id': lesson_id})         
+    return render(request, 'portals/reports/payment.html', {'lesson_id': lesson_id})  
+    
+def payment_zoom(request, meeting_id):
+    return render(request, 'portals/conf/payment.html', {'meeting_id': meeting_id})    
 def format_phone_number(phone):
     if phone.startswith("0"):
         return "254" + phone[1:]
     return phone
-
-#payment  
-@csrf_exempt      
-def initiate_mpesa_payment(request):
-    """Send an STK Push request to M-Pesa Express"""
     
-    # Extract lesson_id from request (GET or POST)
-    lesson_id = request.GET.get("lesson_id") or request.POST.get("lesson_id")
+@csrf_exempt
+def zoom_mpesa_payment(request):
+    """Send an STK Push request to M-Pesa Express"""
 
-    if not lesson_id:
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request method"}, status=405)
+
+    meeting_id = request.POST.get("meeting_id")
+    if not meeting_id:
         return JsonResponse({"error": "Missing lesson_id"}, status=400)
 
     try:
-        # Fetch lesson details
-        lesson = Tutorial.objects.get(id=lesson_id)
-        amount = float(lesson.unit_price)  # Assuming there's a price field
-    except Tutorial.DoesNotExist:
+        zoom_meeting = ZoomMeeting.objects.get(id=meeting_id)
+        amount = int(zoom_meeting.price)
+    except ZoomMeeting.DoesNotExist:
         return JsonResponse({"error": "Lesson not found"}, status=404)
 
-    # Get phone number
-    phone_number = request.user.phone_number
+    phone_number = request.POST.get("phone_number")
+    if not phone_number:
+        return JsonResponse({"error": "Missing phone_number"}, status=400)
+
     phone_number = format_phone_number(phone_number)
 
-    # Generate Timestamp & Password
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    password = base64.b64encode(f"{MPESA_SHORTCODE}{MPESA_PASSKEY}{timestamp}".encode()).decode()
+    password = base64.b64encode(
+        f"{MPESA_SHORTCODE}{MPESA_PASSKEY}{timestamp}".encode()
+    ).decode()
 
-    # Get Access Token
     access_token = get_mpesa_access_token()
     if not access_token:
         return JsonResponse({"error": "Failed to get M-Pesa access token"}, status=400)
 
-    # Prepare STK Push Request Payload
     payload = {
         "BusinessShortCode": MPESA_SHORTCODE,
         "Password": password,
         "Timestamp": timestamp,
-        "TransactionType": "CustomerPayBillOnline",
+        "TransactionType": "CustomerBuyGoodsOnline",
         "Amount": amount,
         "PartyA": phone_number,
-        "PartyB": MPESA_SHORTCODE,
+        "PartyB": TILL_NO,
         "PhoneNumber": phone_number,
         "CallBackURL": CALLBACK_URL,
-        "AccountReference": f"Lesson-{lesson_id}",
-        "TransactionDesc": f"Payment for Lesson {lesson_id}"
+        "TransactionDesc": f"Payment for Lesson {meeting_id}",
     }
 
     headers = {
         "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
 
-    response = requests.post(MPESA_API_URL, json=payload, headers=headers)
-    response_data = response.json()
+    try:
+        response = requests.post(MPESA_API_URL, json=payload, headers=headers)
+        response_data = response.json()
+        print("Payload:", json.dumps(payload, indent=4))
+        print("Safaricom Response:", json.dumps(response_data, indent=4))
+    except Exception as e:
+        return JsonResponse({"error": f"Safaricom API error: {str(e)}"}, status=500)
 
-    # Save initial payment request (before confirmation)
+    # Save successful STK push only
     if response_data.get("ResponseCode") == "0":
         Payment.objects.create(
             merchant_request_id=response_data["MerchantRequestID"],
             checkout_request_id=response_data["CheckoutRequestID"],
             amount=amount,
             phone_number=phone_number,
-            lesson=lesson,  # Store lesson ID
-            status="Pending"
+            zoom_meeting=zoom_meeting,
+            status="Pending",
         )
 
-    return JsonResponse(response_data)
+    return JsonResponse({
+        "payload": payload,
+        "response": response_data
+    }, safe=True)
+
+
+#payment  
+@csrf_exempt
+def initiate_mpesa_payment(request):
+    """Send an STK Push request to M-Pesa Express"""
+
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request method"}, status=405)
+
+    lesson_id = request.POST.get("lesson_id")
+    if not lesson_id:
+        return JsonResponse({"error": "Missing lesson_id"}, status=400)
+
+    try:
+        lesson = Tutorial.objects.get(id=lesson_id)
+        amount = int(lesson.unit_price)
+    except Tutorial.DoesNotExist:
+        return JsonResponse({"error": "Lesson not found"}, status=404)
+
+    phone_number = request.POST.get("phone_number")
+    if not phone_number:
+        return JsonResponse({"error": "Missing phone_number"}, status=400)
+
+    phone_number = format_phone_number(phone_number)
+
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    password = base64.b64encode(
+        f"{MPESA_SHORTCODE}{MPESA_PASSKEY}{timestamp}".encode()
+    ).decode()
+
+    access_token = get_mpesa_access_token()
+    if not access_token:
+        return JsonResponse({"error": "Failed to get M-Pesa access token"}, status=400)
+
+    payload = {
+        "BusinessShortCode": MPESA_SHORTCODE,
+        "Password": password,
+        "Timestamp": timestamp,
+        "TransactionType": "CustomerBuyGoodsOnline",
+        "Amount": amount,
+        "PartyA": phone_number,
+        "PartyB": TILL_NO,
+        "PhoneNumber": phone_number,
+        "CallBackURL": CALLBACK_URL,
+        "TransactionDesc": f"Payment for Lesson {lesson_id}",
+    }
+
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        response = requests.post(MPESA_API_URL, json=payload, headers=headers)
+        response_data = response.json()
+        print("Payload:", json.dumps(payload, indent=4))
+        print("Safaricom Response:", json.dumps(response_data, indent=4))
+    except Exception as e:
+        return JsonResponse({"error": f"Safaricom API error: {str(e)}"}, status=500)
+
+    # Save successful STK push only
+    if response_data.get("ResponseCode") == "0":
+        Payment.objects.create(
+            merchant_request_id=response_data["MerchantRequestID"],
+            checkout_request_id=response_data["CheckoutRequestID"],
+            amount=amount,
+            phone_number=phone_number,
+            lesson=lesson,
+            status="Pending",
+        )
+
+    return JsonResponse({
+        "payload": payload,
+        "response": response_data
+    }, safe=True)
+
 
 @csrf_exempt
 def mpesa_callback(request):
-    """Handle M-Pesa STK Push Callback"""
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body.decode("utf-8"))
-            logger.info("Received M-Pesa Callback: %s", data)
+    if request.method != "POST":
+        return JsonResponse({"message": "Invalid request"}, status=200)
 
-            body = data.get("Body", {})
-            stk_callback = body.get("stkCallback", {})
+    try:
+        raw_body = request.body.decode("utf-8")
+        print("RAW CALLBACK:", raw_body)
 
-            result_code = stk_callback.get("ResultCode")
-            checkout_request_id = stk_callback.get("CheckoutRequestID")
+        data = json.loads(raw_body)
+        stk = data.get("Body", {}).get("stkCallback", {})
 
-            print(f"Result Code: {result_code}, CheckoutRequestID: {checkout_request_id}")
+        result_code = stk.get("ResultCode", None)
+        checkout_id = stk.get("CheckoutRequestID", None)
 
-            # Find the payment record
-            payment = Payment.objects.filter(checkout_request_id=checkout_request_id).first()
-            if not payment:
-                print("Payment record not found for CheckoutRequestID: %s", checkout_request_id)
-                return JsonResponse({"error": "Payment record not found"}, status=404)
+        print("Parsed ResultCode:", result_code)
+        print("Parsed CheckoutRequestID:", checkout_id)
 
-            if result_code == 0:
-                # Extract payment details
-                callback_metadata = stk_callback.get("CallbackMetadata", {}).get("Item", [])
-                amount = next((item["Value"] for item in callback_metadata if item["Name"] == "Amount"), None)
-                mpesa_receipt = next((item["Value"] for item in callback_metadata if item["Name"] == "MpesaReceiptNumber"), None)
-                phone_number = next((item["Value"] for item in callback_metadata if item["Name"] == "PhoneNumber"), None)
+        if not checkout_id:
+            return JsonResponse({"message": "No checkout ID"}, status=200)
 
-                print(f"Payment Successful - Amount: {amount}, Receipt: {mpesa_receipt}, Phone: {phone_number}")
+        payment = Payment.objects.filter(checkout_request_id=checkout_id).first()
+        if not payment:
+            return JsonResponse({"message": "Unknown payment"}, status=200)
 
-                # Check if receipt already exists
-                if Payment.objects.filter(mpesa_receipt=mpesa_receipt).exists():
-                    logger.warning(f"Duplicate MpesaReceiptNumber: {mpesa_receipt}")
-                    return JsonResponse({"error": "Duplicate Mpesa receipt"}, status=400)
+        # SUCCESS
+        if result_code == 0:
+            metadata = stk.get("CallbackMetadata", {}).get("Item", [])
+            amount = next((i.get("Value") for i in metadata if i.get("Name") == "Amount"), None)
+            receipt = next((i.get("Value") for i in metadata if i.get("Name") == "MpesaReceiptNumber"), None)
 
-                # Update payment record
-                payment.mpesa_receipt = mpesa_receipt
-                payment.status = "Completed"
-                payment.save()
+            payment.mpesa_receipt = receipt
+            payment.status = "Completed"
+            payment.save()
+            return JsonResponse({"message": "Payment completed"}, status=200)
 
-                # Mark lesson as paid if it exists
-                if payment.lesson:
-                    payment.lesson.is_paid = True  # Ensure Lesson model has is_paid field
-                    payment.lesson.save()
-                    print(f"Lesson '{payment.lesson.id}' marked as paid.")
+        # FAILED
+        payment.status = "Failed"
+        payment.save()
+        return JsonResponse({"message": "Payment failed"}, status=200)
 
-                return JsonResponse({"message": "Payment received successfully"}, status=200)
+    except Exception as e:
+        print("Callback Error:", e)
+        return JsonResponse({"message": "Callback error"}, status=200)
 
-            else:
-                logger.error(f"Payment Failed - Result Code: {result_code}")
 
-                # Update Payment Status
-                payment.status = "Failed"
-                payment.save()
-
-                return JsonResponse({"message": "Payment failed", "ResultCode": result_code}, status=400)
-
-        except Exception as e:
-            logger.error("Error processing callback: %s", str(e))
-            return JsonResponse({"error": str(e)}, status=500)
-
-    return JsonResponse({"message": "Invalid request"}, status=400)
 @csrf_exempt
 def check_mpesa_status(request):
-    """Check M-Pesa payment status via AJAX polling."""
-    if request.method == "POST":
-        checkout_request_id = request.POST.get("checkout_request_id")
+    if request.method != "POST":
+        return JsonResponse({"message": "Invalid request"}, status=400)
 
-        # Get payment record
-        payment = Payment.objects.filter(checkout_request_id=checkout_request_id).first()
+    checkout_request_id = request.POST.get("checkout_request_id")
+    payment = Payment.objects.filter(checkout_request_id=checkout_request_id).first()
 
-        if payment:
-            return JsonResponse({"status": payment.status}, status=200)
+    if not payment:
         return JsonResponse({"error": "Payment not found"}, status=404)
 
-    return JsonResponse({"message": "Invalid request"}, status=400)
+    # If payment is completed, update the corresponding model
+    if payment.status == "Completed":
+        # If this payment is for a ZoomMeeting
+        if payment.zoom_meeting:
+            meeting = payment.zoom_meeting
+            meeting.is_paid = True
+            meeting.save()
+        else:
+            meeting = None
+
+        # If this payment is for a Tutorial
+        if payment.lesson:
+            lesson = payment.lesson
+            lesson.is_paid = True
+            lesson.save()
+        else:
+            lesson = None
+
+    return JsonResponse({
+        "status": payment.status,
+        "zoom_is_paid": meeting.is_paid if meeting else None,
+        "lesson_is_paid": lesson.is_paid if lesson else None,
+    }, status=200)
 
 def management_committee(request):
     return render(request, 'portals/farmer/management_committee.html', {})
@@ -4031,3 +4203,355 @@ class AbortionRecordDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()
+            
+def extension_service(request):
+    return render(request, 'portals/reports/extension_service.html', {})
+
+
+# API Views
+class ExtensionServiceCreate(generics.CreateAPIView):
+    queryset = ExtensionService.objects.all()
+    serializer_class = ExtensionServiceSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(created_by=user)
+
+
+class ExtensionServiceList(generics.ListAPIView):
+    serializer_class = ExtensionServiceSerializer
+    permission_classes = [Is_Vet]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return ExtensionService.objects.filter(created_by=self.request.user).order_by('-id')
+
+
+class ExtensionServiceUpdate(generics.UpdateAPIView):
+    queryset = ExtensionService.objects.all()
+    serializer_class = ExtensionServiceSerializer
+    permission_classes = [Is_Vet]
+
+
+class ExtensionServiceDelete(generics.DestroyAPIView):
+    queryset = ExtensionService.objects.all()
+    serializer_class = ExtensionServiceSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.created_by:
+            instance.delete()
+            
+            
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def search_users(request):
+
+    search = request.GET.get('search', '')
+    role = request.GET.get('role', '')  # farmer OR vet
+
+    queryset = User.objects.all()
+
+    # Filter by role
+    if role == "farmer":
+        queryset = queryset.filter(is_farmer=True)
+    elif role == "vet":
+        queryset = queryset.filter(is_vet_officer=True)
+    elif role == "official":
+        queryset = queryset.filter(is_official=True)
+
+
+    # Search username
+    if search:
+        queryset = queryset.filter(username__icontains=search)
+
+    # Pagination (DRF)
+    paginator = PageNumberPagination()
+    paginator.page_size = 10
+    paginated = paginator.paginate_queryset(queryset, request)
+
+    serializer = UserSearchSerializer(paginated, many=True)
+    return paginator.get_paginated_response(serializer.data)
+
+def field_quotation(request):
+    return render(request, 'portals/reports/field.html', {})
+
+
+# API Views
+class FieldQuotationCreate(generics.CreateAPIView):
+    queryset = FieldQuotation.objects.all()
+    serializer_class = FieldQuotationSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+
+class FieldQuotationList(generics.ListAPIView):
+    serializer_class = FieldQuotationSerializer
+    permission_classes = [Is_Vet]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return FieldQuotation.objects.filter(user=self.request.user).order_by('-id')
+
+
+class FieldQuotationUpdate(generics.UpdateAPIView):
+    queryset = FieldQuotation.objects.all()
+    serializer_class = FieldQuotationSerializer
+    permission_classes = [Is_Vet]
+
+
+class FieldQuotationDelete(generics.DestroyAPIView):
+    queryset = FieldQuotation.objects.all()
+    serializer_class = FieldQuotationSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+            
+ZOOM_CLIENT_ID = config("ZOOM_API_KEY")
+ZOOM_CLIENT_SECRET = config("ZOOM_API_SECRET")
+ZOOM_REDIRECT_URI= config("REDIRECT_URL")
+
+@user_passes_test(vet_check, login_url='vet-login')
+def zoom_auth(request):
+    client_id = ZOOM_CLIENT_ID
+    redirect_uri = ZOOM_REDIRECT_URI
+    url = f"https://zoom.us/oauth/authorize?response_type=code&client_id={client_id}&redirect_uri={redirect_uri}"
+    return redirect(url)
+
+@user_passes_test(vet_check, login_url='vet-login')
+def zoom_callback(request):
+    code = request.GET.get("code")
+    if not code:
+        return JsonResponse({"error": "No code provided"}, status=400)
+
+    client_id = ZOOM_CLIENT_ID
+    client_secret = ZOOM_CLIENT_SECRET
+    redirect_uri = ZOOM_REDIRECT_URI
+
+    auth_header = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode()
+    token_url = "https://zoom.us/oauth/token"
+    headers = {
+        "Authorization": f"Basic {auth_header}",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    data = {
+        "grant_type": "authorization_code",
+        "code": code,
+        "redirect_uri": redirect_uri
+    }
+
+    response = requests.post(token_url, headers=headers, data=data)
+    token_data = response.json()
+    if "access_token" in token_data:
+        expires_at = timezone.now() + timedelta(seconds=token_data["expires_in"])
+        ZoomToken.objects.update_or_create(
+            user=request.user,
+            defaults={
+                "access_token": token_data["access_token"],
+                "refresh_token": token_data["refresh_token"],
+                "expires_at": expires_at
+            }
+        )
+        return redirect("zoom_schedule")
+    else:
+        return JsonResponse({"error": token_data}, status=400)
+
+# ==========================
+# Refresh token if expired
+# ==========================
+def get_valid_access_token(user):
+    token = ZoomToken.objects.filter(user=user).first()
+    if not token:
+        return None
+
+    if token.expires_at < timezone.now():
+        # Refresh token
+        client_id = ZOOM_CLIENT_ID
+        client_secret = ZOOM_CLIENT_SECRET
+        auth_header = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode()
+        token_url = "https://zoom.us/oauth/token"
+        headers = {
+            "Authorization": f"Basic {auth_header}",
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+        data = {
+            "grant_type": "refresh_token",
+            "refresh_token": token.refresh_token
+        }
+        response = requests.post(token_url, headers=headers, data=data)
+        token_data = response.json()
+        if "access_token" in token_data:
+            token.access_token = token_data["access_token"]
+            token.refresh_token = token_data["refresh_token"]
+            token.expires_at = timezone.now() + timedelta(seconds=token_data["expires_in"])
+            token.save()
+        else:
+            return None
+    return token.access_token
+
+# ==========================
+# Schedule Zoom Meeting
+# ==========================
+
+@user_passes_test(vet_check, login_url='vet-login')
+def zoom_schedule(request):
+    # Handle creating a new Zoom meeting
+    if request.method == "POST":
+        topic = request.POST.get("topic")
+        start_time = request.POST.get("start_time")  # ISO format: 2025-12-10T15:00:00
+
+        access_token = get_valid_access_token(request.user)
+        if not access_token:
+            return redirect("zoom_auth")
+
+        url = "https://api.zoom.us/v2/users/me/meetings"
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "topic": topic,
+            "type": 2,
+            "start_time": start_time,
+            "duration": 30,
+            "timezone": "Africa/Nairobi"
+        }
+
+        response = requests.post(url, headers=headers, json=data)
+        if response.status_code == 201:
+            meeting_info = response.json()
+            ZoomMeeting.objects.create(
+                user=request.user,
+                meeting_id=meeting_info["id"],
+                topic=meeting_info["topic"],
+                start_time=meeting_info["start_time"],
+                join_url=meeting_info["join_url"]
+            )
+            return redirect("zoom_schedule")
+
+        return JsonResponse({"error": response.json()}, status=500)
+
+    # GET request: show meetings
+    meetings = ZoomMeeting.objects.filter().order_by("-start_time")
+
+    # Add a flag to check if the logged-in user attended
+    for m in meetings:
+        m.user_has_attended = ZoomAttendance.objects.filter(
+            meeting=m
+        ).filter(
+            models.Q(user=request.user) | models.Q(user_email=request.user.email)
+        ).exists()
+
+    return render(request, "portals/conf/conf.html", {"meetings": meetings})
+# @user_passes_test(vet_check, login_url='vet-login')
+# def fetch_zoom_attendance(request, meeting_id):
+#     meeting = ZoomMeeting.objects.filter(meeting_id=meeting_id).first()
+#     if not meeting:
+#         return render(request, "portals/conf/points.html", {
+#             "error": "Meeting not found"
+#         })
+
+#     access_token = get_valid_access_token(request.user)
+#     if not access_token:
+#         return redirect("zoom_auth")
+
+#     url = f"https://api.zoom.us/v2/report/meetings/{meeting_id}/participants"
+#     headers = {
+#         "Authorization": f"Bearer {access_token}"
+#     }
+
+#     response = requests.get(url, headers=headers)
+#     if response.status_code != 200:
+#         return render(request, "portals/conf/points.html", {
+#             "error": response.json(),
+#             "meeting": meeting
+#         })
+
+#     participants = response.json().get("participants", [])
+
+#     # Save attendance and calculate points
+#     for p in participants:
+#         email = p.get("email")
+#         user = User.objects.filter(email=email).first()  # link registered user if exists
+
+#         join_time = p.get("join_time")
+#         leave_time = p.get("leave_time")
+#         duration_minutes = p.get("duration", 0)
+#         points = round(duration_minutes / 60, 2)  # 1 point per hour
+
+#         ZoomAttendance.objects.update_or_create(
+#             meeting=meeting,
+#             user_email=email,
+#             defaults={
+#                 "user": user,
+#                 "user_name": p.get("name"),
+#                 "join_time": join_time,
+#                 "leave_time": leave_time,
+#                 "duration": duration_minutes,
+#                 "points": points
+#             }
+#         )
+
+#     attendance_list = ZoomAttendance.objects.filter(meeting=meeting)
+
+#     return render(request, "portals/conf/points.html", {
+#         "meeting": meeting,
+#         "attendance": attendance_list,
+#         "message": "Attendance fetched and points calculated successfully"
+#     })
+
+@user_passes_test(vet_check, login_url='vet-login')
+def fetch_zoom_attendance(request, meeting_id):
+    meeting = ZoomMeeting.objects.filter(meeting_id=meeting_id).first()
+    if not meeting:
+        return render(request, "portals/conf/points.html", {"error": "Meeting not found"})
+
+    # -------------------------------
+    # Dummy data instead of Zoom API
+    # -------------------------------
+    response_data = {
+        "participants": [
+            {"id": "82582195509", "name": "Alice Johnson", "email": "alice@example.com",
+             "join_time": "2025-12-10T15:00:00Z", "leave_time": "2025-12-10T16:30:00Z", "duration": 90},
+            {"id": "82582195509", "name": "Bob Smith", "email": "bob@example.com",
+             "join_time": "2025-12-10T15:10:00Z", "leave_time": "2025-12-10T16:00:00Z", "duration": 50},
+            {"id": "82582195509", "name": "Charlie Lee", "email": "charlie@example.com",
+             "join_time": "2025-12-10T15:30:00Z", "leave_time": "2025-12-10T16:15:00Z", "duration": 45},
+        ]
+    }
+    participants = response_data["participants"]
+
+    # Save attendance and calculate points
+    for p in participants:
+        email = p.get("email")
+        user = User.objects.filter(email=email).first()
+        duration_minutes = p.get("duration", 0)
+        points = round(duration_minutes / 60, 2)  # 1 point per hour
+
+        ZoomAttendance.objects.update_or_create(
+            meeting=meeting,
+            user_email=email,
+            defaults={
+                "user": user,
+                "user_name": p.get("name"),
+                "join_time": p.get("join_time"),
+                "leave_time": p.get("leave_time"),
+                "duration": duration_minutes,
+                "points": points
+            }
+        )
+
+    attendance_list = ZoomAttendance.objects.filter(meeting=meeting)
+
+    return render(request, "portals/conf/points.html", {
+        "meeting": meeting,
+        "attendance": attendance_list,
+        "message": "Dummy attendance saved successfully"
+    })

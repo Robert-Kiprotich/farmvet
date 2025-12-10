@@ -44,7 +44,7 @@
           <li class="header-menu">
             <span>General</span>
           </li>
-          
+         
           <li class="sidebar-dropdown">
             <a href="#">
               <i class="fas fa-list"></i>
@@ -166,6 +166,166 @@
                         <li/> 
                       </ul>
                   </li>
+                  <li class="sidebar-dropdown">
+                    <a href="#" style="font-weight: bold;">
+                      <span >Sheep Production</span>
+                    </a>
+                    <div class="sidebar-submenu">
+                      <ul>
+                        <li>
+                          <a class="dropdown-item" style="font-weight: bold;" href="">Sheep Production</a>
+                        </li>
+                        
+                      </ul>
+                  </li>
+                  <li class="sidebar-dropdown">
+                    <a href="#" style="font-weight: bold;">
+                      <span >Goat Production</span>
+                    </a>
+                    <div class="sidebar-submenu">
+                      <ul>
+                        <li>
+                          <a class="dropdown-item" style="font-weight: bold;" href="">Goat Production</a>
+                        </li>
+                        
+                      </ul>
+                  </li>
+                  <li class="sidebar-dropdown">
+                    <a href="#" style="font-weight: bold;">
+                      <span >Poultry Production</span>
+                    </a>
+                    <div class="sidebar-submenu">
+                      <ul>
+                        <li>
+                          <a class="dropdown-item" style="font-weight: bold;" href="">Layers</a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item" style="font-weight: bold;" href="">Broilers</a>
+                        </li>
+                        
+                      </ul>
+                  </li>
+                  <li class="sidebar-dropdown">
+                    <a href="#" style="font-weight: bold;">
+                      <span >Companion Animals</span>
+                    </a>
+                    <div class="sidebar-submenu">
+                      <ul>
+                        <li>
+                          <a class="dropdown-item" style="font-weight: bold;" href="">Dogs</a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item" style="font-weight: bold;" href="">Cats</a>
+                        </li>
+                        
+                      </ul>
+                  </li>
+                  <li class="sidebar-dropdown">
+                    <a href="#"  style="font-weight: bold;">
+                     
+                      <span>Veterinary Records</span>
+                     
+                    </a>
+                    <div class="sidebar-submenu">
+                      <ul>
+                       
+                        <li class="sidebar-dropdown">
+                          <a href="#" style="font-weight: bold;">
+                             
+                              <span >Ambulatory Services</span>
+                          </a>
+                          <div class="sidebar-submenu">
+                              <ul>
+                                <li>
+                                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'ai-view'%}">AI Records </a>
+                                  </a>
+                                </li>
+                                <li>
+                                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'deworming-view'%}">Deworming Records</a>
+                                  </a>
+                                </li>
+                                
+                                <li>
+                                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'consultation-view'%}">Farm Consultation Records</a>
+                                  </a>
+                                </li>
+                                <li>
+                                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'postmortem-view'%}">Post Mortem Records</a>
+                                  </a>
+                                </li>
+                                <li>
+                                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'pregnancy-view'%}">Pregnancy Diagnosis Record</a>
+                                  </a>
+                                </li>
+                                <li>
+                                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'referral-view'%}">Referral Records</a>
+                                  </a>
+                                </li>
+                    
+                                <li>
+                                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'surgery-view'%}">Surgery Records</a>
+                                  </a>
+                                </li>
+                                <li>
+                                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'clinical-view'%}">Clinical Records</a>
+                                  </a>
+                                </li>
+                                <li>
+                                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'vaccination-view'%}">Vaccination Records</a>
+                                  </a>
+                                </li>
+                                <li>
+                                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'assesment-view'%}">Livestock Examination</a>
+                                  </a>
+                                </li>
+                                <li>
+                                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'ui-irrigation-view'%}">Uterine Irrigation</a>
+                                  </a>
+                                </li>
+                                <li>
+                                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'emergency-care-view'%}">Emergency Care</a>
+                                  </a>
+                                </li>
+                              </ul>
+                          </div>
+                      </li> 
+                        
+                        <li class="sidebar-dropdown">
+                          <a href="#" style="font-weight: bold;">
+                             
+                              <span >Laboratory Serivces</span>
+                          </a>
+                          <div class="sidebar-submenu">
+                              <ul>
+                                <li>
+                                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'collection-view'%}">Sample Collection</a>
+                                </li>
+                                <li>
+                                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'processing-view'%}">Sample Processing</a>
+                                </li>
+                              </ul>
+                          </div>
+                      </li> 
+                        
+                        <li class="sidebar-dropdown">
+                          <a href="#" style="font-weight: bold;">
+                              
+                              <span >Veterinary Bills</span>
+                          </a>
+                          <div class="sidebar-submenu">
+                              <ul>
+                                <li>
+                                  <a style="font-weight: bold;" href="{% url 'invoiceview'%}">Invoice</a>
+                                </li>
+                                <li>
+                                  <a style="font-weight: bold;" href="{% url 'vet-billing-view'%}">Receipt</a>
+                                </li>
+                              </ul>
+                          </div>
+                      </li> 
+                      </ul>
+                    </div>
+                  </li>
                 </ul>
                 
 
@@ -191,19 +351,19 @@
                       </ul>
                   </li>
                 </ul> {% endcomment %}
-                <ul>
+               
                   <li class="sidebar-dropdown">
                     <a href="#" style="font-weight: bold;">
-                      <span >Employee Records</span>
+                      <span >Employees Records</span>
                     </a>
                     <div class="sidebar-submenu">
                       <ul>
                         <li>
-                          <a class="dropdown-item" style="font-weight: bold;"  href="{%url 'employee'%}">Employees</a>
+                          <a class="dropdown-item" style="font-weight: bold;"  href="">Employees</a>
                         </li>
                       </ul>
                   </li>
-                </ul>
+              
 
             </div>
             
@@ -224,112 +384,8 @@
               </ul>
             </div>
           </li>
-          <li class="sidebar-dropdown">
-            <a href="#">
-              <i class="fa fa-clipboard"></i>
-              <span>Veterinary Records</span>
-             
-            </a>
-            <div class="sidebar-submenu">
-              <ul>
-               
-                <li class="sidebar-dropdown">
-                  <a href="#" style="font-weight: bold;">
-                      <i class=""></i>
-                      <span >Ambulatory Services</span>
-                  </a>
-                  <div class="sidebar-submenu">
-                      <ul>
-                        <li>
-                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'ai-view'%}">AI Records </a>
-                          </a>
-                        </li>
-                        <li>
-                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'deworming-view'%}">Deworming Records</a>
-                          </a>
-                        </li>
-                        
-                        <li>
-                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'consultation-view'%}">Farm Consultation Records</a>
-                          </a>
-                        </li>
-                        <li>
-                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'postmortem-view'%}">Post Mortem Records</a>
-                          </a>
-                        </li>
-                        <li>
-                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'pregnancy-view'%}">Pregnancy Diagnosis Record</a>
-                          </a>
-                        </li>
-                        <li>
-                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'referral-view'%}">Referral Records</a>
-                          </a>
-                        </li>
-            
-                        <li>
-                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'surgery-view'%}">Surgery Records</a>
-                          </a>
-                        </li>
-                        <li>
-                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'clinical-view'%}">Clinical Records</a>
-                          </a>
-                        </li>
-                        <li>
-                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'vaccination-view'%}">Vaccination Records</a>
-                          </a>
-                        </li>
-                        <li>
-                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'assesment-view'%}">Livestock Examination</a>
-                          </a>
-                        </li>
-                        <li>
-                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'ui-irrigation-view'%}">Uterine Irrigation</a>
-                          </a>
-                        </li>
-                        <li>
-                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'emergency-care-view'%}">Emergency Care</a>
-                          </a>
-                        </li>
-                      </ul>
-                  </div>
-              </li> 
-                
-                <li class="sidebar-dropdown">
-                  <a href="#" style="font-weight: bold;">
-                      <i class=""></i>
-                      <span >Laboratory Serivces</span>
-                  </a>
-                  <div class="sidebar-submenu">
-                      <ul>
-                        <li>
-                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'collection-view'%}">Sample Collection</a>
-                        </li>
-                        <li>
-                          <a class="dropdown-item" style="font-weight: bold;" href="{% url 'processing-view'%}">Sample Processing</a>
-                        </li>
-                      </ul>
-                  </div>
-              </li> 
-                
-                <li class="sidebar-dropdown">
-                  <a href="#" style="font-weight: bold;">
-                      <i class=""></i>
-                      <span >Veterinary Bills</span>
-                  </a>
-                  <div class="sidebar-submenu">
-                      <ul>
-                        <li>
-                          <a style="font-weight: bold;" href="{% url 'invoiceview'%}">Invoice</a>
-                        </li>
-                        <li>
-                          <a style="font-weight: bold;" href="{% url 'vet-billing-view'%}">Receipt</a>
-                        </li>
-                      </ul>
-                  </div>
-              </li> 
-              </ul>
-            </div>
-          </li>
+          
+         
           <li class="sidebar-dropdown">
             <a href="#">
               <i class="fa fa-graduation-cap"></i>
@@ -348,7 +404,37 @@
               </ul>
             </div>
           </li>
-
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="fa fa-list"></i>
+              <span>Dairy Cooperative Services</span>
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a href="">Registration Details</a>
+                </li>
+                <li>
+                  <a href="">Daily Milk Supply</a>
+                </li>
+                <li>
+                  <a href="">Current Milk Price</a>
+                </li>
+                <li>
+                  <a href="">Veterinary Services</a>
+                </li>
+                <li>
+                  <a href="">Input Supplies</a>
+                </li>
+                <li>
+                  <a href="">Check in off deduction</a>
+                </li>
+                <li>
+                  <a href="">Payments(Gross pay deduction)</a>
+                </li>
+              </ul>
+            </div>
+          </li>
           <li class="sidebar-dropdown">
             <a href="#">
               <i class="fa fa-link"></i>
@@ -423,6 +509,9 @@
                 <li>
                   <a style="font-weight: bold;" href="{% url 'daily-kills-view' %}">Daily Kills</a>
                 </li> 
+                <li>
+                  <a class="dropdown-item" style="font-weight: bold;"  href="{%url 'employee'%}">Employees</a>
+                </li>
                 <li>
                   <a style="font-weight: bold;" href="{% url 'hides-skins-record' %}">Hides & Skins Records</a>
                 </li>

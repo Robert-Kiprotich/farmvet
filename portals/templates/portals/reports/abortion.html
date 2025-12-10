@@ -168,10 +168,7 @@
                 <input type="text" class="form-control" id="village" name="village">
               </div>
             
-              <div class="mb-3">
-                <label for="service_provided_by" class="form-label">Service Provided By</label>
-                <input type="text" class="form-control" id="service_provided_by" name="service_provided_by" required>
-              </div>
+              
             
               <div class="mb-3">
                 <label for="vet_practitioner_name" class="form-label">Vet Practitioner Name</label>
@@ -310,10 +307,7 @@
                 <input type="text" class="form-control" id="village" name="village">
               </div>
             
-              <div class="mb-3">
-                <label for="service_provided_by" class="form-label">Service Provided By</label>
-                <input type="text" class="form-control" id="service_provided_by" name="service_provided_by" required>
-              </div>
+             
             
               <div class="mb-3">
                 <label for="vet_practitioner_name" class="form-label">Vet Practitioner Name</label>
@@ -361,7 +355,8 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <h2 class="text-center">Veterinary Professional Services</h2>
+          <h2 class="text-center text-uppercase">{{ request.user.business_name }}</h2>
+
        <h3 class="text-center">Abortion Records </h3>
           <div class="modal-body" id="modalBody">
           </div>
@@ -827,12 +822,7 @@ $('#submitAi').on('click', function (e) {
             sortable: true,
             align: 'center'
           },
-          {
-            field: 'service_provided_by',
-            title: 'Service Provided By',
-            sortable: true,
-            align: 'center'
-          },
+         
           {
             field: 'vet_practitioner_name',
             title: 'Vet Practitioner Name',

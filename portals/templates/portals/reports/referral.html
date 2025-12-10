@@ -155,10 +155,7 @@
                 <label for="contact" class="form-label">Contact</label>
                 <input type="text" id="contact" name="contact" class="form-control" required>
             </div>
-            <div class="mb-3">
-              <label for="provided_by" class="form-label">Service Provided By</label>
-              <input type="text" id="provided_by" name="provided_by" class="form-control" required>
-          </div>
+          
             <div class="mb-3">
                 <label for="vet_name" class="form-label">Referring Vet</label>
                 <input type="text" id="vet_name" name="vet_name" class="form-control" required>
@@ -282,10 +279,7 @@
               <label for="contact" class="form-label">Contact</label>
               <input type="text" id="contact" name="contact" class="form-control .editable-field'" required>
           </div>
-          <div class="mb-3">
-            <label for="provided_by" class="form-label">Service Provided By</label>
-            <input type="text" id="provided_by" name="provided_by" class="form-control .editable-field'" required>
-        </div>
+         
           <div class="mb-3">
               <label for="vet_name" class="form-label">Referring Vet</label>
               <input type="text" id="vet_name" name="vet_name" class="form-control .editable-field'" required>
@@ -331,8 +325,8 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <h2 class="text-center">Veterinary Professional Services</h2>
-       <h3 class="text-center">Referral Records</h3>
+          <h2 class="text-center text-uppercase">{{ request.user.business_name }}</h2>
+          <h3 class="text-center">Referral Records</h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -744,12 +738,7 @@ function operateFormatter(value, row, index) {
     sortable: true,
     align: 'center'
   },
-  {
-    field: 'provided_by',
-    title: 'Service Provided by',
-    sortable: true,
-    align: 'center'
-  },
+  
   {
     field: 'vet_category',
     title: 'Vet Category',

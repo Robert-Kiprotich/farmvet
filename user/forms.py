@@ -42,6 +42,7 @@ class VetOfficerSignUpForm(UserCreationForm):
 	specialization=forms.ChoiceField(choices=[('large', 'Large Animals'), ('small', 'Small Animals')], label='Select Specialization')
 	vet_category=forms.ChoiceField(choices=[('surgeon', 'Surgeon'), ('Technologist Degree', 'Technologist Degree'),('Technologist Diploma', 'Technologist Diploma'),('Technician', 'Technician')], label='Select Vet Category')
 	supervisor=forms.CharField(label='Supervisor')
+	business_name=forms.CharField(label='Business Name')
 	county=forms.CharField()
 	subcounty=forms.CharField()
 	location=forms.CharField()
@@ -71,9 +72,10 @@ class VetOfficerSignUpForm(UserCreationForm):
 		)
 	)
 	
+	
 	class Meta(UserCreationForm.Meta):
 		model = User
-		fields = ('username','first_name','last_name','registration_number','licence_number','specialization','vet_category','supervisor','county','subcounty','location','phone_number','email','password1', 'password2',)
+		fields = ('username','first_name','last_name','registration_number','licence_number','specialization','vet_category','supervisor','business_name','county','subcounty','location','phone_number','email','password1', 'password2',)
 
 	
 class FarmerSignUpForm(UserCreationForm):
@@ -209,4 +211,76 @@ class OfficialSignUpForm(UserCreationForm):
 	class Meta(UserCreationForm.Meta):
 		model = User
 		fields = ('username','first_name','last_name','phone_number','county','sub_county','registration_number','employment_number','designation','email','password1', 'password2',)
+
+class CooperativeSignUpForm(UserCreationForm):
+	first_name = forms.CharField(
+		max_length=50,
+		min_length=4,
+		required=True,
+		widget=forms.TextInput(
+				attrs={
+					'placeholder': 'First Name',
+					'class': 'form-control'
+				}
+			)
+		)
+	last_name = forms.CharField(
+		max_length=30,
+		required=True,
+		widget=forms.TextInput(
+				attrs={
+					'placeholder': 'Last Name',
+					'class': 'form-control'
+				}
+			)
+		)
+		
+	email = forms.EmailField(
+		max_length=254,
+		widget=forms.EmailInput(
+			attrs={
+				'placeholder': 'Email',
+				'class': 'form-control'
+			}
+		)
+	)
+	phone_number = forms.RegexField(regex='^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$', max_length=13)
+	county=forms.CharField()
+	sub_county=forms.CharField()
+	cooperative_name=forms.CharField()
+	reg_no=forms.CharField()
+	designation=forms.ChoiceField(choices=[('chairman', 'Chairman'), ('secretary', 'Secretary'),('treasurer', 'Treasurer')], label='Select Designation')
+
+
+
+
+	password1 = forms.CharField(
+		label='Password',
+		max_length=30,
+		min_length=8,
+		required=True,
+		widget=forms.PasswordInput(
+			attrs={
+				'placeholder': 'Password',
+				'class': 'form-control'
+			}
+		)
+	)
+
+	password2 = forms.CharField(
+		label='Confirm Password',
+		max_length=30,
+		min_length=8,
+		required=True,
+		widget=forms.PasswordInput(
+			attrs={
+				'placeholder': 'Confirm Password',
+				'class': 'form-control'
+			}
+		)
+	)
+
+	class Meta(UserCreationForm.Meta):
+		model = User
+		fields = ('username','first_name','last_name','phone_number','county','sub_county','cooperative_name','reg_no','designation','email','password1', 'password2',)
 

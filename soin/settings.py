@@ -16,6 +16,8 @@ SECRET_KEY = 'chang3m3'
 DEBUG = True
 
 ALLOWED_HOSTS = ['*','https://4afd-154-122-78-252.ngrok-free.app']
+AGORA_APP_ID = os.getenv("AGORA_APP_ID")
+AGORA_APP_CERTIFICATE = os.getenv("AGORA_APP_CERTIFICATE")
 
 
 # Application definition

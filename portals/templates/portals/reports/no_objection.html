@@ -212,8 +212,8 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <h2 class="text-center">Veterinary Professional Services</h2>
-       <h3 class="text-center">No Objection Records</h3>
+          <h2 class="text-center text-uppercase">{{ request.user.business_name }}</h2>
+          <h3 class="text-center">No Objection Records</h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -336,7 +336,7 @@ const csrftoken = getCookie('csrftoken');
                 }
     
                 // Handle files (photo, uploaded_report, etc.)
-                if (value && (column.field === 'photo' || column.field === 'uploaded_report')) {
+                if (value && (column.field === 'photo' || column.field === 'uploaded_no_objection_form')) {
                     let fileExt = value.split('.').pop().toLowerCase();
     
                     if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {

@@ -86,7 +86,7 @@
             <form id="AiAddForm"  enctype="multipart/form-data">
               {% csrf_token %}
               <input type="hidden" id="id"  name="id" >
-              <div class="mb-3">
+              <!--<div class="mb-3">
                 <label for="assigned_to" class="form-label">Assigned To Farmer </label>
                 <select name="assigned_to" id="assigned_to" class="form-control">
                   <option value="" disabled selected>Select a farmer</option>
@@ -94,22 +94,24 @@
                       <option value="{{ farmer.username }}">{{ farmer.username }}</option>
                   {% endfor %}
               </select>
+            </div>-->
+
+            <div class="mb-3">
+              <label for="farmer_input" class="form-label">Assign To Farmer</label>
+              <input type="text" id="assigned_to" class="form-control" placeholder="Search farmer...">
+              <ul id="farmer_suggestions" class="list-group"></ul>
             </div>
-              <div class="mb-3">
-                <label for="assigned_to" class="form-label">Assign To Official</label>
-                <select name="assigned_to_official" id="assigned_to_official" class="form-control">
-                  <option value="" disabled selected>Select Official</option>
-                  {% for official in all_officials %}
-                      <option value="{{ official.username }}">{{ official.username }}</option>
-                  {% endfor %}
-              </select>
-            </div>  
+            <div class="mb-3 ">
+              <label for="official_input" class="form-label">Assign To Official</label>
+              <input type="text" id="assigned_to_official" class="form-control" placeholder="Search official...">
+              <ul id="official_suggestions" class="list-group"></ul>
+            </div>
               <div class="mb-3">
                 <label for="farm_name" class="form-label">Farm Name</label>
                 <input type="text" id="farm_name" name="farm_name" class="form-control editable-field" maxlength="255" required>
             </div>
             <div class="form-group">
-              <label for="species_targeted">Livestock Category</label>
+              <label for="species_targeted" class="form-label">Livestock Category</label>
               <select class="form-control editable-field" id="species" name="species">
                   {% for value, display in ANIMAL_SPECIES %}
                       <option value="{{ value }}">{{ display }}</option>
@@ -140,7 +142,7 @@
                 <input type="number" id="no_of_repeats" name="no_of_repeats" class="form-control" required>
             </div>
             <div class="form-group">
-              <label for="species_targeted">Previous Rab Status</label>
+              <label for="species_targeted" class="form-label">Previous Rab Status</label>
               <select class="form-control editable-field" id="rab_status" name="rab_status">
                   {% for value, display in RAB_STATUS %}
                       <option value="{{ value }}">{{ display }}</option>
@@ -269,10 +271,10 @@
                 <label for="contact" class="form-label">Contact</label>
                 <input type="text" id="contact" name="contact" class="form-control" maxlength="15" required>
             </div>
-            <div class="mb-3">
+            {% comment %} <div class="mb-3">
               <label for="contact" class="form-label">Services Provided By</label>
               <input type="text" id="provided_by" name="provided_by" class="form-control"  required>
-          </div>
+          </div> {% endcomment %}
             <div class="mb-3">
                 <label for="vet_name" class="form-label">Practitioner Name</label>
                 <input type="text" id="vet_name" name="vet_name" class="form-control" maxlength="255" required>
@@ -483,10 +485,10 @@
     <label for="contact" class="form-label">Contact</label>
     <input type="text" id="contact" name="contact" class="form-control editable-field" maxlength="15" required>
 </div>
-<div class="mb-3">
+{% comment %} <div class="mb-3">
   <label for="contact" class="form-label">Services Provided By</label>
   <input type="text" id="provided_by" name="provided_by" class="form-control editable-field" maxlength="15" required>
-</div>
+</div> {% endcomment %}
 <div class="mb-3">
     <label for="vet_name" class="form-label">Practitioner Name</label>
     <input type="text" id="vet_name" name="vet_name" class="form-control editable-field" maxlength="255" required>
@@ -522,7 +524,8 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <h2 class="text-center">Veterinary Professional Services</h2>
+          <h2 class="text-center text-uppercase">{{ request.user.business_name }}</h2>
+
        <h3 class="text-center">Artificial Insemination </h3>
           <div class="modal-body" id="modalBody">
           </div>
@@ -672,17 +675,82 @@ const csrftoken = getCookie('csrftoken');
         $('#dsModal').modal('hide');
     });
 }
+function enableUserSearch(inputId, suggestionsId, role) {
+  const input = document.getElementById(inputId);
+  const suggestionsBox = document.getElementById(suggestionsId);
+
+  input.addEventListener("input", function () {
+      const query = input.value.trim();
+
+      if (query.length < 2) {
+          suggestionsBox.innerHTML = "";
+          return;
+      }
+
+      fetch(`/api/users/?search=${query}&role=${role}`, {
+          credentials: "same-origin"  // Important for session auth
+      })
+      .then(res => res.json())
+      .then(data => {
+          suggestionsBox.innerHTML = "";
+
+          if (!data.results || data.results.length === 0) {
+              suggestionsBox.innerHTML = `<li class="list-group-item">No results</li>`;
+              return;
+          }
+
+          data.results.forEach(user => {
+              const li = document.createElement("li");
+              li.classList.add("list-group-item");
+              li.style.cursor = "pointer";
+              li.textContent = user.username;
+
+              li.addEventListener("click", function () {
+                  input.value = user.username;
+                  input.dataset.userId = user.id;  // optional: store ID
+                  suggestionsBox.innerHTML = "";
+              });
+
+              suggestionsBox.appendChild(li);
+          });
+      })
+      .catch(error => console.error("Error fetching users:", error));
+  });
+
+  // Hide dropdown when clicking outside
+  document.addEventListener("click", function (e) {
+      if (!input.contains(e.target)) {
+          suggestionsBox.innerHTML = "";
+      }
+  });
+}
+
+
+enableUserSearch("assigned_to", "farmer_suggestions", "farmer");
+//enableUserSearch("vet_input", "vet_suggestions", "vet");
+enableUserSearch("assigned_to_official", "official_suggestions", "official");
+
+// =============================
+//  FORM SUBMISSION CODE (YOUR CODE)
+// =============================
+
 $('#AiAddForm').submit(function(e) {
   e.preventDefault();
   var formData = new FormData(this);
+
+  // ASSIGN assigned_to VALUE (username selected)
+  formData.set("assigned_to", $('#assigned_to').val());
+  formData.set("assigned_to_official", $('#assigned_to_official').val());
+
   var jsonObject = {};
   formData.forEach(function(value, key) {
       jsonObject[key] = value;
   });
 
-  console.log(jsonObject);
+  console.log(jsonObject);  // Check collected form data
 
   var csrftoken = getCookie('csrftoken');
+
   $.ajax({
     method: 'POST',
     url: "/artificial-insemination/create/",
@@ -709,14 +777,13 @@ $('#AiAddForm').submit(function(e) {
         var errors = JSON.parse(xhr.responseText);
 
         if (typeof errors === 'object') {
-          // Handle field-specific errors
           errorHtml += '<ul>';
           $.each(errors, function(field, messages) {
             if (Array.isArray(messages)) {
               errorHtml += '<li><strong>' + field + ':</strong> ' + messages.join(', ') + '</li>';
-              // Highlight the field with error
+
               var fieldSelector = `[name="${field}"]`;
-              $(fieldSelector).addClass('is-invalid'); // Bootstrap error style
+              $(fieldSelector).addClass('is-invalid');
             }
           });
           errorHtml += '</ul>';
@@ -730,15 +797,12 @@ $('#AiAddForm').submit(function(e) {
       errorHtml = '<p>' + (xhr.responseText || errorThrown || errorMessage) + '</p>';
     }
 
-    console.error('Error submitting form:', errorHtml);
     $('#errorModalBody').html(errorHtml);
     $('#statusErrorsModal').modal('show');
 
-    // Remove error highlighting on input focus
     $('input, select, textarea').on('focus', function() {
       $(this).removeClass('is-invalid');
     });
-
   });
 
   $('#errorButton').click(function() {
@@ -887,6 +951,10 @@ $('#submitAi').on('click', function (e) {
           return sum + i
         }, 0)
       }
+
+      
+      
+      
       
     
       function initTable() {
@@ -1111,12 +1179,7 @@ $('#submitAi').on('click', function (e) {
   sortable: true,
   align: 'center'
 },
-{
-  field: 'provided_by',
-  title: 'Services Provided By',
-  sortable: true,
-  align: 'center'
-},
+
 {
   field: 'vet_name',
   title: 'Practitioner Name',

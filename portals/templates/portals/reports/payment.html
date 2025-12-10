@@ -131,141 +131,153 @@
           </div>
         </footer><!-- End Footer -->
   <!--   Core JS Files   -->
-  <script>
+ <script>
+$(document).ready(function () {
 
-        $(document).ready(function () {
-            // Get lesson_id from Django template context
-            let lessonId = "{{ lesson_id }}"; 
-    
-            $("#mpesa-payment-form").submit(function (e) {
-                e.preventDefault(); // Prevent form from reloading the page
-    
-                let phoneNumber = $("#mpesa-number").val().trim();
-                if (!phoneNumber) {
-                    alert("Please enter your M-Pesa number.");
-                    return;
-                }
-    
-                // Replace form content with a spinner and "Processing Payment..."
-                $("#mpesa-payment-form").html(`
-                    <div class="text-center">
-                        <div class="spinner-border text-success" role="status"></div>
-                        <p class="mt-2">Processing Payment...</p>
-                    </div>
-                `);
-    
-                // Send AJAX request to initiate M-Pesa payment
-                $.ajax({
-                    url: "/mpesa/initiate/",  // Update with your Django endpoint
-                    type: "POST",
-                    headers: {
-                        "ngrok-skip-browser-warning": "true"  // Bypass warning
-                    },
-                    data: {
-                        phone_number: phoneNumber,
-                        lesson_id: lessonId,  // Use Django-rendered lesson_id
-                        csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val()
-                    },
-                    success: function (response) {
-                        if (response.ResponseCode === "0") {
-                            let checkoutRequestId = response.CheckoutRequestID; // Save request ID
-    
-                            // Start checking payment status every 5 seconds
-                            checkPaymentStatus(checkoutRequestId, lessonId);
-                        } else {
-                            $("#mpesa-payment-form").html(`
-                                <div class="alert alert-danger text-center">
-                                    Payment initiation failed. Please try again.
-                                    <button class="btn btn-primary mt-2" onclick="location.reload()">Retry</button>
-                                </div>
-                            `);
-                        }
-                    },
-                    error: function () {
-                        $("#mpesa-payment-form").html(`
-                            <div class="alert alert-danger text-center">
-                                An error occurred. Please try again later.
-                                <button class="btn btn-primary mt-2" onclick="location.reload()">Retry</button>
-                            </div>
-                        `);
-                    }
-                });
-            });
-    
-        let sectionListUrl = "{% url 'section-list' lesson_id=1 %}".replace(/1\/?$/, '');
+    let lessonId = "{{ lesson_id }}";
 
-if (sectionListUrl.endsWith('/')) {
-    sectionListUrl = sectionListUrl.slice(0, -1);
-}   // Function to check payment status
-    function checkPaymentStatus(checkoutRequestId, lessonId) {
-        let attempts = 0;
-        let maxAttempts = 12; // Stop checking after 1 minute (12 x 5 seconds)
+    $("#mpesa-payment-form").submit(function (e) {
+        e.preventDefault();
 
+        let phoneNumber = $("#mpesa-number").val().trim();
+
+        if (!phoneNumber) {
+            alert("Please enter your M-Pesa number.");
+            return;
+        }
+
+        console.log("🔵 INITIATING PAYMENT...");
+        console.log("➡️ Data Sent:", { phoneNumber, lessonId });
+
+        // Replace form with spinner
         $("#mpesa-payment-form").html(`
-            <div class="alert alert-info text-center">
-                Verifying payment... Please wait.
+            <div class="text-center">
+                <div class="spinner-border text-success" role="status"></div>
+                <p class="mt-2">Processing Payment...</p>
             </div>
         `);
 
+        $.ajax({
+            url: "/mpesa/initiate/",
+            type: "POST",
+            data: {
+                phone_number: phoneNumber,
+                lesson_id: lessonId,
+                csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val()
+            },
+
+            success: function (response) {
+                console.log("🟢 INITIATE SUCCESS RESPONSE:", response);
+
+                // Based on your payload
+                let responseCode = response.response.ResponseCode;
+                let checkoutId   = response.response.CheckoutRequestID;
+                
+                console.log(responseCode)
+
+                if (responseCode === "0") {
+                    console.log("📌 CheckoutRequestID:", checkoutId);
+                    console.log("REQUESTID:",checkoutId)
+                    checkPaymentStatus(checkoutId, lessonId);
+                } else {
+                    console.error("🔴 M-Pesa rejected STK Push:", response);
+                    $("#mpesa-payment-form").html(`
+                        <div class="alert alert-danger text-center">
+                            Payment initiation failed. Please try again.
+                            <button class="btn btn-primary mt-2" onclick="location.reload()">Retry</button>
+                        </div>
+                    `);
+                }
+            },
+
+            error: function (xhr, status, error) {
+                console.error("❌ INITIATE AJAX ERROR:", { xhr, status, error });
+                $("#mpesa-payment-form").html(`
+                    <div class="alert alert-danger text-center">
+                        Network error. Please try again.
+                        <button class="btn btn-primary mt-2" onclick="location.reload()">Retry</button>
+                    </div>
+                `);
+            }
+        });
+    });
+
+
+    function checkPaymentStatus(checkoutRequestId, lessonId) {
+        let attempts = 0;
+        let maxAttempts = 12;
+
+        console.log("🔄 STARTING POLLING...");
+
         let interval = setInterval(function () {
+
+            console.log(`⏳ Checking payment status... Attempt ${attempts + 1}`);
+
             $.ajax({
-                url: "/mpesa/status/",  // Django endpoint to check payment status
+                url: "/mpesa/status/",
                 type: "POST",
                 data: {
                     checkout_request_id: checkoutRequestId,
                     csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val()
                 },
-                success: function (response) {
-                    console.log("Payment Status:", response);
 
-                    if (response.status === "Completed") {
-                        clearInterval(interval); // Stop checking
+                success: function (response) {
+                    console.log("🟢 STATUS RESPONSE:", response);
+
+                    // Based strictly on your backend
+                    let status = response.response.status;
+                    console.log("STATUS",status)
+
+                    if (status === "Completed") {
+                        clearInterval(interval);
+                        console.log("🎉 PAYMENT SUCCESSFUL!");
+
                         $("#mpesa-payment-form").html(`
                             <div class="alert alert-success text-center">
                                 Payment successful! Redirecting...
                             </div>
                         `);
                         setTimeout(() => {
-                            
-                            window.location.href = `/sections/${lessonId}/`; // Redirect to lesson access page
+                            window.location.href = `/sections/${lessonId}/`;
                         }, 2000);
-                    } else if (response.status === "Failed") {
-                        clearInterval(interval); // Stop checking
+                    }
+                    else if (status === "Failed") {
+                        clearInterval(interval);
+
                         $("#mpesa-payment-form").html(`
                             <div class="alert alert-danger text-center">
                                 Payment failed. Please try again.
                                 <button class="btn btn-primary mt-2" onclick="location.reload()">Retry</button>
                             </div>
                         `);
-                    } else {
-                        console.log("Waiting for payment confirmation...");
                     }
                 },
+
                 error: function (xhr, status, error) {
-                    console.error("Error checking payment status:", error);
-                    $("#mpesa-payment-form").html(`
-                        <div class="alert alert-warning text-center">
-                            Network issue detected. Retrying...
-                        </div>
-                    `);
+                    console.error("⚠️ STATUS AJAX ERROR:", { xhr, status, error });
                 }
             });
 
             attempts++;
             if (attempts >= maxAttempts) {
-                clearInterval(interval); // Stop checking after max attempts
+                clearInterval(interval);
+                console.error("⏰ MAX ATTEMPTS REACHED");
+
                 $("#mpesa-payment-form").html(`
                     <div class="alert alert-danger text-center">
-                        Payment verification timeout. Please try again.
+                        Payment confirmation timeout. Please try again.
                         <button class="btn btn-primary mt-2" onclick="location.reload()">Retry</button>
                     </div>
                 `);
             }
-        }, 5000); // Check every 5 seconds
+        }, 5000);
     }
+
 });
 </script>
 
+
+    
 
   <script src="{% static 'portals/assets/js/core/jquery.min.js' %}"></script>
   <script src="{% static 'portals/assets/js/core/popper.min.js' %}"></script>

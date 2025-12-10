@@ -157,10 +157,7 @@
                 <input type="text" class="form-control" id="contact" name="contact">
               </div>
             
-              <div class="mb-3">
-                <label for="service_provided_by" class="form-label">Service Provided By</label>
-                <input type="text" class="form-control" id="service_provided_by" name="service_provided_by" required>
-              </div>
+              
             
               <div class="mb-3">
                 <label for="vet_practitioner_incharge" class="form-label">Vet Practitioner Incharge</label>
@@ -282,10 +279,7 @@
                 <input type="text" class="form-control" id="contact" name="contact">
               </div>
             
-              <div class="mb-3">
-                <label for="service_provided_by" class="form-label">Service Provided By</label>
-                <input type="text" class="form-control" id="service_provided_by" name="service_provided_by" required>
-              </div>
+             
             
               <div class="mb-3">
                 <label for="vet_practitioner_incharge" class="form-label">Vet Practitioner Incharge</label>
@@ -327,8 +321,8 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <h2 class="text-center">Veterinary Professional Services</h2>
-       <h3 class="text-center">Routine Management Records </h3>
+          <h2 class="text-center text-uppercase">{{ request.user.business_name }}</h2>
+          <h3 class="text-center">Routine Management Records </h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -722,7 +716,7 @@ $('#submitAi').on('click', function (e) {
   { field: 'owner_name', title: 'Owner Name', sortable: true, align: 'center' },
   { field: 'village', title: 'Village', sortable: true, align: 'center' },
   { field: 'contact', title: 'Contact', sortable: true, align: 'center' },
-  { field: 'service_provided_by', title: 'Service Provided By', sortable: true, align: 'center' },
+  
   { field: 'vet_practitioner_incharge', title: 'Vet Practitioner Incharge', sortable: true, align: 'center' },
   { field: 'vet_category', title: 'Vet Category', sortable: true, align: 'center' },
   { field: 'vet_reg_no', title: 'Vet Reg No', sortable: true, align: 'center' },

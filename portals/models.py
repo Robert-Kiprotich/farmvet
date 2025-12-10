@@ -145,7 +145,6 @@ class VaccinationRecord(models.Model):
 	ward=models.CharField(max_length=255)
 	village = models.CharField(max_length=255)
 	contact = models.CharField(max_length=50)
-	provided_by=models.CharField(max_length=255)
 	name_of_vet_incharge = models.CharField(max_length=255)
 	vet_category=models.CharField(max_length=30,choices=VET_CATEGORY)
 	registration_number = models.CharField(max_length=255)
@@ -236,7 +235,6 @@ class SurgicalRecord(models.Model):
 	owner_village = models.CharField(max_length=100)
 	owner_mobile_number = models.CharField(max_length=15)
 
-	provided_by= models.CharField(max_length=100)
 	practitioner= models.CharField(max_length=100)
 	vet_category=models.CharField(max_length=20,choices=VET_CATEGORY)
 	vet_mobile_number = models.CharField(max_length=15)
@@ -305,7 +303,6 @@ class SampleCollection(models.Model):
 	owner_name = models.CharField(max_length=100)
 	owner_village = models.CharField(max_length=100)
 	owner_mobile_number = models.CharField(max_length=15)
-	provided_by=models.CharField(max_length=100)
 	vet_in_charge_name = models.CharField(max_length=100)
 	vet_category=models.CharField(max_length=30,choices=VET_CATEGORY)
 	vet_in_charge_registration_number = models.CharField(max_length=100)
@@ -522,7 +519,6 @@ class Referral(models.Model):
 	farmer_name = models.CharField(max_length=255)
 	village = models.CharField(max_length=255)
 	contact = models.CharField(max_length=15) 
-	provided_by=models.CharField(max_length=255) 
 	vet_name = models.CharField(max_length=255)
 	vet_category=models.CharField(max_length=30,choices=VET_CATEGORY)
 	vet_reg_no = models.CharField(max_length=255)  
@@ -567,7 +563,6 @@ class FarmConsultation(models.Model):
     farmer_name = models.CharField(max_length=255)
     contact = models.CharField(max_length=15)  
     village = models.CharField(max_length=255)
-    provided_by=models.CharField(max_length=254)
     vet_name = models.CharField(max_length=255)
     vet_category=models.CharField(max_length=30,choices=VET_CATEGORY)
     vet_reg_no = models.CharField(max_length=255) 
@@ -611,7 +606,6 @@ class PregnancyDiagnosis(models.Model):
     owners_name = models.CharField(max_length=255)
     village = models.CharField(max_length=255)
     contact = models.CharField(max_length=15)
-    provided_by = models.CharField(max_length=255)# Adjust max_length as necessary
     vet_name = models.CharField(max_length=255)
     vet_category=models.CharField(max_length=30,choices=VET_CATEGORY)
     vet_reg_no = models.CharField(max_length=255)  # Vet's registration number
@@ -676,7 +670,6 @@ class PostMortemRecord(models.Model):
     owner_name = models.CharField(max_length=100)
     owner_village = models.CharField(max_length=100)
     owner_mobile_number = models.CharField(max_length=15)
-    provided_by=models.CharField(max_length=255)
     vet_in_charge_name = models.CharField(max_length=100)
     vet_category=models.CharField(max_length=30,choices=VET_CATEGORY)
     vet_in_charge_registration_number = models.CharField(max_length=100)
@@ -752,7 +745,6 @@ class VeterinaryBilling(models.Model):
     farmer_name = models.CharField(max_length=255)
     village = models.CharField(max_length=255)
     contact = models.CharField(max_length=15)
-    provided_by=models.CharField(max_length=100) 
     vet_to_be_paid = models.CharField(max_length=255) 
     vet_category=models.CharField(max_length=30,choices=VET_CATEGORY)
     reg_no = models.CharField(max_length=255)  
@@ -805,7 +797,6 @@ class Deworming(models.Model):
 	farmer_name = models.CharField(max_length=255)
 	village = models.CharField(max_length=255)
 	contact = models.CharField(max_length=15) 
-	provided_by=models.CharField(max_length=255)# Adjust max_length as necessary
 	vet_name = models.CharField(max_length=255)
 	vet_category=models.CharField(max_length=30,choices=VET_CATEGORY)
 	reg_no = models.CharField(max_length=255)  # Vet registration number
@@ -948,7 +939,6 @@ class ArtificialInsemination(models.Model):
 	ward = models.CharField(max_length=25)
 	village = models.CharField(max_length=255)
 	contact = models.CharField(max_length=15) 
-	provided_by=models.CharField(max_length=255)
 	vet_name = models.CharField(max_length=255)
 	vet_category=models.CharField(max_length=30,choices=VET_CATEGORY)
 	vet_reg_no = models.CharField(max_length=254)
@@ -1778,7 +1768,6 @@ class ClinicalRecord(models.Model):
 	owner_name = models.CharField(max_length=100)
 	owner_village = models.CharField(max_length=100)
 	owner_contact = models.CharField(max_length=15)
-	provided_by=models.CharField(max_length=255)
 	vet_in_charge_name = models.CharField(max_length=100)
 	vet_category=models.CharField(max_length=30,choices=VET_CATEGORY)
 	vet_registration_number = models.CharField(max_length=100)
@@ -1985,7 +1974,6 @@ class Invoice(models.Model):
 	farmer_name = models.CharField(max_length=100)
 	village = models.CharField(max_length=100)
 	contact = models.CharField(max_length=15)
-	provided_by=models.CharField(max_length=40)
 	vet_in_charge_of_invoice = models.CharField(max_length=100)
 	vet_category=models.CharField(max_length=30,choices=VET_CATEGORY)
 	vet_registration_number = models.CharField(max_length=100)
@@ -2781,7 +2769,6 @@ class UterineIrrigationRecord(models.Model):
 	owner_name = models.CharField(max_length=100)
 	village = models.CharField(max_length=100)
 	contact = models.CharField(max_length=15)
-	service_provided_by = models.CharField(max_length=100)
 	vet_in_charge = models.CharField(max_length=100, blank=True, null=True)
 	vet_category=models.CharField(max_length=30,choices=VET_CATEGORY)
 	registration_number_vet = models.CharField(max_length=100, blank=True, null=True)
@@ -2852,7 +2839,6 @@ class EmergencyCare(models.Model):
 	owner_name = models.CharField(max_length=100)
 	village = models.CharField(max_length=100)
 	contact = models.CharField(max_length=15)
-	service_provided_by = models.CharField(max_length=100)
 	vet_category=models.CharField(max_length=30,choices=VET_CATEGORY)
 	vet_registration_number = models.CharField(max_length=50, blank=True, null=True)
 	vet_contact = models.CharField(max_length=15, blank=True, null=True)
@@ -2982,6 +2968,26 @@ class HidesAndSkinsRecord(models.Model):
         return f"{self.category} - {self.date_of_kills}"
     
 #payment 
+
+class ZoomToken(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    access_token = models.TextField()
+    refresh_token = models.TextField()
+    expires_at = models.DateTimeField()
+
+class ZoomMeeting(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    facilitator = models.CharField(max_length=100)
+    meeting_id = models.CharField(max_length=100)
+    topic = models.CharField(max_length=200)
+    price = models.DecimalField(max_digits=6, decimal_places=2)  # Changed to DecimalField for currency
+    is_paid = models.BooleanField(default=False)  # Added the new field
+    start_time = models.DateTimeField()
+    join_url = models.URLField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.topic
 class Payment(models.Model):
 	user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)
 	merchant_request_id = models.CharField(max_length=255)
@@ -2992,6 +2998,7 @@ class Payment(models.Model):
 	status = models.CharField(max_length=50, default="Pending")
 	timestamp = models.DateTimeField(auto_now_add=True)
 	lesson = models.ForeignKey(Tutorial, on_delete=models.CASCADE, related_name="lesson_payments", null=True, blank=True)
+	zoom_meeting = models.ForeignKey(ZoomMeeting, on_delete=models.CASCADE,related_name="meeting_payments", null=True, blank=True)
 
 
 	def __str__(self):
@@ -3124,7 +3131,6 @@ class LivestockRegistration(models.Model):
 	county = models.CharField(max_length=100)
 	sub_county = models.CharField(max_length=100)
 	village = models.CharField(max_length=100)
-	service_provided_by = models.CharField(max_length=150)
 	practitioner_name = models.CharField(max_length=150)
 	reg_number = models.CharField(max_length=100)
 	contact = models.CharField(max_length=20)
@@ -3239,7 +3245,6 @@ class RoutineManagement(models.Model):
     owner_name = models.CharField(max_length=120)
     village = models.CharField(max_length=120, blank=True)
     contact = models.CharField(max_length=120, blank=True)
-    service_provided_by = models.CharField(max_length=120)
     vet_practitioner_incharge = models.CharField(max_length=120, blank=True)
     vet_category = models.CharField(max_length=20, choices=VET_CATEGORIES, blank=True)
     vet_reg_no = models.CharField("Vet Reg No", max_length=50, blank=True)
@@ -3294,7 +3299,6 @@ class AbortionRecord(models.Model):
     owner_name = models.CharField(max_length=120)
     contact = models.CharField(max_length=120, blank=True)
     village = models.CharField(max_length=120, blank=True)
-    service_provided_by = models.CharField(max_length=120)
     vet_practitioner_name = models.CharField(max_length=120, blank=True)
     vet_category = models.CharField(max_length=20, choices=VET_CATEGORIES, blank=True)
     vet_reg_no = models.CharField("Vet Reg No", max_length=50, blank=True)
@@ -3310,4 +3314,127 @@ class AbortionRecord(models.Model):
 
     def __str__(self):
         return f"{self.livestock_category} - Abortion on {self.date_of_abortion}"
+    
+class ExtensionService(models.Model):
+    TARGET_GROUP_CHOICES = [
+        ("self_help_group", "Self Help Group"),
+        ("cbo", "CBO"),
+        ("community", "Community"),
+        ("institution", "Institution"),
+        ("field_day", "Field Day"),
+    ]
 
+    GROUP_PROJECT_CHOICES = [
+        ("dairy", "Dairy"),
+        ("beef", "Beef"),
+        ("sheep", "Sheep"),
+        ("goats", "Goats"),
+        ("poultry", "Poultry"),
+        ("other", "Other"),
+    ]
+
+    date_of_extension = models.DateField()
+    venue = models.CharField(max_length=255)
+    target_group = models.CharField(max_length=50, choices=TARGET_GROUP_CHOICES)
+    topic_covered = models.CharField(max_length=255)
+
+    number_of_participants = models.PositiveIntegerField()
+    female_attendance = models.PositiveIntegerField(default=0)
+    male_attendance = models.PositiveIntegerField(default=0)
+    children_attendance = models.PositiveIntegerField(default=0)
+
+    name_of_group = models.CharField(max_length=255)
+    location = models.CharField(max_length=255)
+    group_project = models.CharField(max_length=50, choices=GROUP_PROJECT_CHOICES, blank=True, null=True)
+    village = models.CharField(max_length=255, blank=True, null=True)
+    sub_county = models.CharField(max_length=255)
+
+    # Group officials
+    chairperson = models.CharField(max_length=255, blank=True, null=True)
+    secretary = models.CharField(max_length=255, blank=True, null=True)
+    treasurer = models.CharField(max_length=255, blank=True, null=True)
+    member = models.CharField(max_length=255, blank=True, null=True)
+
+    facilitator_name = models.CharField(max_length=255)
+    facilitator_contact = models.CharField(max_length=100, blank=True, null=True)
+
+    gps_token = models.CharField(max_length=255, blank=True, null=True)
+    extension_organized_by = models.CharField(max_length=255)
+    remarks = models.TextField(blank=True, null=True)
+
+    group_photo = models.ImageField(upload_to="extension_photos/", blank=True, null=True)
+
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="extensions")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.topic_covered} - {self.date_of_extension}"
+    
+    
+class FieldQuotation(models.Model):
+
+    # --- Quotation Details ---
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    date_of_quotation = models.DateField()
+
+    QUOTATION_CATEGORIES = [
+        ("deworming", "Deworming"),
+        ("surgery", "Surgery"),
+        ("clinical", "Clinical"),
+        ("ai", "Artificial Insemination"),
+        ("vaccination", "Vaccination"),
+        ("post_mortem", "Post Mortem"),
+        ("pregnancy_diagnosis", "Pregnancy Diagnosis"),
+        ("lab_charges", "Lab Charges"),
+        ("farm_consultation", "Farm Consultation"),
+        ("telemedicine", "Telemedicine Services"),
+        ("uterine_irrigation", "Uterine Irrigation"),
+        ("emergency", "Emergency Care"),
+        ("livestock_exam", "Livestock Examination"),
+        ("routine_mgmt", "Routine Management"),
+    ]
+
+    quotation_category = models.CharField(
+        max_length=50,
+        choices=QUOTATION_CATEGORIES
+    )
+
+    # --- Payment / Animal Details ---
+    number_of_animals = models.PositiveIntegerField(blank=True, null=True)
+
+    payment_description = models.TextField(blank=True, null=True)
+    amount_to_payment = models.DecimalField(
+        max_digits=10, decimal_places=2, blank=True, null=True
+    )
+
+    # --- Farm Details ---
+    name_of_farm = models.CharField(max_length=255, blank=True, null=True)
+    owner_name = models.CharField(max_length=255, blank=True, null=True)
+    owner_contact = models.CharField(max_length=50, blank=True, null=True)
+
+    # --- Practitioner / Service Provider Details ---
+    services_provided_by = models.CharField(max_length=255, blank=True, null=True)
+    practitioner_name = models.CharField(max_length=255, blank=True, null=True)
+    kvb_registration_number = models.CharField(max_length=50, blank=True, null=True)
+    practitioner_contact = models.CharField(max_length=50, blank=True, null=True)
+
+    # --- Signature ---
+    signature_and_stamp = models.TextField( blank=True, null=True)
+
+    def __str__(self):
+        return f"Quotation - {self.date_of_quotation} - {self.owner_name}"
+    
+class ZoomAttendance(models.Model):
+    meeting = models.ForeignKey(ZoomMeeting, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+    user_name = models.CharField(max_length=255)
+    user_email = models.CharField(max_length=255)
+    join_time = models.DateTimeField()
+    leave_time = models.DateTimeField(null=True, blank=True)
+    duration = models.IntegerField(default=0)  # in minutes
+    points = models.FloatField(default=0)  # 1 point per hour
+
+    def __str__(self):
+        return f"{self.user_name} - {self.meeting.topic}"

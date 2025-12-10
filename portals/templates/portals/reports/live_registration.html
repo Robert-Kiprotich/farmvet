@@ -227,11 +227,7 @@
           <label class="form-label">Village</label>
           <input type="text" name="village" class="form-control" required>
         </div>
-        <div class="col-md-6">
-          <label class="form-label">Service Provided By</label>
-          <input type="text" name="service_provided_by" class="form-control" required>
-        </div>
-      </div>
+       
   
       <!-- Row 13 -->
       <div class="row mb-3">
@@ -306,8 +302,8 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <h2 class="text-center">Veterinary Professional Services</h2>
-       <h3 class="text-center">Requests  Records </h3> 
+          <h2 class="text-center text-uppercase">{{ request.user.business_name }}</h2>
+          <h3 class="text-center">Requests  Records </h3> 
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">

@@ -74,8 +74,8 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <h2 class="text-center">Veterinary Professional Services</h2>
-       <h3 class="text-center">Farm Consultation Records </h3>
+          <h2 class="text-center text-uppercase">{{ request.user.business_name }}</h2>
+          <h3 class="text-center">Farm Consultation Records </h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -313,12 +313,7 @@ const csrftoken = getCookie('csrftoken');
             sortable: true,
             align: 'center'
         },
-        {
-          field: 'provided_by',
-          title: 'Service Provided By',
-          sortable: true,
-          align: 'center'
-      },
+       
         {
             field: 'vet_name',
             title: 'Vet Name',

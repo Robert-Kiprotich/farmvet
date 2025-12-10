@@ -216,10 +216,7 @@
           </div>
           
           
-          <div class="mb-3">
-            <label for="vet_registration_number" class="form-label">Services Provided By</label>
-            <input type="text" id="provided_by" name="provided_by" class="form-control " required>
-        </div>
+         
         <div class="mb-3">
           <label for="vet_registration_number" class="form-label">Practitioner Name</label>
           <input type="text" id="practitioner" name="practitioner" class="form-control " required>
@@ -401,10 +398,7 @@
         </div>
         
         
-        <div class="mb-3">
-          <label for="vet_registration_number" class="form-label">Services Provided By</label>
-          <input type="text" id="provided_by" name="provided_by" class="form-control editable-field " required>
-      </div>
+       
       <div class="mb-3">
         <label for="vet_registration_number" class="form-label">Practitioner Name</label>
         <input type="text" id="practitioner" name="practitioner" class="form-control editable-field " required>
@@ -444,8 +438,8 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <h2 class="text-center">Veterinary Professional Services</h2>
-       <h3 class="text-center">Surgical Records </h3>
+          <h2 class="text-center text-uppercase">{{ request.user.business_name }}</h2>
+          <h3 class="text-center">Surgical Records </h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -905,12 +899,7 @@ function operateFormatter(value, row, index) {
     align: 'center'
   },
   
-  {
-    field: 'provided_by',
-    title: 'Services Provided By',
-    sortable: true,
-    align: 'center'
-  },
+  
   {
     field: 'practitioner',
     title: 'Practitioner Name',

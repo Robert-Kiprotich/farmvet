@@ -10,7 +10,7 @@
 --------------------------------------------------------------*/
 body {
   font-family: "Open Sans", sans-serif;
-  color: #444444;
+  color: #FFFF;
 }
 
 a {
@@ -354,6 +354,20 @@ h1, h2, h3, h4, h5, h6 {
   color: #fff;
 }
 
+
+
+/* Slide in from right animation */
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 /*--------------------------------------------------------------
 # Hero Section
 --------------------------------------------------------------*/
@@ -367,6 +381,13 @@ h1, h2, h3, h4, h5, h6 {
   position: relative;
   z-index: 1;
 }
+.hero-container,
+section.hero {
+  background-color: #fff !important;
+  color: #000;
+}
+
+/* Floating "Chat with us" button */
 
 #hero .carousel-item {
   width: 100%;

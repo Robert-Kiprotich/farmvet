@@ -143,10 +143,10 @@
                 <label for="contact">Contact</label>
                 <input type="text" id="contact" name="contact" class="form-control" >
             </div>
-            <div class="form-group">
+            {% comment %} <div class="form-group">
               <label for="contact">Services Provided By</label>
               <input type="text" id="provided_by" name="provided_by" class="form-control" >
-          </div>
+          </div> {% endcomment %}
         
             <!-- Vet in Charge of Invoice -->
             <div class="form-group">
@@ -264,10 +264,10 @@
                 <label for="contact">Contact</label>
                 <input type="text" id="contact" name="contact" class="form-control" >
             </div>
-            <div class="form-group">
+            {% comment %} <div class="form-group">
               <label for="contact">Services Provided By</label>
               <input type="text" id="provided_by" name="provided_by" class="form-control" >
-          </div>
+          </div> {% endcomment %}
         
             <!-- Vet in Charge of Invoice -->
             <div class="form-group">
@@ -315,8 +315,8 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <h2 class="text-center">Veterinary Professional Services</h2>
-       <h3 class="text-center"> Invoices</h3>
+          <h2 class="text-center text-uppercase">{{ request.user.business_name }}</h2>
+          <h3 class="text-center"> Invoices</h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -715,12 +715,7 @@ function operateFormatter(value, row, index) {
             sortable: true,
             align: 'center'
           },
-          {
-            field: 'provided_by',
-            title: 'Service Provided By',
-            sortable: true,
-            align: 'center'
-          },
+          
           {
             field: 'vet_category',
             title: 'Vet Category',

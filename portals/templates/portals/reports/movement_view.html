@@ -334,7 +334,7 @@ const csrftoken = getCookie('csrftoken');
                 }
     
                 // Handle files (photo, uploaded_report, etc.)
-                if (value && (column.field === 'photo' || column.field === 'uploaded_report')) {
+                if (value && (column.field === 'photo' || column.field === 'uploaded_permit')) {
                     let fileExt = value.split('.').pop().toLowerCase();
     
                     if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
@@ -600,7 +600,7 @@ $('#moveAddForm').submit(function(e) {
           },
           {
             field: 'uploaded_permit',
-            title: 'Uploaded Permit',
+            title: 'Movement Permit',
             sortable: true,
             align: 'center',
             formatter: function (value, row, index) {

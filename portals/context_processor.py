@@ -126,5 +126,6 @@ def choices(request):
         'CLEANING_CATEGORY':SlaughterhouseHygiene.CLEANING_CATEGORY_CHOICES,
         'CLEANING_PROCEDURE':SlaughterhouseHygiene.CLEANING_PROCEDURE_CHOICES,
         'ASSET_TYPE':SlaughterhouseAsset.ASSET_TYPE_CHOICES,
-        'POSITION':ManagementCommittee.POSITION_CHOICES
+        'POSITION':ManagementCommittee.POSITION_CHOICES,
+        'QUOTATION_CATEGORIES':FieldQuotation.QUOTATION_CATEGORIES,
     }

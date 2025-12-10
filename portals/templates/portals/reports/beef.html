@@ -73,7 +73,8 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <h2 class="text-center">Farmer Records</h2>
+          <h2 class="text-center text-uppercase">{{ request.user.business_name }}</h2>
+
        <h3 class="text-center">Beef </h3> 
           <div class="modal-body" id="modalBody">
           </div>
@@ -539,12 +540,7 @@ $('#JudgeAddForm').submit(function(e) {
             sortable: true,
             align: 'center'
           },
-          {
-            field: 'service_provided_by',
-            title: 'Service Provided By',
-            sortable: true,
-            align: 'center'
-          },
+          
           {
             field: 'practitioner_name',
             title: 'Practitioner Name',

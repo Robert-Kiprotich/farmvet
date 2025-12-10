@@ -45,10 +45,23 @@
           <li class="header-menu">
             <span>General</span>
           </li>
-          
           <li class="sidebar-dropdown">
             <a href="#">
-              <i class="fa fa-shopping-cart"></i>
+              <i class="fa fa-bell"></i>
+              <span>Notifications</span>
+            </a>
+            <div class="sidebar-submenu">
+              <ul>
+                <li>
+                  <a style="font-weight: bold;" href="">Messages</a>
+                </li>
+                
+              </ul>
+            </div>
+          </li>
+          <li class="sidebar-dropdown">
+            <a href="#">
+              <i class="fa fa-clipboard-list"></i>
               <span>Veterinary Records</span>
              
             </a>
@@ -57,12 +70,48 @@
                  
                 <li class="sidebar-dropdown">
                   <a href="#" style="font-weight: bold;">
-                      <i class=""></i>
-                      <span>Ambulatory Services</span>
+                      
+                      <span>Field Services</span>
                   </a>
                   <div class="sidebar-submenu">
                       <ul>
-
+                        <li class="sidebar-dropdown">
+                          <a href="#" style="font-weight: bold;">
+                              
+                              <span>Reproductive Records</span>
+                          </a>
+                          <div class="sidebar-submenu">
+                              <ul>
+                                <li>
+                                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'ai'%}">AI Records</a>
+                                  </a>
+                                </li>
+                                <li>
+                                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'pregnancy-diag'%}">Pregnancy Diagnosis</a>
+                                  </a>
+                                </li>
+                                <li>
+                                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'ui-irrigation' %}">Uterine Irrigation</a>
+                                </li>
+                                <li>
+                                  <a class="dropdown-item" style="font-weight: bold;" href="{% url 'abortion' %}">Abortion Records</a>
+                                </li>
+                                 
+                              </ul>
+                          </div>
+                      </li> 
+                      <li class="sidebar-dropdown">
+                        <a href="#" style="font-weight: bold;">
+                           
+                            <span>Disease Control</span>
+                        </a>
+                        <div class="sidebar-submenu">
+                            <ul>
+                              
+                                
+                            </ul>
+                        </div>
+                    </li> 
                         <li>
                           <a class="dropdown-item" style="font-weight: bold;" href="{% url 'surgery'%}">Surgery Records</a>
                           </a>
@@ -103,50 +152,8 @@
                         
                   </div>
               </li> 
-              <li class="sidebar-dropdown">
-                <a href="#" style="font-weight: bold;">
-                    <i class=""></i>
-                    <span>Reproductive Records</span>
-                </a>
-                <div class="sidebar-submenu">
-                    <ul>
-                      <li>
-                        <a class="dropdown-item" style="font-weight: bold;" href="{% url 'ai'%}">AI Records</a>
-                        </a>
-                      </li>
-                      <li>
-                        <a class="dropdown-item" style="font-weight: bold;" href="{% url 'pregnancy-diag'%}">Pregnancy Diagnosis</a>
-                        </a>
-                      </li>
-                      <li>
-                        <a class="dropdown-item" style="font-weight: bold;" href="{% url 'ui-irrigation' %}">Uterine Irrigation</a>
-                      </li>
-                      <li>
-                        <a class="dropdown-item" style="font-weight: bold;" href="{% url 'abortion' %}">Abortion Records</a>
-                      </li>
-                       
-                    </ul>
-                </div>
-            </li> 
-            <li class="sidebar-dropdown">
-              <a href="#" style="font-weight: bold;">
-                  <i class=""></i>
-                  <span>Diesease Control</span>
-              </a>
-              <div class="sidebar-submenu">
-                  <ul>
-                    <li>
-                      <a class="dropdown-item" style="font-weight: bold;" href="{% url 'vaccination' %}">Vaccination Records</a>
-                      </a>
-                    </li>
-                    <li>
-                      <a style="font-weight: bold;" class="dropdown-item" href="{% url 'disease-report'%}">Disease Report Records</a>
-                      </a>
-                    </li>
-                      
-                  </ul>
-              </div>
-          </li> 
+              
+          
                 <li class="sidebar-dropdown">
                   <a href="#" style="font-weight: bold;">
                       <i class=""></i>
@@ -166,6 +173,9 @@
                 </a>
                 <div class="sidebar-submenu">
                     <ul>
+                      <li>
+                        <a  style="font-weight: bold;" href="{% url 'field_quotation'%}">Field Quotation</a>
+                      </li>
                       <li>
                         <a  style="font-weight: bold;" href="{% url 'invoice'%}">Invoice</a>
                       </li>
@@ -202,6 +212,35 @@
               </div>
           </li> 
 
+          <li class="sidebar-dropdown">
+            <a style="font-weight: bold;" href="#">
+              <i class=""></i>
+                <span>My Diary</span>
+                
+            </a>
+            <div class="sidebar-submenu">
+                <ul>
+                    <li>
+                        <a style="font-weight: bold;" href="{% url 'diary' %}">Diary</a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+        <li class="sidebar-dropdown">
+          <a style="font-weight: bold;" href="#">
+            <i class=""></i>
+            <span>My Clients</span>
+            
+          </a>
+          <div class="sidebar-submenu">
+            <ul>
+              <li>
+                <a style="font-weight: bold;" href="{% url 'clients' %}">Clients</a>
+              </li>
+            </ul>
+          </div>
+        </li>
+
 
               </ul>
             </div>
@@ -210,7 +249,7 @@
           
           <li class="sidebar-dropdown">
             <a href="#">
-              <i class="fa fa-chart-line"></i>
+              <i class="fa fa-users"></i>
               <span>Practitioners List</span>
             </a>
             <div class="sidebar-submenu">
@@ -224,7 +263,7 @@
           </li>
           <li class="sidebar-dropdown">
             <a href="#">
-              <i class="fa fa-chart-line"></i>
+              <i class="fa fa-user-plus"></i>
               <span>Practitioner Registration</span>
             </a>
             <div class="sidebar-submenu">
@@ -236,21 +275,9 @@
               </ul>
             </div>
           </li>
-          <li class="sidebar-dropdown">
-            <a href="#">
-              <i class="fa fa-chart-line"></i>
-              <span>My Clients</span>
-            </a>
-            <div class="sidebar-submenu">
-              <ul>
-                <li>
-                  <a style="font-weight: bold;" href="{% url 'clients' %}">Clients</a>
-                </li>
-              </ul>
-            </div>
-          </li>
+          
 
-         <!-- <li class="sidebar-dropdown">
+       {% comment %} <li class="sidebar-dropdown">
             <a href="#">
               <i class="fa fa-chart-line"></i>
               <span>My Gallery</span>
@@ -262,16 +289,393 @@
                 </li>
               </ul>
             </div>
-          </li> -->
+          </li>  {% endcomment %}
          
           <li class="sidebar-dropdown">
             <a href="#">
-              <i class="fa fa-chart-line"></i>
+              <i class="fa fa-tablets"></i>
               <span>Veterinary Pharmacy</span>
+            </a>
+            
+            <div class="sidebar-submenu">
+              <ul>
+                <li class="sidebar-dropdown">
+                  <a style="font-weight: bold;"  href="#">
+                    <span>Retail Sales</span>
+                  </a>
+                  <div class="sidebar-submenu">
+                    <ul>
+                      <li>
+                        <a style="font-weight: bold;" href="#">Daily Sales</a>
+                      </li>
+                      <li>
+                        <a style="font-weight: bold;" href="{% url 'price_list' %}">Product Price List</a>
+                      </li>
+                      <li>
+                        <a style="font-weight: bold;" href="{% url 'eprescriptions' %}">E-Prescription</a>
+                      </li>
+                      <li>
+                        <a style="font-weight: bold;" href="{% url 'creditor' %}">Creditors</a>
+                      </li>
+                      <li>
+                        <a style="font-weight: bold;" href="{% url 'debtor' %}">Debtors</a>
+                      </li>
+                      <li class="sidebar-dropdown">
+                        <a style="font-weight: bold;" href="#">
+                          
+                          <span>Orders</span>
+                        </a>
+                        <div class="sidebar-submenu">
+                          <ul>
+                            <li class="sidebar-dropdown">
+                              <a style="font-weight: bold;" href="#">
+                                
+                                <span>Distributor</span>
+                              </a>
+                              <div class="sidebar-submenu">
+                                <ul>
+                                  <li>
+                                    <a style="font-weight: bold;" href="#">Order Requests</a>
+                                  </li>
+                                  <li>
+                                    <a style="font-weight: bold;" href="#">Delivery Status</a>
+                                  </li>
+                                  <li>
+                                    <a style="font-weight: bold;" href="#">Invoice Status</a>
+                                  </li>
+                                  <li>
+                                    <a style="font-weight: bold;" href="#">Payment Details</a>
+                                  </li>
+                                  <li>
+                                    <a style="font-weight: bold;" href="#">Quotations</a>
+                                  </li>
+                                </ul>
+                              </div>
+                            </li> 
+                            <li class="sidebar-dropdown">
+                              <a style="font-weight: bold;" href="#">
+                                
+                                <span>Pharmaceutical Sales</span>
+                              </a>
+                              <div class="sidebar-submenu">
+                                <ul>
+                                 
+                                  <li>
+                                    <a style="font-weight: bold;" href="#">Order Request</a>
+                                  </li>
+                                  <li>
+                                    <a style="font-weight: bold;" href="#">Delivery Status</a>
+                                  </li>
+                                  <li>
+                                    <a style="font-weight: bold;" href="#">Invoice Status</a>
+                                  </li>
+                                  <li>
+                                    <a style="font-weight: bold;" href="#">Payment Details</a>
+                                  </li>
+                                  <li>
+                                    <a style="font-weight: bold;" href="#">Payment Follow up</a>
+                                  </li>
+                                  <li>
+                                    <a style="font-weight: bold;" href="#">Expired Products</a>
+                                  </li>
+                                  <li>
+                                    <a style="font-weight: bold;" href="#">Trainings</a>
+                                  </li>
+                                  <li>
+                                    <a style="font-weight: bold;" href="#">Daily Routine Check</a>
+                                  </li>
+                                </ul>
+                              </div>
+                            </li> 
+                          </ul>
+                        </div>
+                      </li> 
+                       <li class="sidebar-dropdown">
+                          <a style="font-weight: bold;" href="#">
+                            {% comment %} <i class="fa fa-chart-line"></i> {% endcomment %}
+                            <span>Stock Take</span>
+                          </a>
+                          <div class="sidebar-submenu">
+                            <ul>
+                              <li>
+                                <a style="font-weight: bold;" href="#">Random Stock Take</a>
+                              </li>
+                              <li>
+                                <a style="font-weight: bold;" href="#">Full Stock Take</a>
+                              </li>
+                            </ul>
+                          </div>
+                        </li> 
+                        <li class="sidebar-dropdown">
+                          <a style="font-weight: bold;" href="#">
+                            {% comment %} <i class="fa fa-chart-line"></i> {% endcomment %}
+                            <span>Management</span>
+                          </a>
+                          <div class="sidebar-submenu">
+                            <ul>
+                              <li>
+                                <a style="font-weight: bold;" href="#">Employees</a>
+                              </li>
+                              <li>
+                                <a style="font-weight: bold;" href="#">Assets</a>
+                              </li>
+                              <li>
+                                <a style="font-weight: bold;" href="#">Daily Sales Report</a>
+                              </li>
+                              <li class="sidebar-dropdown">
+                                <a style="font-weight: bold;" href="#">
+                                  {% comment %} <i class="fa fa-chart-line"></i> {% endcomment %}
+                                  <span>Financial Control</span>
+                                </a>
+                                <div class="sidebar-submenu">
+                                  <ul>
+                                    <li>
+                                      <a style="font-weight: bold;" href="#">Total Sales</a>
+                                    </li>
+                                    <li>
+                                      <a style="font-weight: bold;" href="{% url 'creditor' %}">Creditors</a>
+                                    </li>
+                                    <li>
+                                      <a style="font-weight: bold;" href="{% url 'debtor' %}">Debtors</a>
+                                    </li>
+                                    <li>
+                                      <a style="font-weight: bold;" href="#">Expenses</a>
+                                    </li>
+                                    <li>
+                                      <a style="font-weight: bold;" href="#">Total Profit</a>
+                                    </li>
+                                    <li>
+                                      <a style="font-weight: bold;" href="#">Expired Products</a>
+                                    </li>
+                                    <li>
+                                      <a style="font-weight: bold;" href="#">Net Profit</a>
+                                    </li>
+                                  </ul>
+                                </div>
+                                <li>
+                                  <a style="font-weight: bold;" href="#">Stock Take Report</a>
+                                </li>
+                            </ul>
+                          </div>
+                        </li> 
+                    </ul>
+                  </div>
+                </li> 
+                
+                <li class="sidebar-dropdown">
+                  <a style="font-weight: bold;"  href="#">
+                    <span>Distributors Sales</span>
+                  </a>
+                  <div class="sidebar-submenu">
+                    <ul>
+                      <li>
+                        <a style="font-weight: bold;" href="#">Daily Sales</a>
+                      </li>
+                      <li>
+                        <a style="font-weight: bold;" href="{% url 'price_list' %}">Product Price List</a>
+                      </li>
+                      <li>
+                        <a style="font-weight: bold;" href="{% url 'eprescriptions' %}">E-Prescription</a>
+                      </li>
+                      <li>
+                        <a style="font-weight: bold;" href="{% url 'creditor' %}">Creditors</a>
+                      </li>
+                      <li>
+                        <a style="font-weight: bold;" href="{% url 'debtor' %}">Debtors</a>
+                      </li>
+                      <li class="sidebar-dropdown">
+                        <a style="font-weight: bold;" href="#">
+                          
+                          <span>Orders</span>
+                        </a>
+                        <div class="sidebar-submenu">
+                          <ul>
+                            <li class="sidebar-dropdown">
+                              <a style="font-weight: bold;" href="#">
+                                
+                                <span>Distributor</span>
+                              </a>
+                              <div class="sidebar-submenu">
+                                <ul>
+                                  <li>
+                                    <a style="font-weight: bold;" href="#">Order Requests</a>
+                                  </li>
+                                  <li>
+                                    <a style="font-weight: bold;" href="#">Delivery Status</a>
+                                  </li>
+                                  <li>
+                                    <a style="font-weight: bold;" href="#">Invoice Status</a>
+                                  </li>
+                                  <li>
+                                    <a style="font-weight: bold;" href="#">Payment Details</a>
+                                  </li>
+                                  <li>
+                                    <a style="font-weight: bold;" href="#">Quotations</a>
+                                  </li>
+                                </ul>
+                              </div>
+                            </li> 
+                            <li class="sidebar-dropdown">
+                              <a style="font-weight: bold;" href="#">
+                                
+                                <span>Pharmaceutical Sales</span>
+                              </a>
+                              <div class="sidebar-submenu">
+                                <ul>
+                                  <li>
+                                    <a style="font-weight: bold;" href="#">Order Request</a>
+                                  </li>
+                                  <li>
+                                    <a style="font-weight: bold;" href="#">Delivery Status</a>
+                                  </li>
+                                  <li>
+                                    <a style="font-weight: bold;" href="#">Invoice Status</a>
+                                  </li>
+                                  <li>
+                                    <a style="font-weight: bold;" href="#">Payment Details</a>
+                                  </li>
+                                </ul>
+                              </div>
+                            </li> 
+                          </ul>
+                        </div>
+                      </li> 
+                       <li class="sidebar-dropdown">
+                          <a style="font-weight: bold;" href="#">
+                            {% comment %} <i class="fa fa-chart-line"></i> {% endcomment %}
+                            <span>Stock Take</span>
+                          </a>
+                          <div class="sidebar-submenu">
+                            <ul>
+                              <li>
+                                <a style="font-weight: bold;" href="#">Random Stock Take</a>
+                              </li>
+                              <li>
+                                <a style="font-weight: bold;" href="#">Full Stock Take</a>
+                              </li>
+                            </ul>
+                          </div>
+                        </li> 
+                        <li class="sidebar-dropdown">
+                          <a style="font-weight: bold;" href="#">
+                            {% comment %} <i class="fa fa-chart-line"></i> {% endcomment %}
+                            <span>Management</span>
+                          </a>
+                          <div class="sidebar-submenu">
+                            <ul>
+                              <li>
+                                <a style="font-weight: bold;" href="#">Employees</a>
+                              </li>
+                              <li>
+                                <a style="font-weight: bold;" href="#">Assets</a>
+                              </li>
+                              <li>
+                                <a style="font-weight: bold;" href="#">Daily Sales Report</a>
+                              </li>
+                              <li>
+                                <a style="font-weight: bold;" href="#">Stock Reports</a>
+                              </li>
+                              
+                              <li class="sidebar-dropdown">
+                                <a style="font-weight: bold;" href="#">
+                                  {% comment %} <i class="fa fa-chart-line"></i> {% endcomment %}
+                                  <span>Financial Control</span>
+                                </a>
+                                <div class="sidebar-submenu">
+                                  <ul>
+                                    <li>
+                                      <a style="font-weight: bold;" href="#">Total Sales</a>
+                                    </li>
+                                    <li>
+                                      <a style="font-weight: bold;" href="{% url 'creditor' %}">Creditors</a>
+                                    </li>
+                                    <li>
+                                      <a style="font-weight: bold;" href="{% url 'debtor' %}">Debtors</a>
+                                    </li>
+                                    <li>
+                                      <a style="font-weight: bold;" href="#">Expenses</a>
+                                    </li>
+                                    <li>
+                                      <a style="font-weight: bold;" href="#">Total Profit</a>
+                                    </li>
+                                    <li>
+                                      <a style="font-weight: bold;" href="#">Expired Products</a>
+                                    </li>
+                                    <li>
+                                      <a style="font-weight: bold;" href="#">Net Profit</a>
+                                    </li>
+                                  </ul>
+                                </div>
+                                <li class="sidebar-dropdown">
+                                  <a style="font-weight: bold;" href="#">
+                                    {% comment %} <i class="fa fa-chart-line"></i> {% endcomment %}
+                                    <span>Management Team</span>
+                                  </a>
+                                  <div class="sidebar-submenu">
+                                    <ul>
+                                      <li>
+                                        <a style="font-weight: bold;" href="#">Director</a>
+                                      </li>
+                                      <li>
+                                        <a style="font-weight: bold;" href="#">Manager</a>
+                                      </li>
+                                      <li>
+                                        <a style="font-weight: bold;" href="#">Accountant</a>
+                                      </li>
+                                      
+                                    </ul>
+                                  </div>
+                                  <li>
+                                    <a style="font-weight: bold;" href="#">Stock Take Report</a>
+                                  </li>
+
+                                <li>
+                                  <a style="font-weight: bold;" href="#">Stock Take Report</a>
+                                </li>
+
+
+                            </ul>
+                          </div>
+                        </li> 
+                    </ul>
+                  </div>
+                </li>
+                 
+             <li class="sidebar-dropdown">
+            <a style="font-weight: bold;"  href="#">
+              
+              <span>Pharmaceutical Sales</span>
             </a>
             <div class="sidebar-submenu">
               <ul>
                 <li>
+                  <a style="font-weight: bold;" href="#">SalesRep Registration</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="#">Register Shop</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="#">Order Request</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="#">Product Adulteration</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="#">Payment Follow up</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="#">Expired Products</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="#">Trainings</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="#">Daily Routine Check</a>
+                </li>
+              </ul>
+            </div>
+          </li>  
+                {% comment %} <li>
                   <a style="font-weight: bold;" href="{% url 'price_list' %}">Price List</a>
                 </li>
                 <li>
@@ -287,27 +691,15 @@
                   <a style="font-weight: bold;" href="{% url 'debtor' %}">Debtors</a>
                 </li>
                 <li>
-                  <a style="font-weight: bold;" href="{% url 'eprescriptions' %}">E-Prescriptions</a>
-                </li>
+                  <a style="font-weight: bold;" href="{% url 'creditor' %}">E-Prescriptions</a>
+                </li> {% endcomment %}
               </ul>
             </div>
           </li>
-          <li class="sidebar-dropdown">
-            <a href="#">
-                <i class="fa fa-chart-line"></i>
-                <span>My Diary</span>
-            </a>
-            <div class="sidebar-submenu">
-                <ul>
-                    <li>
-                        <a style="font-weight: bold;" href="{% url 'diary' %}">Diary</a>
-                    </li>
-                </ul>
-            </div>
-        </li>
+          
         <li class="sidebar-dropdown">
           <a href="#">
-            <i class="fa fa-graduation-cap"></i>
+            <i class="fa fa-vials"></i>
             <span>Telemedicine Services</span>
           </a>
           <div class="sidebar-submenu">
@@ -324,7 +716,7 @@
         </li>
           <li class="sidebar-dropdown">
             <a href="#">
-              <i class="far fa-gem"></i>
+              <i class="fa fa-graduation-cap"></i>
               <span>Learning Resources</span>
             </a>
             <div class="sidebar-submenu">
@@ -363,15 +755,53 @@
                 <ul>
                   <li class="sidebar-dropdown">
                     <a href="#" style="font-weight: bold;">
-                        
                         <span>Online CPD Program</span>
                     </a>
+                
                     <div class="sidebar-submenu">
                         <ul>
-                            <li><a class="dropdown-item" style="font-weight: bold;" href="{% url 'cpd'%}">Lessons</a></li>
-                            <li> <a class="dropdown-item" style="font-weight: bold;" href="{% url 'questions-result'%}">My Results</a></li>
+                           <!-- New Submenu -->
+                           <li class="sidebar-dropdown">
+                            <a href="#" style="font-weight: bold;">
+                                <span>Self-Paced CPD</span>
+                            </a>
+            
+                            <div class="sidebar-submenu">
+                                <ul>
+                                    <li>
+                                        <a class="dropdown-item" style="font-weight: bold;" href="{% url 'cpdtest' %}">
+                                            Lessons
+                                        </a>
+                                    </li>
+            
+                                    <li>
+                                        <a class="dropdown-item" style="font-weight: bold;" href="{% url 'questions-result' %}">
+                                            My Results
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                            <!-- New Submenu -->
+                            <li class="sidebar-dropdown">
+                                <a href="#" style="font-weight: bold;">
+                                    <span>Virtual Meeting</span>
+                                </a>
+                
+                                <div class="sidebar-submenu">
+                                    <ul>
+                                        <li>
+                                            <a class="dropdown-item" style="font-weight: bold;" href="{% url 'zoom_schedule' %}">
+                                                Virtual Meeting
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </li>
                         </ul>
                     </div>
+                </li>
+                
                 </li> 
               </ul>
               </ul>
@@ -390,14 +820,21 @@
           </li> {% endcomment %}
           <li class="sidebar-dropdown">
             <a href="#">
-              <i class="fa fa-chart-line"></i>
-              <span>Government Employee</span>
+              <i class="fa fa-user"></i>
+              <span>County Veterinary Services</span>
             </a>
             <div class="sidebar-submenu">
               <ul>
                 <li class="sidebar-dropdown">
+                  <a href="#"  style="font-weight: bold;">
+                    
+                    <span>Ward Veterinary Services</span>
+                  </a>
+                  <div class="sidebar-submenu">
+                    <ul>
+                <li class="sidebar-dropdown">
                   <a href="#" style="font-weight: bold;">
-                      <i class=""></i>
+                      
                       <span>Meat Inspection</span>
                   </a>
                   <div class="sidebar-submenu">
@@ -419,7 +856,7 @@
               </li> 
               <li class="sidebar-dropdown">
                 <a href="#" style="font-weight: bold;">
-                    <i class=""></i>
+                    
                     <span>Livestock Movement</span>
                 </a>
                 <div class="sidebar-submenu">
@@ -435,9 +872,34 @@
                     </ul>
                 </div>
             </li> 
+            <li>
+              <a class="dropdown-item" style="font-weight: bold;" href="{% url 'vaccination' %}">Vaccination Records</a>
+              </a>
+            </li>
+            <li>
+              <a style="font-weight: bold;" class="dropdown-item" href="{% url 'disease-report'%}">Disease Report Records</a>
+              </a>
+            </li>
             <li class="sidebar-dropdown">
               <a href="#" style="font-weight: bold;">
-                  <i class=""></i>
+                  
+                  <span>Extension Services</span>
+              </a>
+              <div class="sidebar-submenu">
+                  <ul>
+                    <li>
+                      <a class="dropdown-item" style="font-weight: bold;" href="{% url 'extension-service' %}">Extension Services</a>
+                      </a>
+                    </li>
+                   
+                      
+                  </ul>
+              </div>
+          </li> 
+
+            <li class="sidebar-dropdown">
+              <a href="#" style="font-weight: bold;">
+                  
                   <span>Reports Writing</span>
               </a>
               <div class="sidebar-submenu">
@@ -454,26 +916,82 @@
                     </li>
                   </ul>
               </div>
+              <li>
+                <a style="font-weight: bold;" href="{% url 'yearly_report' %}">Annual Leave Records</a>
+              </li>
           </li> 
           
               </ul>
-            </div>
-          </li>
-         
-          <li class="sidebar-dropdown">
-            <a href="#">
-              <i class="fa fa-chart-line"></i>
-              <span>Notifications</span>
-            </a>
-            <div class="sidebar-submenu">
-              <ul>
+              <li class="sidebar-dropdown">
+                <a href="#"  style="font-weight: bold;">
+                  
+                  <span>Sub-County Veterinary Services</span>
+                </a>
+                <div class="sidebar-submenu">
+                  <ul>
+                    <li>
+                      <a style="font-weight: bold;" href="">SCVO Statistics</a>
+                    </li>
+                    <li>
+                      <a style="font-weight: bold;" href="">Annual Leave</a>
+                    </li>
+                    <li class="sidebar-dropdown">
+                      <a style="font-weight: bold;" href="#">
+                        {% comment %} <i class="fa fa-chart-line"></i> {% endcomment %}
+                        <span>Finance</span>
+                      </a>
+                      <div class="sidebar-submenu">
+                        <ul>
+                          <li>
+                            <a style="font-weight: bold;" href="#">Source Of Income</a>
+                          </li>
+                          <li>
+                            <a style="font-weight: bold;" href="#">Expenses</a>
+                          </li>
+                          
+                          
+                        </ul>
+                      </div>
+              <li class="sidebar-dropdown">
+                <a href="#" style="font-weight: bold;">
+                   
+                    <span>Reports</span>
+                </a>
+                <div class="sidebar-submenu">
+                    <ul>
+                      <li>
+                        <a style="font-weight: bold;" href="">Monthly</a>
+                      </li>
+                      <li>
+                        <a style="font-weight: bold;" href="">Quarterly</a>
+                      </li>
+                      <li>
+                        <a style="font-weight: bold;" href="">Annual</a>
+                      </li>
+          
+                    </ul>
+                </div>
                 <li>
-                  <a style="font-weight: bold;" href="">Messages</a>
+                  <a style="font-weight: bold;" href="">SCVO Main  Activities</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="">Students training</a>
+                </li>
+                <li>
+                  <a style="font-weight: bold;" href="">SCVO Inventory</a>
                 </li>
                 
-              </ul>
+            </li> 
+            
+        
+            </ul>
             </div>
           </li>
+          
+        </li>
+      </div>
+         
+         
            
           <li class="">
             <a href="{%url 'logout'%}">

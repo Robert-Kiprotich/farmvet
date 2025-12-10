@@ -20,12 +20,14 @@ urlpatterns = [
     path('admin/', admin.site.urls, name='admin-vet'),
     #users sign up
     path('user/signup/vet_officer/', user_views.vet0fficer_signup_view, name='vet-register'),
+    path('user/signup/cooperative/', user_views.cooperative_signup_view, name='cooperative-register'),
     path('user/signup/farmer/',user_views.farmer_signup_view,name='farmer-register'),
     path('user/signup/official/',user_views.Official_signup_view,name='official-register'),
     #users login 
     path('vet/login/',user_views.vet_login,name='vet-login'),
     path('farmer/login/',user_views.farmer_login,name='farmer-login'),
     path('official/login/',user_views.official_login,name='official-login'),
+     path('cooperative/login/',user_views.cooperative_login,name='cooperative-login'),
     path('logout/', user_views.user_logout, name='logout'),
     #password reset
     path("password-reset", auth_views.PasswordResetView.as_view(template_name="user/password_reset.html"), name="password_reset"),
@@ -39,6 +41,7 @@ urlpatterns = [
     path('vet_list_vet/', portal_views.vet_list_vet, name='vet-list_vet'),
     path('farmer_portal/', portal_views.portal_farmer, name='farmer-portal'),
     path('official_portal/', portal_views.portal_official, name='official-portal'),
+    path('cooperative_portal/', portal_views.cooperative, name='cooperative-portal'),
 
 #################################FARMER  Urls######################################## 
     ##calf
@@ -508,6 +511,7 @@ urlpatterns = [
     path('yearly-report/update/<int:pk>/', YearlyReportUpdate.as_view(), name='yearly-report-update'),
     path('yearly-report/delete/<int:pk>/', YearlyReportDelete.as_view(), name='yearly-report-delete'),
     path('generate-certificate/<str:first_name>/<str:last_name>/', generate_certificate, name='generate_certificate'),
+    path('get-certificate/<str:first_name>/<str:last_name>/', get_certificate, name='get_certificate'),
     #path('answers/', UserAnswerCreate.as_view(), name='user-answer-create'),
     
     path('irrigation/', irrigation, name='ui-irrigation'),
@@ -583,8 +587,10 @@ urlpatterns = [
     path("update-request-status/", update_request_status, name="update-request-status"),
     #path('get-requests/', get_requests, name='get-requests'),
     #Payment 
-    path('mpesa/payment/<int:lesson_id>/', payment, name='mpesa-payment'), 
+    path('mpesa/payment/<int:lesson_id>/', payment, name='mpesa-payment'),
+    path('mpesa/payment/<int:meeting_id>/', payment_zoom, name='zoom-payment'), 
     path('mpesa/initiate/', initiate_mpesa_payment, name='mpesa-initiate'),
+    path('mpesa/pay/', zoom_mpesa_payment, name='mpesa-pay'),
     path('mpesa/callback/', mpesa_callback, name='mpesa-callback'),
     path('mpesa/status/', check_mpesa_status, name='mpesa-status'),
     
@@ -662,6 +668,27 @@ urlpatterns = [
     path('abortion-records/', AbortionRecordList.as_view(), name='abortion_record_list'),
     path('abortion-records/update/<int:pk>/', AbortionRecordUpdate.as_view(), name='abortion_record_update'),
     path('abortion-records/delete/<int:pk>/', AbortionRecordDelete.as_view(), name='abortion_record_delete'),
+    
+    path("extension-service/", extension_service, name="extension-service"),
+    path("extension-service/create/", ExtensionServiceCreate.as_view(), name="extension-service-create"),
+    path("extension-service/list/", ExtensionServiceList.as_view(), name="extension-service-list"),
+    path("extension-service/update/<int:pk>/", ExtensionServiceUpdate.as_view(), name="extension-service-update"),
+    path("extension-service/delete/<int:pk>/", ExtensionServiceDelete.as_view(), name="extension-service-delete"),
+    path('api/users/', search_users, name='search-users'),
+    
+     path('field-quotation/', field_quotation, name='field_quotation'),
+
+    # API Endpoints
+    path('field-quotation/create/', FieldQuotationCreate.as_view(), name='field_quotation_create'),
+    path('field-quotation/list/', FieldQuotationList.as_view(), name='field_quotation_list'),
+    path('field-quotation/update/<int:pk>/', FieldQuotationUpdate.as_view(), name='field_quotation_update'),
+    path('field-quotation/delete/<int:pk>/', FieldQuotationDelete.as_view(), name='field_quotation_delete'),
+    path("zoom/auth/", zoom_auth, name="zoom-auth"),
+    path("zoom/callback/", zoom_callback, name="zoom-callback"),
+    path("zoom/schedule/", zoom_schedule, name="zoom_schedule"),
+    path("zoom/attendance/<str:meeting_id>/", fetch_zoom_attendance, name="zoom_attendance"),
+
+   
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
