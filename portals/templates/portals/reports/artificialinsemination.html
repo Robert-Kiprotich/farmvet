@@ -106,6 +106,11 @@
               <input type="text" id="assigned_to_official" class="form-control" placeholder="Search official...">
               <ul id="official_suggestions" class="list-group"></ul>
             </div>
+            <div class="mb-3 ">
+              <label for="official_input" class="form-label">Assign to Cooperative</label>
+              <input type="text" id="assigned_to_cooperative" class="form-control" placeholder="Search cooperative...">
+              <ul id="cooperative_suggestions" class="list-group"></ul>
+            </div>
               <div class="mb-3">
                 <label for="farm_name" class="form-label">Farm Name</label>
                 <input type="text" id="farm_name" name="farm_name" class="form-control editable-field" maxlength="255" required>
@@ -729,6 +734,7 @@ function enableUserSearch(inputId, suggestionsId, role) {
 enableUserSearch("assigned_to", "farmer_suggestions", "farmer");
 //enableUserSearch("vet_input", "vet_suggestions", "vet");
 enableUserSearch("assigned_to_official", "official_suggestions", "official");
+enableUserSearch("assigned_to_cooperative", "cooperative_suggestions", "cooperative");
 
 // =============================
 //  FORM SUBMISSION CODE (YOUR CODE)
@@ -741,6 +747,7 @@ $('#AiAddForm').submit(function(e) {
   // ASSIGN assigned_to VALUE (username selected)
   formData.set("assigned_to", $('#assigned_to').val());
   formData.set("assigned_to_official", $('#assigned_to_official').val());
+  formData.set("assigned_to_cooperative", $('#assigned_to_cooperative').val());
 
   var jsonObject = {};
   formData.forEach(function(value, key) {

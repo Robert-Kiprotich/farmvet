@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block content %}
-{% include 'portals/sidebarVet.html' %}
+{% include 'portals/sidebarCoop.html' %}
 <main class="page-content">
 <div class="container-fluid">
       <!-- Navbar -->
@@ -64,21 +64,113 @@
           <div class="col-md-12">
             <div class="card">
               <div class="card-header">
-<h4 class="">Our Lessons</h4>
+<h4 class="">Current Milk Prices</h4>
     <!-- Content Wrapper. Contains page content -->
     <div class="px-5 my-1 text-center">
     </div>
    
-   
-   
-     
+   <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#DiaryAddModal">
+    Add Record
+    </button>
+     <!-- form modal -->
+     <div class="modal fade" id="DiaryAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Add</h5>
+            <button type="button" class="close" id="canceless" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form id="DiaryAddForm" >
+              {% csrf_token %}
+              <input type="hidden" id="id" name="id">
+
+              <div class="mb-3">
+                  <label for="date_of_amendment" class="form-label">Date of Amendment</label>
+                  <input type="date" id="date_of_amendment" name="date_of_amendment" class="form-control" required>
+              </div>
+          
+              <div class="mb-3">
+                  <label for="last_milk_price" class="form-label">Last Milk Price</label>
+                  <input type="number" step="0.01" id="last_milk_price" name="last_milk_price" class="form-control" required>
+              </div>
+          
+              <div class="mb-3">
+                  <label for="current_milk_price" class="form-label">Current Milk Price</label>
+                  <input type="number" step="0.01" id="current_milk_price" name="current_milk_price" class="form-control" required>
+              </div>
+          
+              <div class="mb-3">
+                  <label for="remarks" class="form-label">Remarks</label>
+                  <textarea id="remarks" name="remarks" class="form-control"></textarea>
+              </div>
+            <div class="modal-footer">
+                <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="submit" id="submit" class="btn btn-primary">Save</button>
+            </div>
+          </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <!-- form modal end -->
+    <!--edit Modal  -->
+     <!-- form modal -->
+     <div class="modal fade" id="DiaryEditModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Edit Record</h5>
+            <button type="button" id="cancel" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+          <form id="DiaryEditForm">
+            {% csrf_token %}
+            <input type="hidden" id="id" name="id">
+
+            <div class="mb-3">
+                <label for="date_of_amendment" class="form-label">Date of Amendment</label>
+                <input type="date" id="date_of_amendment" name="date_of_amendment" class="form-control" required>
+            </div>
+        
+            <div class="mb-3">
+                <label for="last_milk_price" class="form-label">Last Milk Price</label>
+                <input type="number" step="0.01" id="last_milk_price" name="last_milk_price" class="form-control" required>
+            </div>
+        
+            <div class="mb-3">
+                <label for="current_milk_price" class="form-label">Current Milk Price</label>
+                <input type="number" step="0.01" id="current_milk_price" name="current_milk_price" class="form-control" required>
+            </div>
+        
+            <div class="mb-3">
+                <label for="remarks" class="form-label">Remarks</label>
+                <textarea id="remarks" name="remarks" class="form-control"></textarea>
+            </div>
+           
+      
+          <div class="modal-footer">
+              <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" id="submit" class="btn btn-primary">Save</button>
+          </div>
+          </div>
+        </form>
+        
+        </div>
+      </div>
+    </div>
+    <!-- edit modal end -->
     
     <!-- Display Modal  Modal -->
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <h2 class="text-center text-uppercase">{{ request.user.business_name }}</h2>
-          <h3 class="text-center">Online CPD Records</h3>
+          <h2 class="text-center text-uppercase">{{ request.user.cooperative_name }}</h2>
+          <h3 class="text-center">Current Milk Price </h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -144,7 +236,7 @@
       data-page-list="[10, 25, 50, 100, all]"
       data-show-footer="true"
       data-side-pagination="server"
-      data-url="{% url 'tutorial-list' %}"
+      data-url="{% url 'current_milk_price_list' %}"
       data-response-handler="responseHandler">
     </table>
     <script>
@@ -166,7 +258,6 @@ function getCookie(name) {
 }
 
 const csrftoken = getCookie('csrftoken');
-
 
 
       var $table = $('#table')
@@ -209,8 +300,6 @@ const csrftoken = getCookie('csrftoken');
 
     html += '</table>';
     
-
-    
     
    
     $('#modalBody').html(html);
@@ -226,11 +315,161 @@ const csrftoken = getCookie('csrftoken');
         $('#dsModal').modal('hide');
     });
 }
- 
-       
-     
-      
+$('#DiaryAddForm').submit(function(e) {
+    e.preventDefault(); // Prevent the default form submission
     
+    // Serialize form data
+    var formData = $(this).serialize();
+    console.log(formData);
+    
+    // Send AJAX request
+    $.ajax({
+        type: 'POST',
+        url: "/current-milk-price/create/",
+        data: formData,
+        success: function(data) {
+            $('#DiaryAddModal').modal('hide');
+            $('#statusSuccessModal').modal('show');
+            // Redirect after 3 seconds
+            setTimeout(function() {
+                window.location.reload(); // Reload the page
+            }, 1000); 
+            // Handle success response
+            console.log('Form submitted successfully');
+            console.log(data);   
+        },
+        error: function(xhr, textStatus, errorThrown) {
+            console.error('Error submitting form:', errorThrown);
+            console.log('Response:', xhr.responseText);
+
+            // Optionally, you can display the error in a modal or alert
+            alert('Error: ' + xhr.responseText);
+        }
+    });
+});
+function operateFormatter(value, row, index) {
+  return [
+     '<div class="btn-group" role="group" aria-label="Actions">',
+          '<a class="btn btn-warning btn-sm edit" id="edit" href="javascript:void(0)" title="Edit">',
+              '<i class="fa fa-edit"></i> Edit',
+          '</a>',
+          '<a class="btn btn-danger btn-sm remove" href="javascript:void(0)" title="Remove">',
+              '<i class="fa fa-trash"></i> Delete',
+          '</a>',
+      '</div>'
+  ].join('');
+}
+     
+      window.operateEvents = {
+        'click .edit': function(e, value, row, index) {
+    // Fetch the ID from the row data (assuming 'id' is a property in your data)
+    const objectId = row.id;
+    console.log(objectId)
+
+    // Check if ID is available before proceeding
+    if (!objectId) {
+      console.error('Error: Missing ID in row data');
+      return;
+    }
+
+    $('#DiaryEditModal').modal('show');
+
+    // Populate form fields after the modal is shown (ensures elements exist)
+    $('#DiaryEditModal').on('shown.bs.modal', function () {
+      const formFields = $('#DiaryEditModal .editable-field');
+
+      formFields.each(function(i, field) {
+    const fieldName = $(field).attr('name');
+    const fieldValue = row[fieldName];
+
+    if ($(field).is('select')) {
+        
+        $(field).val(fieldValue || ''); 
+    } else {
+
+        $(field).val(fieldValue || ''); 
+    }
+});
+    });
+
+    $('#cancel').click(function() {
+      $('#DiaryEditModal').modal('hide');
+    });
+    $('#canceless').click(function() {
+      $('#DiaryEditModal').modal('hide');
+    });
+
+    e.preventDefault();
+
+    
+    $('#submitbills').on('click', function () {
+  const formFields = $('#DiaryEditModal .editable-field');
+
+  formFields.each(function (i, field) {
+    const fieldName = $(field).attr('name');
+    const fieldValue = $(field).val();
+
+    row[fieldName] = fieldValue; 
+  });
+   
+  fetch(`/current-milk-price/update/${row.id}/`, {
+    method: 'PATCH',
+    headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
+    },
+    body: JSON.stringify(row)
+})
+.then(response => response.json())
+.then(data => {
+    console.log('Success:', data);
+    
+    window.location.reload()
+   
+      
+})
+.then(data=>{
+  $('#statusSuccessModal').modal('show');
+
+})
+.catch(error => console.error('Error:', error));
+});
+
+  },
+        'click .remove': function (e, value, row, index) {
+    // Show confirmation dialog
+    const confirmation = window.confirm("Are you sure you want to delete this record?");
+    
+    // If the user confirms, proceed with the deletion
+    if (confirmation) {
+        // Send an AJAX request to the Django backend to delete the record
+        $.ajax({
+            url: `/current-milk-price/delete/${row.id}/`, // Replace with the appropriate URL
+            type: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            }, // Include CSRF token if required
+            success: function () {
+                // If deletion is successful, remove the row from the Bootstrap Table
+                $table.bootstrapTable('remove', {
+                    row: 'id',
+                    values: [row.id]
+                });
+                window.location.reload(); // Optionally reload the page after removal
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                // Handle errors, if any
+                console.error('Error deleting record:', errorThrown);
+                // Optionally, you can display error messages or handle UI updates here
+            }
+        });
+    } else {
+        // If the user cancels the action, do nothing (optional: add a cancel log message)
+        console.log('Deletion canceled');
+    }
+      }
+      }
       function totalTextFormatter(data) {
         return 'Total'
       }
@@ -247,18 +486,11 @@ const csrftoken = getCookie('csrftoken');
           return sum + i
         }, 0)
       }
-  let sectionListUrl = "{% url 'section-list' lesson_id=1 %}".replace(/1\/?$/, '');
-
-if (sectionListUrl.endsWith('/')) {
-    sectionListUrl = sectionListUrl.slice(0, -1);
-}
-            
-            
+      
+    
       function initTable() {
-       
       // Process the fetched data and initialize Bootstrap Table
     $table.bootstrapTable('destroy').bootstrapTable({
-     
       height: 550,
       locale: $('#locale').val(),
       columns: [
@@ -270,69 +502,43 @@ if (sectionListUrl.endsWith('/')) {
             align: 'center',
             valign: 'middle'
           },
-         {
-            field: 'lesson',
-            title: 'Lesson',
+          
+          {
+            field: 'date_of_amendment',
+            title: 'Date of Amendment',
             sortable: true,
             align: 'center',
-            formatter:(value, row) => {
-              console.log("ROW DATA:", row);
-          
-              // If lesson field is empty or null
-              if (!row.lesson || row.lesson.trim() === "") {
-                  return "Coming Soon";
-              }
-          
-              // Use the tutorial ID for URLs
-              const lessonId = row.id;
-          
-              if (row.is_paid) {
-                  // User already paid → show lesson access link
-                  const lessonUrl = `${sectionListUrl}/${lessonId}/`;
-                  return `<a href="${lessonUrl}" style="color: green; font-weight: bold;">${row.lesson}</a>`;
-              } else {
-                  // User not paid → show payment link
-                  const paymentUrl = `/mpesa/payment/${lessonId}/`;
-                  return `<a href="${paymentUrl}" style="color: red; font-weight: bold;">${row.lesson}</a>`;
-              }
+            formatter: function (value) {
+              return moment(value).format('DD-MM-YYYY');
+            }
+          },
+          {
+            field: 'last_milk_price',
+            title: 'Last Milk Price',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'current_milk_price',
+            title: 'Current Milk Price',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'remarks',
+            title: 'Remarks',
+            sortable: true,
+            align: 'center'
+          },
+         
+          {
+            field: 'operate',
+            title: 'Item Operate',
+            align: 'center',
+            clickToSelect: false,
+            events: window.operateEvents,
+            formatter: operateFormatter
           }
-          
-
-        },   
-          
-       
-          {
-            field: 'cpd_number',
-            title: 'CPD Number',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'unit_price',
-            title: 'Unit Price',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'contact_hours',
-            title: 'Contact Hours',
-            sortable: true,
-            align: 'center'
-          },
-
-          {
-            field: 'points',
-            title: 'Points',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'presented_by',
-            title: 'Presented By',
-            sortable: true,
-            align: 'center'
-          },
-          
         ],
         [
         ]
@@ -395,7 +601,6 @@ if (sectionListUrl.endsWith('/')) {
             });
     }
 </script>
-  
 
 
     

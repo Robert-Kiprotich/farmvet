@@ -257,6 +257,7 @@ urlpatterns = [
     # Artificial Insemination URLs
     path('ai/',  artificial, name='ai'),
      path('ai-official/',  artificial_official_view, name='ai_official'),
+     path('ai-coop/',  artificial_coop_view, name='ai_coop'),
     path('ai-view/',  artificial_view, name='ai-view'),
     path('ai_filter/',  ai_record_filter, name='ai-filter'),
     path('artificial-insemination/create/', ArtificialInseminationCreate.as_view(), name='ai-create'),
@@ -588,7 +589,7 @@ urlpatterns = [
     #path('get-requests/', get_requests, name='get-requests'),
     #Payment 
     path('mpesa/payment/<int:lesson_id>/', payment, name='mpesa-payment'),
-    path('mpesa/payment/<int:meeting_id>/', payment_zoom, name='zoom-payment'), 
+    path('zoom/payment/<int:meeting_id>/', payment_zoom, name='zoom-payment'), 
     path('mpesa/initiate/', initiate_mpesa_payment, name='mpesa-initiate'),
     path('mpesa/pay/', zoom_mpesa_payment, name='mpesa-pay'),
     path('mpesa/callback/', mpesa_callback, name='mpesa-callback'),
@@ -687,8 +688,49 @@ urlpatterns = [
     path("zoom/callback/", zoom_callback, name="zoom-callback"),
     path("zoom/schedule/", zoom_schedule, name="zoom_schedule"),
     path("zoom/attendance/<str:meeting_id>/", fetch_zoom_attendance, name="zoom_attendance"),
+    
+    path('dairy-farmer-view/', dairy_farmer_view, name='dairy_farmer_report_view'),
+    path('milk-center-view/', milk_center_view, name='milk_center_report_view'),
+    path('milk-price-view/',  milk_price_view, name='milk_price_report_view'),
+    path('milk-payment-view/',  milk_payment_view, name='milk_payment_report_view'),
 
    
+    path('dairy-farmer-registration/create/',  DairyFarmerRegistrationCreate.as_view(), name='dairy_farmer_registration_create'),
+    path('dairy-farmer-registration/list/',  DairyFarmerRegistrationList.as_view(), name='dairy_farmer_registration_list'),
+    path('dairy-farmer-registration/update/<int:pk>/',  DairyFarmerRegistrationUpdate.as_view(), name='dairy_farmer_registration_update'),
+    path('dairy-farmer-registration/delete/<int:pk>/',  DairyFarmerRegistrationDelete.as_view(), name='dairy_farmer_registration_delete'),
+
+   
+    path('milk-collection-center/create/',  MilkCollectionCenterCreate.as_view(), name='milk_collection_center_create'),
+    path('milk-collection-center/list/',  MilkCollectionCenterList.as_view(), name='milk_collection_center_list'),
+    path('milk-collection-center/update/<int:pk>/',  MilkCollectionCenterUpdate.as_view(), name='milk_collection_center_update'),
+    path('milk-collection-center/delete/<int:pk>/',  MilkCollectionCenterDelete.as_view(), name='milk_collection_center_delete'),
+
+    
+    path('current-milk-price/create/',  CurrentMilkPriceCreate.as_view(), name='current_milk_price_create'),
+    path('current-milk-price/list/',  CurrentMilkPriceList.as_view(), name='current_milk_price_list'),
+    path('current-milk-price/update/<int:pk>/',  CurrentMilkPriceUpdate.as_view(), name='current_milk_price_update'),
+    path('current-milk-price/delete/<int:pk>/',  CurrentMilkPriceDelete.as_view(), name='current_milk_price_delete'),
+
+    
+    path('farmer-milk-payment/create/',  FarmerMilkPaymentCreate.as_view(), name='farmer_milk_payment_create'),
+    path('farmer-milk-payment/list/',  FarmerMilkPaymentList.as_view(), name='farmer_milk_payment_list'),
+    path('farmer-milk-payment/update/<int:pk>/',  FarmerMilkPaymentUpdate.as_view(), name='farmer_milk_payment_update'),
+    path('farmer-milk-payment/delete/<int:pk>/',  FarmerMilkPaymentDelete.as_view(), name='farmer_milk_payment_delete'),
+
+    
+     path('supply/cooler/',collection_cooler, name='supply_cooler'),
+    path('collection/center/',  collection_center, name='collection_center'),
+
+   path('daily-supply/create/', MilkCollectionCoolerCreate.as_view(), name='daily_supply_create'),
+    path('daily-supply/list/', MilkCollectionCoolerList.as_view(), name='daily_supply_list'),
+    path('daily-supply/update/<int:pk>/', MilkCollectionCoolerUpdate.as_view(), name='daily_supply_update'),
+    path('daily-supply/delete/<int:pk>/', MilkCollectionCoolerDelete.as_view(), name='daily_supply_delete'),
+
+    path('collection/create/', MilkCollectionCenterRecordCreate.as_view(), name='collection_create'),
+    path('collection/list/', MilkCollectionCenterRecordList.as_view(), name='collection_list'),
+    path('collection/update/<int:pk>/', MilkCollectionCenterRecordUpdate.as_view(), name='collection_update'),
+    path('collection/delete/<int:pk>/', MilkCollectionCenterRecordDelete.as_view(), name='collection_delete'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -18,4 +18,7 @@ class IsVetOrOfficial(BasePermission):
             request.user and request.user.is_authenticated and
             (getattr(request.user, 'is_vet_officer', False) or getattr(request.user, 'is_official', False))
         )
+class Is_Coop(BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated
     

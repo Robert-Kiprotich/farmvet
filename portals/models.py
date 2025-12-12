@@ -902,6 +902,16 @@ class ArtificialInsemination(models.Model):
 		editable=True,               
 		default=1                  
 	)
+	assigned_to_cooperative = models.ForeignKey(
+		User,
+		on_delete=models.CASCADE,  
+		related_name='ai_cooperative',
+		limit_choices_to={'is_cooperative': True},
+		null=True,                 
+		blank=True,
+		editable=True,               
+		default=1                  
+	)
 	assigned_by = models.ForeignKey(  
 		User,
 		on_delete=models.CASCADE,
@@ -2257,7 +2267,9 @@ class VetJudgment(models.Model):
 #         return f"{self.user} - {self.question.text}"
     
     #tuutorials
-    
+ 
+ 
+  
 class Tutorial(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
     lesson = models.CharField(max_length=255)
@@ -2265,6 +2277,7 @@ class Tutorial(models.Model):
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     points = models.IntegerField()
     presented_by=models.CharField(max_length=100)
+    contact_hours = models.CharField(max_length=50, default="0")
     is_paid = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -3438,3 +3451,103 @@ class ZoomAttendance(models.Model):
 
     def __str__(self):
         return f"{self.user_name} - {self.meeting.topic}"
+    
+class DairyFarmerRegistration(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=1)  # Added user field
+    date_of_registration = models.DateField()
+    full_name = models.CharField(max_length=255)
+    mobile_number = models.CharField(max_length=20)
+    total_number_of_dairy_cows = models.PositiveIntegerField()
+    number_of_lactating_cows = models.PositiveIntegerField()
+    
+    BREEDS = (
+        ("AI", "AI"),
+        ("Bull", "Bull"),
+        
+    )
+    breeds_used = models.CharField(max_length=20, choices=BREEDS)
+    
+    location = models.CharField(max_length=255)
+    milk_supply_number = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return f"{self.full_name} - {self.milk_supply_number}"
+
+class MilkCollectionCenter(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=1)  # Added user field
+    date_of_enrollment = models.DateField()
+    name_of_collection_centre = models.CharField(max_length=255)
+    location = models.CharField(max_length=255)
+    agent_incharge = models.CharField(max_length=255)
+    mobile_number = models.CharField(max_length=20)
+    approximate_number_of_farmers = models.PositiveIntegerField()
+
+    MEANS_OF_TRANSFER = (
+        ("Motorbike", "Motorbike"),
+        ("Vehicle", "Vehicle"),
+        ("Lorry", "Lorry"),
+    )
+    means_of_transfer = models.CharField(max_length=20, choices=MEANS_OF_TRANSFER)
+
+    transporter_name = models.CharField(max_length=255)
+    transporter_mobile = models.CharField(max_length=20)
+    time_of_milk_collection = models.TimeField()
+
+    def __str__(self):
+        return self.name_of_collection_centre
+
+
+# 3. Current Milk Price
+class CurrentMilkPrice(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=1)  # Added user field
+    date_of_amendment = models.DateField()
+    last_milk_price = models.DecimalField(max_digits=10, decimal_places=2)
+    current_milk_price = models.DecimalField(max_digits=10, decimal_places=2)
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Current Price: {self.current_milk_price}"
+
+
+# 4. Farmer Milk Payments
+class FarmerMilkPayment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=1)  # Added user field
+    date_of_payment = models.DateField()
+    milk_supply_number = models.CharField(max_length=50)
+    name_in_full = models.CharField(max_length=255)
+    total_milk_supplied = models.DecimalField(max_digits=10, decimal_places=2)
+    amount_to_be_paid = models.DecimalField(max_digits=10, decimal_places=2)
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
+    balance = models.DecimalField(max_digits=10, decimal_places=2)
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Payment for {self.name_in_full} - {self.date_of_payment}"
+    
+class MilkCollectionCooler(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
+    date = models.DateField()
+    supply_number = models.CharField(max_length=100)
+    collection_status = models.CharField(max_length=20,choices=[('Accepted','Accepted'),('Rejected',('Rejected'))])
+    reason = models.CharField(max_length=100,blank=True,default="N/A")
+    total_kg_supplied = models.DecimalField(max_digits=10, decimal_places=2)
+    name_of_supplier = models.CharField(max_length=255)
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.supply_number} - {self.name_of_supplier}"
+
+
+class MilkCollectionCenterRecord(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
+    date = models.DateField()
+    supply_number = models.CharField(max_length=100)
+    collection_status = models.CharField(max_length=20,choices=[('Accepted','Accepted'),('Rejected',('Rejected'))])
+    reason = models.CharField(max_length=100,blank=True,default="N/A")
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+    name_of_center = models.CharField(max_length=255)
+    name_of_agent = models.CharField(max_length=255)
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.name_of_center} - {self.supply_number}"

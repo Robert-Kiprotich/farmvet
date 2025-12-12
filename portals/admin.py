@@ -1,11 +1,98 @@
 from django.contrib import admin
 from django.urls import path
+from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from django.contrib.auth import get_user_model
+from django.contrib import messages
+from .views import get_valid_access_token  # your function
+import requests
+from django.template.response import TemplateResponse
 from django.http import JsonResponse
 from django.contrib.admin.views.autocomplete import AutocompleteJsonView
 from .models import (
    ApprovedDairyFarm, Question, CpdQuestions, Moderator, CpdChoices,
-    Section, Tutorial, Attempt, UserRetake
+    Section, Tutorial, Attempt, UserRetake,ZoomMeeting
 )
+User = get_user_model()
+@admin.register(ZoomMeeting)
+class ZoomMeetingAdmin(admin.ModelAdmin):
+    change_list_template = "admin/zoom_changelist.html"
+    list_display = ("topic", "facilitator", "price","start_time", "is_paid", "user")
+    list_filter = ("is_paid", "start_time")
+    search_fields = ("topic", "meeting_id")
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path("schedule/", self.admin_site.admin_view(self.schedule_zoom), name="schedule_zoom"),
+        ]
+        return custom_urls + urls
+
+    # ----------------------
+    # Custom admin view handler
+    # ----------------------
+    def schedule_zoom(self, request):
+        
+        # 1) Check authentication before showing form
+        access_token = get_valid_access_token(request.user)
+
+        if not access_token:
+            messages.warning(request, "Please authenticate with Zoom before scheduling a meeting.")
+            return redirect("zoom-auth")   # <-- Make sure this URL exists
+
+        # 2) If authenticated, handle POST or show form
+        if request.method == "POST":
+            topic = request.POST.get("topic")
+            start_time = request.POST.get("start_time")
+            price = request.POST.get("price")
+            facilitator = request.POST.get("facilitator")
+
+            # Convert price to Decimal
+            from decimal import Decimal
+            try:
+                price = Decimal(price)
+            except:
+                price = 0
+
+            url = "https://api.zoom.us/v2/users/me/meetings"
+            headers = {
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json",
+            }
+            payload = {
+                "topic": topic,
+                "type": 2,
+                "start_time": start_time,
+                "duration": 30,
+                "timezone": "Africa/Nairobi",
+            }
+
+            response = requests.post(url, headers=headers, json=payload)
+
+            if response.status_code == 201:
+                meeting = response.json()
+
+                ZoomMeeting.objects.create(
+                    user=request.user,
+                    facilitator=facilitator or request.user.get_full_name(),
+                    meeting_id=meeting["id"],
+                    topic=meeting["topic"],
+                    price=price,
+                    is_paid=False,
+                    start_time=meeting["start_time"],
+                    join_url=meeting["join_url"],
+                )
+
+                messages.success(request, "Zoom meeting created successfully.")
+                return redirect("/admin/portals/zoommeeting/")
+
+            else:
+                messages.error(request, f"Zoom API Error: {response.text}")
+                return redirect(request.path)
+
+        # 3) GET request: render form with extra fields
+        return render(request, "admin/schedule_meeting.html")
+
 class CustomAutocompleteJsonView(AutocompleteJsonView):
     def __init__(self, model_admin=None, **kwargs):
         self.model_admin = model_admin
@@ -71,20 +158,62 @@ class CpdQuestionsAdmin(admin.ModelAdmin):
 
 
 
+
+
+
 class TutorialAdmin(admin.ModelAdmin):
-    list_display = ('lesson', 'user', 'is_paid', 'created_at')
-    list_filter = ('is_paid', 'created_at')
-    search_fields = ('lesson', 'user__username', 'kvb_number')
-    actions = ['activate_tutorials', 'deactivate_tutorials']
+    change_list_template = "admin/tutorial_changelist.html"
 
-    def activate_tutorials(self, request, queryset):
-        queryset.update(is_paid=True)
-        self.message_user(request, f"{queryset.count()} tutorial(s) activated successfully.")
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "manage/",
+                self.admin_site.admin_view(self.custom_view),
+                name="portals_tutorial_manage"
+            ),
+        ]
+        return custom_urls + urls
 
-    def deactivate_tutorials(self, request, queryset):
-        queryset.update(is_paid=False)
-        self.message_user(request, f"{queryset.count()} tutorial(s) deactivated successfully.")
+    def custom_view(self, request):
+        changelist = self.get_changelist_instance(request)
+        context = dict(
+            self.admin_site.each_context(request),
+            cl=changelist,
+        )
 
+        # ➤ ADD NEW TUTORIAL
+        if request.method == "POST" and "add_new" in request.POST:
+            Tutorial.objects.create(
+                user=request.user,
+                lesson=request.POST.get("new_lesson"),
+                cpd_number=request.POST.get("new_cpd_number"),
+                unit_price=request.POST.get("new_unit_price"),
+                points=request.POST.get("new_points"),
+                presented_by=request.POST.get("new_presented_by"),
+                contact_hours=request.POST.get("new_contact_hours"),
+                is_paid=("new_paid" in request.POST),
+            )
+            messages.success(request, "Tutorial added successfully!")
+
+        # ➤ UPDATE ALL TUTORIALS
+        if request.method == "POST" and "save_all" in request.POST:
+            for obj in Tutorial.objects.all():
+                obj.lesson = request.POST.get(f"lesson_{obj.id}")
+                obj.cpd_number = request.POST.get(f"cpd_{obj.id}")
+                obj.unit_price = request.POST.get(f"price_{obj.id}")
+                obj.points = request.POST.get(f"points_{obj.id}")
+                obj.presented_by = request.POST.get(f"presented_{obj.id}")
+                obj.contact_hours = request.POST.get(f"contact_hours_{obj.id}")
+                obj.is_paid = (f"paid_{obj.id}" in request.POST)
+                obj.save()
+            messages.success(request, "All tutorials updated successfully!")
+
+        return TemplateResponse(request, "admin/tutorial_changelist.html", context)
+
+
+
+admin.site.register(Tutorial, TutorialAdmin)
 
 
 class SectionAdmin(admin.ModelAdmin):
@@ -114,6 +243,6 @@ admin.site.register(ApprovedDairyFarm)
 #admin.site.register(PregnancyDiagnosis)
 #admin.site.register(FarmConsultation)
 #admin.site.register(Referral)
-admin.site.register(Tutorial)
+
 admin.site.register(Section)
 admin.site.register(CpdQuestions)

@@ -20,6 +20,7 @@ class User(AbstractUser):
     registration_number = models.CharField(max_length=100,null=True)
     licence_number=models.CharField(max_length=100,null=True)
     business_name=models.CharField(max_length=100,default="SOIN VETERINARY SERVICES")
+    cooperative_name=models.CharField(max_length=100,default="DAIRY COOPERATIVE SERVICES")
     #agree_to_privacy = models.BooleanField(default=False)
     
     
@@ -53,7 +54,7 @@ class DairyCooperative(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     county = models.CharField(max_length=50)
     sub_county = models.CharField(max_length=100)
-    cooperative_name=models.CharField(max_length=100)
+    #cooperative_name=models.CharField(max_length=100)
     reg_no=models.CharField(max_length=50)
     designation=models.CharField(max_length=50)
 

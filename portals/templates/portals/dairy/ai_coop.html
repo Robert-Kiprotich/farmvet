@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block content %}
-{% include 'portals/sidebarVet.html' %}
+{% include 'portals/sidebarCoop.html' %}
 <main class="page-content">
 <div class="container-fluid">
       <!-- Navbar -->
@@ -64,21 +64,18 @@
           <div class="col-md-12">
             <div class="card">
               <div class="card-header">
-<h4 class="">Our Lessons</h4>
+<h4 class="">Artificial Isemination Records</h4>
     <!-- Content Wrapper. Contains page content -->
     <div class="px-5 my-1 text-center">
     </div>
    
-   
-   
-     
-    
+
     <!-- Display Modal  Modal -->
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <h2 class="text-center text-uppercase">{{ request.user.business_name }}</h2>
-          <h3 class="text-center">Online CPD Records</h3>
+          <h2 class="text-center">Veterinary Professional Services</h2>
+       <h3 class="text-center">Artificial Insemination </h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -116,6 +113,8 @@
         border: 1px solid black;
         border-collapse: collapse;
         font-size: medium;
+        width: 100%;
+        
       }
       </style>
       <div class="select" hidden>
@@ -144,7 +143,7 @@
       data-page-list="[10, 25, 50, 100, all]"
       data-show-footer="true"
       data-side-pagination="server"
-      data-url="{% url 'tutorial-list' %}"
+      data-url="{% url 'ai-list' %}"
       data-response-handler="responseHandler">
     </table>
     <script>
@@ -166,7 +165,6 @@ function getCookie(name) {
 }
 
 const csrftoken = getCookie('csrftoken');
-
 
 
       var $table = $('#table')
@@ -226,10 +224,19 @@ const csrftoken = getCookie('csrftoken');
         $('#dsModal').modal('hide');
     });
 }
- 
-       
+
+     function operateFormatter(value, row, index) {
+        return [
+          
+          
+        ].join('')
+      }
+
      
-      
+      window.operateEvents = {
+       
+  },
+        
     
       function totalTextFormatter(data) {
         return 'Total'
@@ -247,18 +254,11 @@ const csrftoken = getCookie('csrftoken');
           return sum + i
         }, 0)
       }
-  let sectionListUrl = "{% url 'section-list' lesson_id=1 %}".replace(/1\/?$/, '');
-
-if (sectionListUrl.endsWith('/')) {
-    sectionListUrl = sectionListUrl.slice(0, -1);
-}
-            
-            
+      
+    
       function initTable() {
-       
       // Process the fetched data and initialize Bootstrap Table
     $table.bootstrapTable('destroy').bootstrapTable({
-     
       height: 550,
       locale: $('#locale').val(),
       columns: [
@@ -270,65 +270,130 @@ if (sectionListUrl.endsWith('/')) {
             align: 'center',
             valign: 'middle'
           },
-         {
-            field: 'lesson',
-            title: 'Lesson',
+          
+          {
+            field: 'cow_name',
+            title: 'Cow Name',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'reg_no',
+            title: 'Registration Number',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'insemination_date',
+            title: 'Insemination Date',
             sortable: true,
             align: 'center',
-            formatter:(value, row) => {
-              console.log("ROW DATA:", row);
-          
-              // If lesson field is empty or null
-              if (!row.lesson || row.lesson.trim() === "") {
-                  return "Coming Soon";
-              }
-          
-              // Use the tutorial ID for URLs
-              const lessonId = row.id;
-          
-              if (row.is_paid) {
-                  // User already paid → show lesson access link
-                  const lessonUrl = `${sectionListUrl}/${lessonId}/`;
-                  return `<a href="${lessonUrl}" style="color: green; font-weight: bold;">${row.lesson}</a>`;
-              } else {
-                  // User not paid → show payment link
-                  const paymentUrl = `/mpesa/payment/${lessonId}/`;
-                  return `<a href="${paymentUrl}" style="color: red; font-weight: bold;">${row.lesson}</a>`;
-              }
-          }
-          
-
-        },   
-          
-       
+            formatter: function (value, row) {
+              return moment(value).format('DD-MM-YYYY'); 
+            }
+          },
           {
-            field: 'cpd_number',
-            title: 'CPD Number',
+            field: 'insemination_status',
+            title: 'Insemination Status',
             sortable: true,
             align: 'center'
           },
           {
-            field: 'unit_price',
-            title: 'Unit Price',
+            field: 'semen_type',
+            title: 'Semen Type',
             sortable: true,
             align: 'center'
           },
           {
-            field: 'contact_hours',
-            title: 'Contact Hours',
-            sortable: true,
-            align: 'center'
-          },
-
-          {
-            field: 'points',
-            title: 'Points',
+            field: 'breed_used',
+            title: 'Breed Used',
             sortable: true,
             align: 'center'
           },
           {
-            field: 'presented_by',
-            title: 'Presented By',
+            field: 'other_breed',
+            title: 'Other Breed',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'bull_name',
+            title: 'Bull Name',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'bull_reg_no',
+            title: 'Bull Registration Number',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'semen_source',
+            title: 'Semen Source',
+            sortable: true,
+            align: 'center'
+          },
+          
+          
+          
+          {
+            field: 'owners_name',
+            title: 'Owner\'s Name',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'sub_county',
+            title: 'Sub County',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'ward',
+            title: 'Ward',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'village',
+            title: 'Village',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'contact',
+            title: 'Contact',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'vet_name',
+            title: 'Veterinarian Name',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'vet_category',
+            title: 'Vet Category',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'vet_reg_no',
+            title: 'Veterinarian Registration Number',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'vet_contact',
+            title: 'Veterinarian Contact',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'signature_stamp',
+            title: 'Signature',
             sortable: true,
             align: 'center'
           },
@@ -395,7 +460,6 @@ if (sectionListUrl.endsWith('/')) {
             });
     }
 </script>
-  
 
 
     

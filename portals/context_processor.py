@@ -13,6 +13,10 @@ def all_vets(request):
     User = get_user_model()
     vets = User.objects.filter(is_vet_officer=True).order_by('first_name')
     return {'all_vets': vets}
+def all_cooperatives(request):
+    User = get_user_model()
+    all_cooperatives = User.objects.filter(is_cooperative=True).order_by('first_name')
+    return {'all_cooperatives': all_cooperatives}
 
 def user_role(request):
     if request.user.is_authenticated:
@@ -20,6 +24,8 @@ def user_role(request):
             return {'role': 'farmer'}
         elif hasattr(request.user, 'is_vet_officer') and request.user.is_vet_officer:
             return {'role': 'vet'}
+        elif hasattr(request.user, 'is_cooperative') and request.user.is_cooperative:
+            return {'role': 'cooperative'}
     return {'role': 'guest'}
 
 def choices(request):
@@ -128,4 +134,7 @@ def choices(request):
         'ASSET_TYPE':SlaughterhouseAsset.ASSET_TYPE_CHOICES,
         'POSITION':ManagementCommittee.POSITION_CHOICES,
         'QUOTATION_CATEGORIES':FieldQuotation.QUOTATION_CATEGORIES,
+        'BREEDING':DairyFarmerRegistration.BREEDS,
+        'MEANS_OF_TRANSFER':MilkCollectionCenter.MEANS_OF_TRANSFER,
+        
     }

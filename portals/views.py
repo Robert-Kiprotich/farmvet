@@ -33,7 +33,7 @@ from .serializers import *
 from rest_framework import generics,parsers
 from .pagination import CustomPagination
 from rest_framework.permissions import IsAuthenticated
-from .permissions import Is_Farmer,Is_Vet,Is_Official,IsVetOrOfficial
+from .permissions import *
 from rest_framework.response import Response
 from django.db.models import OuterRef, Subquery
 from datetime import timedelta,time,datetime
@@ -284,12 +284,9 @@ def artificial_view(request):
     return render(request, 'portals/reports/artificial-inseminationview.html', {})
 def artificial_official_view(request):
     return render(request, 'portals/reports/artificial_official.html', {})
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from django.db.models import F
-from .models import ArtificialInsemination
-from .permissions import IsVetOrOfficial  # Your custom permission
+def artificial_coop_view(request):
+    return render(request, 'portals/dairy/ai_coop.html', {})
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsVetOrOfficial])
@@ -343,7 +340,7 @@ class ArtificialInseminationCreate(generics.CreateAPIView):
 
 class ArtificialInseminationList(generics.ListAPIView):
     serializer_class = ArtificialInseminationSerializer
-    permission_classes = [Is_Vet | Is_Official | Is_Farmer]
+    permission_classes = [Is_Vet | Is_Official | Is_Farmer | Is_Coop]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -356,6 +353,10 @@ class ArtificialInseminationList(generics.ListAPIView):
 
         if user.is_farmer:
             return ArtificialInsemination.objects.filter(assigned_to=user).order_by('-id')
+        
+        if user.is_cooperative:
+            return ArtificialInsemination.objects.filter(assigned_to_cooperative=user).order_by('-id')
+
 
         return ArtificialInsemination.objects.none()
 class ArtificialInseminationUpdate(generics.UpdateAPIView):
@@ -3607,23 +3608,26 @@ def format_phone_number(phone):
     if phone.startswith("0"):
         return "254" + phone[1:]
     return phone
-    
 @csrf_exempt
+@user_passes_test(vet_check, login_url='vet-login') 
 def zoom_mpesa_payment(request):
     """Send an STK Push request to M-Pesa Express"""
 
     if request.method != "POST":
         return JsonResponse({"error": "Invalid request method"}, status=405)
 
+    # Logged-in user
+    user = request.user
+
     meeting_id = request.POST.get("meeting_id")
     if not meeting_id:
-        return JsonResponse({"error": "Missing lesson_id"}, status=400)
+        return JsonResponse({"error": "Missing meeting_id"}, status=400)
 
     try:
         zoom_meeting = ZoomMeeting.objects.get(id=meeting_id)
         amount = int(zoom_meeting.price)
     except ZoomMeeting.DoesNotExist:
-        return JsonResponse({"error": "Lesson not found"}, status=404)
+        return JsonResponse({"error": "Meeting not found"}, status=404)
 
     phone_number = request.POST.get("phone_number")
     if not phone_number:
@@ -3650,7 +3654,7 @@ def zoom_mpesa_payment(request):
         "PartyB": TILL_NO,
         "PhoneNumber": phone_number,
         "CallBackURL": CALLBACK_URL,
-        "TransactionDesc": f"Payment for Lesson {meeting_id}",
+        "TransactionDesc": f"Payment for Meeting {meeting_id}",
     }
 
     headers = {
@@ -3669,6 +3673,7 @@ def zoom_mpesa_payment(request):
     # Save successful STK push only
     if response_data.get("ResponseCode") == "0":
         Payment.objects.create(
+            user=user,  # 🔥 BIND PAYMENT TO AUTH USER
             merchant_request_id=response_data["MerchantRequestID"],
             checkout_request_id=response_data["CheckoutRequestID"],
             amount=amount,
@@ -3682,14 +3687,17 @@ def zoom_mpesa_payment(request):
         "response": response_data
     }, safe=True)
 
-
 #payment  
 @csrf_exempt
+@user_passes_test(vet_check, login_url='vet-login')
 def initiate_mpesa_payment(request):
     """Send an STK Push request to M-Pesa Express"""
 
     if request.method != "POST":
         return JsonResponse({"error": "Invalid request method"}, status=405)
+
+    # Logged-in user
+    user = request.user
 
     lesson_id = request.POST.get("lesson_id")
     if not lesson_id:
@@ -3742,9 +3750,10 @@ def initiate_mpesa_payment(request):
     except Exception as e:
         return JsonResponse({"error": f"Safaricom API error: {str(e)}"}, status=500)
 
-    # Save successful STK push only
+    # Save to database only when Safaricom accepted the STK request
     if response_data.get("ResponseCode") == "0":
         Payment.objects.create(
+            user=user,  # 🔥 BIND PAYMENT TO AUTHENTICATED USER
             merchant_request_id=response_data["MerchantRequestID"],
             checkout_request_id=response_data["CheckoutRequestID"],
             amount=amount,
@@ -3757,8 +3766,7 @@ def initiate_mpesa_payment(request):
         "payload": payload,
         "response": response_data
     }, safe=True)
-
-
+    
 @csrf_exempt
 def mpesa_callback(request):
     if request.method != "POST":
@@ -3804,40 +3812,44 @@ def mpesa_callback(request):
         print("Callback Error:", e)
         return JsonResponse({"message": "Callback error"}, status=200)
 
-
 @csrf_exempt
+#@user_passes_test(vet_check, login_url='vet-login')
 def check_mpesa_status(request):
     if request.method != "POST":
         return JsonResponse({"message": "Invalid request"}, status=400)
 
     checkout_request_id = request.POST.get("checkout_request_id")
-    payment = Payment.objects.filter(checkout_request_id=checkout_request_id).first()
+    if not checkout_request_id:
+        return JsonResponse({"error": "Missing checkout_request_id"}, status=400)
 
+    payment = Payment.objects.filter(checkout_request_id=checkout_request_id).first()
     if not payment:
         return JsonResponse({"error": "Payment not found"}, status=404)
 
-    # If payment is completed, update the corresponding model
+    zoom_is_paid = None
+    lesson_is_paid = None
+
+    # Only update if the payment is completed
     if payment.status == "Completed":
-        # If this payment is for a ZoomMeeting
-        if payment.zoom_meeting:
+
+        # ✅ Update ZoomMeeting only if the authenticated user owns it
+        if payment.zoom_meeting and payment.zoom_meeting.user == request.user:
             meeting = payment.zoom_meeting
             meeting.is_paid = True
             meeting.save()
-        else:
-            meeting = None
+            zoom_is_paid = meeting.is_paid
 
-        # If this payment is for a Tutorial
-        if payment.lesson:
+        # ✅ Update Tutorial only if the authenticated user owns it
+        if payment.lesson and payment.lesson.user == request.user:
             lesson = payment.lesson
             lesson.is_paid = True
             lesson.save()
-        else:
-            lesson = None
+            lesson_is_paid = lesson.is_paid
 
     return JsonResponse({
         "status": payment.status,
-        "zoom_is_paid": meeting.is_paid if meeting else None,
-        "lesson_is_paid": lesson.is_paid if lesson else None,
+        "zoom_is_paid": zoom_is_paid,
+        "lesson_is_paid": lesson_is_paid,
     }, status=200)
 
 def management_committee(request):
@@ -4318,14 +4330,14 @@ ZOOM_CLIENT_ID = config("ZOOM_API_KEY")
 ZOOM_CLIENT_SECRET = config("ZOOM_API_SECRET")
 ZOOM_REDIRECT_URI= config("REDIRECT_URL")
 
-@user_passes_test(vet_check, login_url='vet-login')
+#@user_passes_test(vet_check, login_url='vet-login')
 def zoom_auth(request):
     client_id = ZOOM_CLIENT_ID
     redirect_uri = ZOOM_REDIRECT_URI
     url = f"https://zoom.us/oauth/authorize?response_type=code&client_id={client_id}&redirect_uri={redirect_uri}"
     return redirect(url)
 
-@user_passes_test(vet_check, login_url='vet-login')
+#@user_passes_test(vet_check, login_url='vet-login')
 def zoom_callback(request):
     code = request.GET.get("code")
     if not code:
@@ -4359,7 +4371,7 @@ def zoom_callback(request):
                 "expires_at": expires_at
             }
         )
-        return redirect("zoom_schedule")
+        return redirect("schedule_zoom")
     else:
         return JsonResponse({"error": token_data}, status=400)
 
@@ -4400,12 +4412,12 @@ def get_valid_access_token(user):
 # Schedule Zoom Meeting
 # ==========================
 
-@user_passes_test(vet_check, login_url='vet-login')
+#@user_passes_test(vet_check, login_url='vet-login')
 def zoom_schedule(request):
-    # Handle creating a new Zoom meeting
+    # Handle POST: creating a new Zoom meeting
     if request.method == "POST":
         topic = request.POST.get("topic")
-        start_time = request.POST.get("start_time")  # ISO format: 2025-12-10T15:00:00
+        start_time = request.POST.get("start_time")  # ISO format
 
         access_token = get_valid_access_token(request.user)
         if not access_token:
@@ -4438,15 +4450,23 @@ def zoom_schedule(request):
 
         return JsonResponse({"error": response.json()}, status=500)
 
-    # GET request: show meetings
-    meetings = ZoomMeeting.objects.filter().order_by("-start_time")
+    # GET request: show all meetings
+    meetings = ZoomMeeting.objects.all().order_by("-start_time")
 
-    # Add a flag to check if the logged-in user attended
+    # Add flags per meeting
     for m in meetings:
+        # Attendance flag
         m.user_has_attended = ZoomAttendance.objects.filter(
             meeting=m
         ).filter(
             models.Q(user=request.user) | models.Q(user_email=request.user.email)
+        ).exists()
+
+        # Check if logged-in user has paid for this meeting
+        m.user_has_paid = Payment.objects.filter(
+            zoom_meeting=m,
+            user=request.user,
+            status="Completed"
         ).exists()
 
     return render(request, "portals/conf/conf.html", {"meetings": meetings})
@@ -4555,3 +4575,247 @@ def fetch_zoom_attendance(request, meeting_id):
         "attendance": attendance_list,
         "message": "Dummy attendance saved successfully"
     })
+    
+    
+def dairy_farmer_view(request):
+    return render(request, 'portals/dairy/dairy_farmer_view.html', {})
+
+def milk_center_view(request):
+    return render(request, 'portals/dairy/milk_center_view.html', {})
+
+def milk_price_view(request):
+    return render(request, 'portals/dairy/milk_price_view.html', {})
+
+def milk_payment_view(request):
+    return render(request, 'portals/dairy/milk_payment_view.html', {})
+def collection_cooler(request):
+    return render(request, 'portals/dairy/supply_cooler.html', {})
+
+def collection_center(request):
+    return render(request, 'portals/dairy/milk_collection.html', {})
+class DairyFarmerRegistrationCreate(generics.CreateAPIView):
+    queryset = DairyFarmerRegistration.objects.all()
+    serializer_class = DairyFarmerRegistrationSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class DairyFarmerRegistrationList(generics.ListAPIView):
+    serializer_class = DairyFarmerRegistrationSerializer
+    permission_classes = [Is_Coop]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return DairyFarmerRegistration.objects.filter(
+            user=self.request.user
+        ).order_by('-id')
+
+
+class DairyFarmerRegistrationUpdate(generics.UpdateAPIView):
+    queryset = DairyFarmerRegistration.objects.all()
+    serializer_class = DairyFarmerRegistrationSerializer
+    permission_classes = [Is_Coop]
+
+
+class DairyFarmerRegistrationDelete(generics.DestroyAPIView):
+    queryset = DairyFarmerRegistration.objects.all()
+    serializer_class = DairyFarmerRegistrationSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+
+# ---------------------------------------------------------------------
+# 2. MILK COLLECTION CENTER VIEWS
+# ---------------------------------------------------------------------
+
+class MilkCollectionCenterCreate(generics.CreateAPIView):
+    queryset = MilkCollectionCenter.objects.all()
+    serializer_class = MilkCollectionCenterSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class MilkCollectionCenterList(generics.ListAPIView):
+    serializer_class = MilkCollectionCenterSerializer
+    permission_classes = [Is_Coop]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return MilkCollectionCenter.objects.filter(
+            user=self.request.user
+        ).order_by('-id')
+
+
+class MilkCollectionCenterUpdate(generics.UpdateAPIView):
+    queryset = MilkCollectionCenter.objects.all()
+    serializer_class = MilkCollectionCenterSerializer
+    permission_classes = [Is_Coop]
+
+
+class MilkCollectionCenterDelete(generics.DestroyAPIView):
+    queryset = MilkCollectionCenter.objects.all()
+    serializer_class = MilkCollectionCenterSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+
+# ---------------------------------------------------------------------
+# 3. CURRENT MILK PRICE VIEWS
+# ---------------------------------------------------------------------
+
+class CurrentMilkPriceCreate(generics.CreateAPIView):
+    queryset = CurrentMilkPrice.objects.all()
+    serializer_class = CurrentMilkPriceSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class CurrentMilkPriceList(generics.ListAPIView):
+    serializer_class = CurrentMilkPriceSerializer
+    permission_classes = [Is_Coop]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return CurrentMilkPrice.objects.filter(
+            user=self.request.user
+        ).order_by('-id')
+
+
+class CurrentMilkPriceUpdate(generics.UpdateAPIView):
+    queryset = CurrentMilkPrice.objects.all()
+    serializer_class = CurrentMilkPriceSerializer
+    permission_classes = [Is_Coop]
+
+
+class CurrentMilkPriceDelete(generics.DestroyAPIView):
+    queryset = CurrentMilkPrice.objects.all()
+    serializer_class = CurrentMilkPriceSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+
+# ---------------------------------------------------------------------
+# 4. FARMER MILK PAYMENT VIEWS
+# ---------------------------------------------------------------------
+
+class FarmerMilkPaymentCreate(generics.CreateAPIView):
+    queryset = FarmerMilkPayment.objects.all()
+    serializer_class = FarmerMilkPaymentSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class FarmerMilkPaymentList(generics.ListAPIView):
+    serializer_class = FarmerMilkPaymentSerializer
+    permission_classes = [Is_Coop]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return FarmerMilkPayment.objects.filter(
+            user=self.request.user
+        ).order_by('-id')
+
+
+class FarmerMilkPaymentUpdate(generics.UpdateAPIView):
+    queryset = FarmerMilkPayment.objects.all()
+    serializer_class = FarmerMilkPaymentSerializer
+    permission_classes = [Is_Coop]
+
+
+class FarmerMilkPaymentDelete(generics.DestroyAPIView):
+    queryset = FarmerMilkPayment.objects.all()
+    serializer_class = FarmerMilkPaymentSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+class  MilkCollectionCoolerCreate(generics.CreateAPIView):
+    queryset =  MilkCollectionCooler.objects.all()
+    serializer_class =  MilkCollectionCoolerSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class  MilkCollectionCoolerList(generics.ListAPIView):
+    serializer_class =  MilkCollectionCoolerSerializer
+    permission_classes = [Is_Coop]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return  MilkCollectionCooler.objects.filter(
+            user=self.request.user
+        ).order_by('-id')
+
+
+class  MilkCollectionCoolerUpdate(generics.UpdateAPIView):
+    queryset =  MilkCollectionCooler.objects.all()
+    serializer_class =  MilkCollectionCoolerSerializer
+    permission_classes = [Is_Coop]
+
+
+class  MilkCollectionCoolerDelete(generics.DestroyAPIView):
+    queryset =  MilkCollectionCooler.objects.all()
+    serializer_class =  MilkCollectionCoolerSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+class MilkCollectionCenterRecordCreate(generics.CreateAPIView):
+    queryset = MilkCollectionCenterRecord.objects.all()
+    serializer_class = MilkCollectionCenterRecordSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class MilkCollectionCenterRecordList(generics.ListAPIView):
+    serializer_class = MilkCollectionCenterRecordSerializer
+    permission_classes = [Is_Coop]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return MilkCollectionCenterRecord.objects.filter(
+            user=self.request.user
+        ).order_by('-id')
+
+
+class MilkCollectionCenterRecordUpdate(generics.UpdateAPIView):
+    queryset = MilkCollectionCenterRecord.objects.all()
+    serializer_class = MilkCollectionCenterRecordSerializer
+    permission_classes = [Is_Coop]
+
+
+class MilkCollectionCenterRecordDelete(generics.DestroyAPIView):
+    queryset = MilkCollectionCenterRecord.objects.all()
+    serializer_class = MilkCollectionCenterRecordSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+

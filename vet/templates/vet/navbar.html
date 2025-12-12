@@ -47,6 +47,8 @@
                 <li><a href="{% url 'farmer-portal' %}">My Dashboard</a></li>
               {% elif user.is_official %}
                 <li><a href="{% url 'official-portal' %}">My Dashboard</a></li>
+                {% elif user.is_cooperative %}
+                <li><a href="{% url 'cooperative-portal' %}">My Dashboard</a></li>
               {% elif user.is_superuser %}
                 <li><a href="/admin">Admin Dashboard</a></li>
               {% endif %}

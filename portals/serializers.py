@@ -416,11 +416,12 @@ class DewormingSerializer(serializers.ModelSerializer):
 class ArtificialInseminationSerializer(serializers.ModelSerializer):
     assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
     assigned_to_official = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+    assigned_to_cooperative = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
 
     class Meta:
         model = ArtificialInsemination
         fields = [
-            'id', 'user', 'assigned_to', 'assigned_to_official', 'assigned_by', 'farm_name', 'species', 'cow_name', 
+            'id', 'user', 'assigned_to', 'assigned_to_official','assigned_to_cooperative','assigned_by', 'farm_name', 'species', 'cow_name', 
             'reg_no', 'dam_details', 'sire_details', 'no_of_repeats', 'rab_status', 'abortion_status', 
             'time_of_heat_sign', 'date_of_heat_sign', 'insemination_date', 'insemination_time', 'insemination_status', 
             'semen_type', 'breed_used', 'other_breed', 'bull_name', 'bull_reg_no', 'semen_source', 'other_source', 
@@ -922,10 +923,29 @@ class SectionSerializer(serializers.ModelSerializer):
         fields = ['id', 'lesson_id', 'lesson', 'title', 'content','file','is_paid','created_at']
 
 class TutorialSerializer(serializers.ModelSerializer):
-    lesson_data = SectionSerializer(many=True, read_only=True, source='sections')  # Include sections and their lesson_id
+    #user_has_paid = serializers.SerializerMethodField()
+
     class Meta:
         model = Tutorial
-        fields = ['id', 'user', 'lesson', 'lesson_data','cpd_number', 'unit_price', 'points','presented_by','is_paid']
+        fields = [
+            'id', 
+            'lesson', 
+            'cpd_number', 
+            'unit_price', 
+            'points', 
+            'presented_by',
+            'contact_hours',
+            'is_paid', 
+            'created_at', 
+            
+        ]
+
+    def get_user_has_paid(self, obj):
+        # Get the user from request context
+        user = self.context['request'].user
+
+        # Return True only if the tutorial belongs to this user AND is_paid is True
+        return obj.user_id == user.id and obj.is_paid
         
 class CommentSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source='author.username', read_only=True)
@@ -1709,3 +1729,102 @@ class FieldQuotationSerializer(serializers.ModelSerializer):
             'signature_and_stamp',
         ]
         read_only_fields = ['user'] 
+        
+        
+class DairyFarmerRegistrationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DairyFarmerRegistration
+        fields = [
+            "id",
+            "user",
+            "date_of_registration",
+            "full_name",
+            "mobile_number",
+            "total_number_of_dairy_cows",
+            "number_of_lactating_cows",
+            "breeds_used",
+            "location",
+            "milk_supply_number",
+        ]
+
+
+class MilkCollectionCenterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MilkCollectionCenter
+        fields = [
+            "id",
+            "user",
+            "date_of_enrollment",
+            "name_of_collection_centre",
+            "location",
+            "agent_incharge",
+            "mobile_number",
+            "approximate_number_of_farmers",
+            "means_of_transfer",
+            "transporter_name",
+            "transporter_mobile",
+            "time_of_milk_collection",
+        ]
+
+
+class CurrentMilkPriceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CurrentMilkPrice
+        fields = [
+            "id",
+            "user",
+            "date_of_amendment",
+            "last_milk_price",
+            "current_milk_price",
+            "remarks",
+        ]
+
+
+class FarmerMilkPaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FarmerMilkPayment
+        fields = [
+            "id",
+            "user",
+            "date_of_payment",
+            "milk_supply_number",
+            "name_in_full",
+            "total_milk_supplied",
+            "amount_to_be_paid",
+            "amount_paid",
+            "balance",
+            "remarks",
+        ]
+        
+class MilkCollectionCoolerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MilkCollectionCooler
+        fields = [
+            'id',
+            'user',
+            'date',
+            'supply_number',
+            'collection_status',
+            'reason',
+            'total_kg_supplied',
+            'name_of_supplier',
+            'remarks'
+        ]
+
+
+# Serializer for MilkCollectionCenterRecord
+class MilkCollectionCenterRecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MilkCollectionCenterRecord
+        fields = [
+            'id',
+            'user',
+            'date',
+            'supply_number',
+            'collection_status',
+            'reason',
+            'total',
+            'name_of_center',
+            'name_of_agent',
+            'remarks'
+        ]
