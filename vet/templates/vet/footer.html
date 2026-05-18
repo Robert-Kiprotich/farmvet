@@ -1,6 +1,6 @@
 <footer id="footer">
 
-    <div class="footer-newsletter">
+    {% comment %} <div class="footer-newsletter">
       <div class="container">
         <div class="row">
           <div class="col-lg-6">
@@ -14,7 +14,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </div> {% endcomment %}
 
     <div class="footer-top">
       <div class="container">
@@ -34,13 +34,12 @@
           <div class="col-lg-3 col-md-6 footer-links">
             <h4>Our Services</h4>
             <ul>
-              <li><i class="bx bx-chevron-right"></i> <a href={% url 'services' %}>Clinical Approach</a></li>
-              <li><i class="bx bx-chevron-right"></i> <a href={% url 'services' %}>Deworming</a></li>
-              <li><i class="bx bx-chevron-right"></i> <a href={% url 'services' %}>Vaccination</a></li>
-              <li><i class="bx bx-chevron-right"></i> <a href={% url 'services' %}>Artificial Insemination</a></li>
-              <li><i class="bx bx-chevron-right"></i> <a href={% url 'services' %}>Extension Services</a></li>
-              <li><i class="bx bx-chevron-right"></i> <a href={% url 'services' %}>Post Mortem</a></li>
-              <li><i class="bx bx-chevron-right"></i> <a href={% url 'services' %}>Pregnancy Diagnosis</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href={% url 'services' %}>Veterinary practitioners portal</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href={% url 'services' %}>Vet pharmaceutical services portal</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href={% url 'services' %}>Dairy cooperative services portal</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href={% url 'services' %}>County vet Services Portal</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href={% url 'services' %}>Farmer Portal</a></li>
+              
             </ul>
           </div>
 
@@ -59,9 +58,16 @@
 
           <div class="col-lg-3 col-md-6 footer-info">
             <h3>About SoinVet</h3>
-            <p>At SoinVet we are passionate about our services and we are on a mission to inspire vets to provide the highest possible standard of  animal’s health under their care..</p>
+            <p>At SoinVet we are passionate about our services and we are on a mission to ensure that our clients satisfaction is our priority.</p>
             <div class="social-links mt-3">
-              <a href="#" class="twitter"><i class="bx bxl-twitter"></i></a>
+              <a href="#" class="twitter"><i class="bx bxl-twitter"></i></a><a href="https://www.facebook.com/SOINVET" class="facebook" target="_blank" rel="noopener">
+  <i class="bx bxl-facebook"></i>
+</a>
+
+<a href="https://www.youtube.com/@soinveterinaryservices" class="youtube" target="_blank" rel="noopener">
+  <i class="bx bxl-youtube"></i>
+</a>
+
               <a href="#" class="linkedin"><i class="bx bxl-linkedin"></i></a>
             </div>
           </div>
@@ -70,12 +76,18 @@
       </div>
     </div>
 
-    <div class="container">
-      <div class="copyright">
-        &copy; Copyright <strong><span>SoinVet</span></strong>. All Rights Reserved
-      </div>
-      <div class="credits">
-        Designed by <a>ishasir</a>
-      </div>
-    </div>
-  </footer><!-- End Footer -->
+   <div class="container">
+  <div class="copyright">
+    &copy; Copyright <strong><span>SoinVet</span></strong>
+    <span>
+      <script>
+        document.write(new Date().getFullYear());
+      </script>
+    </span>. All Rights Reserved
+  </div>
+  <div class="credits">
+    Designed by <a>ishasir</a>
+  </div>
+</div>
+</footer><!-- End Footer -->
+

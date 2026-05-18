@@ -1,9 +1,19 @@
+import os
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+import io
+import math
+ 
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.shortcuts import render, redirect
 from user.models import *
 from .forms import *
 import requests
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test,login_required
+from rest_framework.decorators import api_view, permission_classes
 from .models import *
 from django.views import View
 from .render import Render
@@ -11,1470 +21,509 @@ from django.utils import timezone
 from django.core.serializers import serialize
 from django.http import FileResponse
 from fpdf import FPDF
+from django.db.models import Q, F
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
-from .models import Calf
 from django.http import HttpResponse
-from django.shortcuts import render, get_object_or_404
-from .forms import CalfRegForm
+from django.views import View
 import json
+
+import base64
+from django.shortcuts import get_object_or_404
+from django.urls import reverse
 from .monitoring import *
 from io import BytesIO
 from .serializers import *
-from rest_framework import generics
+from rest_framework import generics,parsers
 from .pagination import CustomPagination
 from rest_framework.permissions import IsAuthenticated
-from .permissions import Is_Farmer,Is_Vet
+from .permissions import *
 from rest_framework.response import Response
 from django.db.models import OuterRef, Subquery
+from datetime import timedelta,time,datetime
+from rest_framework.exceptions import ValidationError
+from django.core.exceptions import MultipleObjectsReturned
+import logging
+from django.db import transaction
+from rest_framework import generics,status
+from django.http import FileResponse, Http404
+from django.http import FileResponse, HttpResponseNotFound
+import cv2
+import numpy as np
+from django.conf import settings
+from django.templatetags.static import static
+from django.utils.timezone import now
+from  .credentials import *
+from .token import *
+from rest_framework.pagination import PageNumberPagination
+from django.db.models import Exists, OuterRef
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+
+
+logger = logging.getLogger(__name__)
+
+
+def vet_check(user):
+    if not user.is_authenticated:
+        return False  
+    return getattr(user, 'is_vet_officer', False)
+
+def farmer_check(user):
+    if not user.is_authenticated:
+        return False  
+    return getattr(user, 'is_farmer', False)
+def official_check(user):
+    if not user.is_authenticated:
+        return False
+    return user.is_official
+def cooperative_check(user):
+    if not user.is_authenticated:
+        return False
+    return user.is_cooperative
 
 
 
+def csrf_failure(request, reason=""):
+    return render(request, "portals/csrf_failure.html", {"reason": reason})
 
-
-
-def vet_check(request):
-    return request.is_vet_officer
-
-def farmer_check(request):
-    return request.is_farmer
-
-def student_check(request):
-    return request.is_student    
-
-
-@login_required
+@user_passes_test(vet_check, login_url='vet-login')
 def portal_vet(request):
     vet_officers = Vet_Officer.objects.all()
-    no_vet_forms =Vet_Forms.objects.filter(vet_username=request.user).count()
     context = {
         'all_vets': vet_officers,
-        'count': no_vet_forms
+         'role': 'vet',
+       
     }
     return render(request, 'portals/dashboardVet.html', context)
-    
-    
-    
-    
-def vet_list(request):
-    vet_officers = Vet_Officer.objects.all()
-    no_vet_forms =Vet_Forms.objects.filter(vet_username=request.user).count()
+@user_passes_test(cooperative_check, login_url='cooperative-login')
+def cooperative(request):
+    dairy_coop = DairyCooperative.objects.all()
     context = {
-        'all_vets': vet_officers,
-        'count': no_vet_forms
+        'all_coops': dairy_coop,
+         'role': 'cooperative',
+       
     }
-    return render(request, 'portals/vetList.html', context)
+    return render(request, 'portals/dashboardCoop.html', context)
+
+@user_passes_test(official_check, login_url='official-login')
+def portal_official(request):
+    officers = Official.objects.all()
+    context = {
+        'all_officers': officers,
+        'role': 'officer'
+       
+    }
+    return render(request, 'portals/dashboardOfficial.html', context)
+    
     
 
-@login_required
+@user_passes_test(farmer_check, login_url='farmer-login')   
+def vet_list(request):
+    vet_officers = Vet_Officer.objects.all()
+    context = {
+        'all_vets': vet_officers,  
+    }
+    return render(request, 'portals/vetList.html', context)
+
+
+@user_passes_test(vet_check, login_url='vet-login')
+def vet_list_vet(request):
+    vet_officers = Vet_Officer.objects.all()
+    context = {
+        'all_vets': vet_officers,  
+    }
+    return render(request, 'portals/vet_list_vet.html', context)
+    
+
+@user_passes_test(farmer_check, login_url='farmer-login')
 def portal_farmer(request):
     vet_officers = Vet_Officer.objects.all()
     context = {
-        'all_vets': vet_officers
+        'all_vets': vet_officers,
+        'role': 'farmer'
     }
+    print(context)
     return render(request, 'portals/dashboardFarmer.html', context)
 
-@user_passes_test(student_check, login_url='vet-login')
-def portal_student(request):
-    vet_officers = Vet_Officer.objects.all()
-    context = {
-        'all_vets': vet_officers
-    }
-    return render(request, 'portals/dashboardStudent.html', context)  
 
 
-@login_required
-def sick_form_view(request):
-    sick_approach_forms = Sick_Approach_Form.objects.filter(vet_form__vet_username=request.user)
-    context = {
-        'form_name': 'Clinical Approach Form',
-        'forms': sick_approach_forms
-    }    
-    return render(request, 'portals/formview.html', context)
- 
+def surgical_record(request):
+    return render(request, 'portals/reports/surgery.html', {})
+
+def surgical_view(request):
+    return render(request, 'portals/reports/surgeryview.html', {})
+
+class SurgicalRecordCreate(generics.CreateAPIView):
+    queryset = SurgicalRecord.objects.all()
+    serializer_class = SurgicalRecordSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class SurgicalRecordList(generics.ListAPIView):
+    serializer_class = SurgicalRecordSerializer
+    permission_classes = [Is_Vet | Is_Farmer]
+    pagination_class = CustomPagination
     
-@login_required
-def edit_sick_form(request, pk):
-	try:
-		sick_sel = Sick_Approach_Form.objects.get(pk = pk)
-	except Sick_Approach_Form.DoesNotExist:
-		return redirect('index')
-	sick_form = SickApproachForm(request.POST or None, instance = sick_sel)
-	if sick_form.is_valid():
-		sick_form.save()
-		return redirect('index')
-	return render(request, 'portals/editform.html', {'form':sick_form, 'form_name':'Clinical'})
-
-
- 
-@login_required
-def dead_form_view(request):
-    dead_approach_forms = Death_Approach_Form.objects.filter(vet_form__vet_username=request.user)
-    context = {
-        'form_name': 'Post Mortem Approach Form',
-        'forms': dead_approach_forms
-    }    
-    return render(request, 'portals/deadformview.html', context)
- 
-
-@login_required
-def edit_dead_form(request, pk):
-	try:
-		dead_sel = Death_Approach_Form.objects.get(pk = pk)
-	except Death_Approach_Form.DoesNotExist:
-		return redirect('index')
-	dead_form = DeathApproachForm(request.POST or None, instance = dead_sel)
-	if dead_form.is_valid():
-		dead_form.save()
-		return redirect('index')
-	return render(request, 'portals/editform.html', {'form':dead_form, 'form_name':'Post Mortem'})
-
- 
-@login_required
-def surgical_form_view(request):
-    surgical_approach_forms = Surgical_Approach_Form.objects.filter(vet_form__vet_username=request.user)
-    context = {
-        'form_name': 'surgical Approach Form',
-        'forms': surgical_approach_forms
-    }    
-    return render(request, 'portals/surgicalformview.html', context)
- 
-
-@login_required
-def edit_surgical_form(request, pk):
-	try:
-		surgical_sel = Surgical_Approach_Form.objects.get(pk = pk)
-	except Surgical_Approach_Form.DoesNotExist:
-		return redirect('index')
-	surgical_form = SurgicalApproachForm(request.POST or None, instance = surgical_sel)
-	if surgical_form.is_valid():
-		surgical_form.save()
-		return redirect('index')
-	return render(request, 'portals/editform.html', {'form':surgical_form, 'form_name':'Surgical'})
-
-@login_required
-def deworming_form_view(request):
-    deworming_approach_forms = Deworming_Form.objects.filter(vet_form__vet_username=request.user)
-    context = {
-        'form_name': 'Deworming Approach Form',
-        'forms': deworming_approach_forms
-    }    
-    return render(request, 'portals/dewormingformview.html', context)
- 
-
-@login_required
-def edit_deworming_form(request, pk):
-	try:
-		surgical_sel = Deworming_Form.objects.get(pk = pk)
-	except Deworming_Form.DoesNotExist:
-		return redirect('index')
-	deworming_form = DewormingForm(request.POST or None, instance = surgical_sel)
-	if deworming_form.is_valid():
-		deworming_form.save()
-		return redirect('index')
-	return render(request, 'portals/editform.html', {'form':deworming_form, 'form_name':'Deworming'})
-
-
-@login_required
-def vaccination_form_view(request):
-    vaccination_approach_forms = Vaccination_Form.objects.filter(vet_form__vet_username=request.user)
-    context = {
-        'form_name': 'Vaccination Form',
-        'forms': vaccination_approach_forms
-    }    
-    return render(request, 'portals/vaccinationformview.html', context)
- 
-
-@login_required
-def edit_vaccination_form(request, pk):
-	try:
-		surgical_sel = Vaccination_Form.objects.get(pk = pk)
-	except Vaccination_Form.DoesNotExist:
-		return redirect('index')
-	vaccination_form = VaccinationForm(request.POST or None, instance = surgical_sel)
-	if vaccination_form.is_valid():
-		vaccination_form.save()
-		return redirect('index')
-	return render(request, 'portals/editform.html', {'form':vaccination_form, 'form_name':'Vaccination'})
-
-
-
-@login_required
-def artificial_form_view(request):
-    artificial_approach_forms = Artificial_Insemination_Form.objects.filter(vet_form__vet_username=request.user)
-    context = {
-        'form_name': 'Artificial Form',
-        'forms': artificial_approach_forms
-    }    
-    return render(request, 'portals/artificialformview.html', context)
- 
-
-@login_required
-def edit_artificial_form(request, pk):
-	try:
-		surgical_sel = Artificial_Insemination_Form.objects.get(pk = pk)
-	except Artificial_Form.DoesNotExist:
-		return redirect('index')
-	Artificial_form = ArtificialInseminationForm(request.POST or None, instance = surgical_sel)
-	if Artificial_form.is_valid():
-		artificial_form.save()
-		return redirect('index')
-	return render(request, 'portals/editform.html', {'form':artificial_form, 'form_name':'artificial'})
-
-
-
-
-@login_required
-def pregnancy_form_view(request):
-    pregnancy_approach_forms = Pregnancy_Diagnosis_Form.objects.filter(vet_form__vet_username=request.user)
-    context = {
-        'form_name': 'Pregnancy diagnosis Form',
-        'forms': pregnancy_approach_forms
-    }    
-    return render(request, 'portals/pregnancyformview.html', context)
- 
-
-@login_required
-def edit_pregnancy_form(request, pk):
-	try:
-		surgical_sel = Pregnancy_Diagnosis_Form.objects.get(pk = pk)
-	except Pregnancy_Diagnosis_Form.DoesNotExist:
-		return redirect('index')
-	pregnancy_form = PregnancyDiagnosisForm(request.POST or None, instance = surgical_sel)
-	if pregnancy_form.is_valid():
-		pregnancy_form.save()
-		return redirect('index')
-	return render(request, 'portals/editform.html', {'form':Pregnancy_Diagnosis_Form, 'form_name':'pregnancy'})
-
-
-
-
-@login_required
-def clinical_approach(request):
-    return render(request, 'portals/clinical_approach.html') 
-
-import json
-@login_required
-def sick_approach(request):
-    if request.method == "POST":
-        form = SickApproachForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance with vet_username and is_sick_approach_form
-            vet_sick_form = Vet_Forms(vet_username=request.user, is_sick_approach_form=True)
-            vet_sick_form.save()
-
-            # Associate the Vet_Forms instance with the SickApproachForm instance
-            form_instance = form.save(commit=False)
-            form_instance.vet_form = vet_sick_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('vet-portal')
-
-    else:
-        form = SickApproachForm()
-
-    context = {
-        'form': form,
-        'name': 'Clinical Approach Form'
-    }
-
-    return render(request, 'portals/forms.html', context)
-
-@login_required
-def dead_approach(request):
-    if request.method == "POST":
-        form = DeathApproachForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance with vet_username and is_dead_approach_form
-            vet_death_form = Vet_Forms(vet_username=request.user, is_dead_approach_form=True)
-            vet_death_form.save()
-
-            # Associate the Vet_Forms instance with the DeathApproachForm instance
-            form_instance = form.save(commit=False)
-            form_instance.vet_form = vet_death_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('vet-portal')
-
-    else:
-        form = DeathApproachForm()
-
-    context = {
-        'form': form,
-        'name': 'Post Mortem Approach Form'
-    }
-
-    return render(request, 'portals/forms.html', context) 
-
-@login_required
-def surgical_approach(request):
-    if request.method == "POST":
-        form = SurgicalApproachForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance with vet_username and is_surgical_approach_form
-            vet_surgical_form = Vet_Forms(vet_username=request.user, is_surgical_approach_form=True)
-            vet_surgical_form.save()
-
-            # Associate the Vet_Forms instance with the SurgicalApproachForm instance
-            form_instance = form.save(commit=False)
-            form_instance.vet_form = vet_surgical_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('vet-portal')
-
-    else:
-        form = SurgicalApproachForm()
-
-    context = {
-        'form': form,
-        'name': 'Surgical Approach Form'
-    }
-
-    return render(request, 'portals/forms.html', context)
-
-@login_required
-def deworming(request):
-    if request.method == "POST":
-        form = DewormingForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance with vet_username and is_deworming_form
-            vet_deworming_form = Vet_Forms(vet_username=request.user, is_deworming_form=True)
-            vet_deworming_form.save()
-
-            # Associate the Vet_Forms instance with the DewormingForm instance
-            form_instance = form.save(commit=False)
-            form_instance.vet_form = vet_deworming_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('vet-portal')
-
-    else:
-        form = DewormingForm()
-
-    context = {
-        'form': form,
-        'name': 'Deworming Form'
-    }
-
-    return render(request, 'portals/forms.html', context)
-
-@login_required    
-def vaccination(request):
-    if request.method == "POST":
-        form = VaccinationForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance with vet_username and is_vaccination_form
-            vet_vaccination_form = Vet_Forms(vet_username=request.user, is_vaccination_form=True)
-            vet_vaccination_form.save()
-
-            # Associate the Vet_Forms instance with the VaccinationForm instance
-            form_instance = form.save(commit=False)
-            form_instance.vet_form = vet_vaccination_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('vet-portal')
-
-    else:
-        form = VaccinationForm()
-
-    context = {
-        'form': form,
-        'name': 'Vaccination Form'
-    }
-
-    return render(request, 'portals/forms.html', context)
-
-@login_required
-def breeding_record(request):
-    ...
-
-@login_required
-def artificial_insemination(request):
-    if request.method == "POST":
-        form = ArtificialInseminationForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance with vet_username and is_artificial_insemination_form
-            vet_ai_form = Vet_Forms(vet_username=request.user, is_artificial_insemination_form=True)
-            vet_ai_form.save()
-
-            # Associate the Vet_Forms instance with the ArtificialInseminationForm instance
-            form_instance = form.save(commit=False)
-            form_instance.vet_form = vet_ai_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('vet-portal')
-
-    else:
-        form = ArtificialInseminationForm()
-
-    context = {
-        'form': form,
-        'name': 'Artificial Insemination Form'
-    }
-
-    return render(request, 'portals/forms.html', context)
-
-@login_required
-#@login_required  # Decorate your view with login_required to ensure the user is authenticated
-def calf_registration(request):
-    if request.method == "POST":
-        form = CalfRegistrationForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance
-            vet_calf_form = Vet_Forms(is_calf_registration_form=True)
-            vet_calf_form.save()
-
-            # Create a new Calf_Registration_Form instance
-            form_instance = form.save(commit=False)
-
-            # Extract the username from the user instance and assign it to farmer_username
-            form_instance.farmer_username = request.user.username  # Change this line
-
-            form_instance.vet_form = vet_calf_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('farmer-portal')    
-
-    else:
-        form = CalfRegistrationForm()
-
-    context = {
-        'form': form,
-        'name': 'Calf Registration Form'
-    }
-    return render(request, 'portals/fforms.html', context)
-
-@login_required
-def calf_form_view(request):
-    calf_forms = Calf_Registration_Form.objects.filter(farmer_username=request.user)
-    context = {
-        'form_name': 'Calf Registration Form',
-        'forms': calf_forms
-    }    
-    return render(request, 'portals/fformview.html', context)
-
-
-@login_required
-def edit_calf_registration(request, pk):
-	try:
-		calf_sel = Calf_Registration_Form.objects.get(pk = pk)
-	except Calf_Registration_Form.DoesNotExist:
-		return redirect('index')
-	calf_form = CalfRegistrationForm(request.POST or None, instance = calf_sel)
-	if calf_form.is_valid():
-		calf_form.save()
-		return redirect('index')
-	return render(request, 'portals/editfform.html', {'form':calf_form, 'form_name':'Calf Registration'})
-
-
-@login_required
-def livestock_inventory(request):
-    if request.method == "POST":
-        form = LivestockInventoryForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance
-            vet_inventory_form = Vet_Forms(is_livestock_inventory_form=True)
-            vet_inventory_form.save()
-
-            # Associate the Vet_Forms instance with the LivestockInventoryForm instance
-            form_instance = form.save(commit=False)
-            form_instance.vet_form = vet_inventory_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('farmer-portal')
-
-    else:
-        form = LivestockInventoryForm()
-
-    context = {
-        'form': form,
-        'name': 'Livestock Inventory Form'
-    }
-
-    return render(request, 'portals/forms.html', context)
-
-@login_required
-def livestock_inventory_view(request):
-    livestock_forms = Livestock_Inventory_Form.objects.filter(farmer_username=request.user)
-    context = {
-        'form_name': 'Livestock Inventory Form',
-        'forms': livestock_forms
-    }    
-    return render(request, 'portals/livestockformview.html', context)
-
-
-@login_required
-def edit_livestock_inventory(request, pk):
-	try:
-		livestock_sel = Livestock_Inventory_Form.objects.get(pk = pk)
-	except Livestock_Inventory_Form.DoesNotExist:
-		return redirect('index')
-	livestock_form = LivestockInventoryForm(request.POST or None, instance = livestock_sel)
-	if livestock_form.is_valid():
-		livestock_form.save()
-		return redirect('index')
-	return render(request, 'portals/editfform.html', {'form':livestock_form, 'form_name':'Livestock Inventory Form'})
-
-
-@login_required
-def pregnancy_diagnosis(request):
-    if request.method == "POST":
-        form = PregnancyDiagnosisForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance with vet_username and is_pregnancy_diagnosis_form
-            vet_preg_form = Vet_Forms(vet_username=request.user, is_pregnancy_diagnosis_form=True)
-            vet_preg_form.save()
-
-            # Associate the Vet_Forms instance with the PregnancyDiagnosisForm instance
-            form_instance = form.save(commit=False)
-            form_instance.vet_form = vet_preg_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('vet-portal')
-
-    else:
-        form = PregnancyDiagnosisForm()
-
-    context = {
-        'form': form,
-        'name': 'Pregnancy Diagnosis Form'
-    }
-
-    return render(request, 'portals/forms.html', context)
- 
-
-@login_required
-def consultation_form_view(request):
-    consultation_forms = Farm_Consultation.objects.filter(vet_form__vet_username=request.user)
-    context = {
-        'form_name': 'Consultation Form',
-        'forms': consultation_forms
-    }    
-    return render(request, 'portals/consultationformview.html', context)
- 
-    
-@login_required
-def edit_consultation_form(request, pk):
-	try:
-		consul_sel = Farm_Consultation.objects.get(pk = pk)
-	except Farm_Consultation.DoesNotExist:
-		return redirect('index')
-	consultation_form = FarmConsultationForm(request.POST or None, instance = consul_sel)
-	if consultation_form.is_valid():
-		consultation_form.save()
-		return redirect('index')
-	return render(request, 'portals/editform.html', {'form':consultation_form, 'form_name':'Consultation'})
-
-@login_required
-def consultation(request):
-    if request.method == "POST":
-        form = FarmConsultationForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance with is_farm_consultation set
-            consultation_form = Vet_Forms(vet_username=request.user, is_farm_consultation=True)
-            consultation_form.save()
-
-            # Associate the Vet_Forms instance with the FarmConsultationForm instance
-            form_instance = form.save(commit=False)
-            form_instance.vet_form = consultation_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('vet-portal')
-
-    else:
-        form = FarmConsultationForm()
-
-    context = {
-        'form': form,
-        'name': 'Farm Consultation Form'
-    }
-
-    return render(request, 'portals/forms.html', context)
-
-
-@login_required
-def vet_billing_form_view(request):
-    bill_forms = Veterinary_Billing_Form.objects.filter(vet_form__vet_username=request.user)
-    context = {
-        'form_name': 'Vet Billing Form',
-        'forms': bill_forms
-    }    
-    return render(request, 'portals/vetbillformview.html', context)
- 
-    
-@login_required
-def edit_vet_billing_form(request, pk):
-	try:
-		bill_sel = Veterinary_Billing_Form.objects.get(pk = pk)
-	except Veterinary_Billing_Form.DoesNotExist:
-		return redirect('index')
-	billing_form = VeterinaryBillingForm(request.POST or None, instance = bill_sel)
-	if billing_form.is_valid():
-		billing_form.save()
-		return redirect('index')
-	return render(request, 'portals/editform.html', {'form':billing_form, 'form_name':'Vet Billing'})
-
-@login_required
-def vet_billing(request):
-    if request.method == "POST":
-        form = VeterinaryBillingForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance with is_vet_billing_form set
-            billing_form = Vet_Forms(vet_username=request.user, is_vet_billing_form=True)
-            billing_form.save()
-
-            # Associate the Vet_Forms instance with the VeterinaryBillingForm instance
-            form_instance = form.save(commit=False)
-            form_instance.vet_form = billing_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('vet-portal')
-
-    else:
-        form = VeterinaryBillingForm()
-
-    context = {
-        'form': form,
-        'name': 'Vet Billing Form'
-    }
-
-    return render(request, 'portals/forms.html', context)
-
-
-@login_required
-def lab_form_view(request):
-    lab_forms = Laboratory_Form.objects.filter(vet_form__vet_username=request.user)
-    context = {
-        'form_name': 'Laboratory Form',
-        'forms': lab_forms
-    }    
-    return render(request, 'portals/labformview.html', context)
- 
-    
-@login_required
-def edit_lab_form(request, pk):
-	try:
-		lab_sel = Laboratory_Form.objects.get(pk = pk)
-	except Laboratory_Form.DoesNotExist:
-		return redirect('index')
-	lab_form = LaboratoryForm(request.POST or None, instance = lab_sel)
-	if lab_form.is_valid():
-		lab_form.save()
-		return redirect('index')
-	return render(request, 'portals/editform.html', {'form':lab_form, 'form_name':'Laboratory'})
-
-@login_required
-def lab(request):
-    if request.method == "POST":
-        form = LaboratoryForm(request.POST)
-        if form.is_valid():
-            # Create a new Vet_Forms instance with is_lab_form set
-            labo_form = Vet_Forms(is_lab_form=True)
-            labo_form.save()
-
-            # Associate the Vet_Forms instance with the LaboratoryForm instance
-            form_instance = form.save(commit=False)
-            form_instance.vet_form = labo_form
-            form_instance.save()
-
-            messages.success(request, 'Details successfully saved')
-            return redirect('vet-portal')
-
-    else:
-        form = LaboratoryForm()
-
-    context = {
-        'form': form,
-        'name': 'Laboratory Form'
-    }
-
-    return render(request, 'portals/forms.html', context)
-
-
-
-@login_required
-def referral_form_view(request):
-    referral_forms = Referral_Form.objects.filter(vet_form__vet_username=request.user)
-    context = {
-        'form_name': 'Referral Form',
-        'forms': referral_forms
-    }    
-    return render(request, 'portals/referralformview.html', context)
-
-
-@login_required 
-def referral_form(request):
-    if request.method == "POST":
-        form = ReferalForm(request.POST)
-        if form.is_valid():
-            referral_form= Vet_Forms(vet_username=request.user, is_referral_form=True)
-            referral_form.save() 
-            form.save()
-            messages.success(request, 'Details  Successfully Saved')
-            return redirect('vet-portal')    
-
-    else:
-        form = ReferalForm()
-
-    context = {
-        'form':form,
-        'name':'Referral form'
-         }
-    return render(request, 'portals/forms.html', context)
-
-
-
-
-class referral_Form_Pdf(View):
-
-    def get(self, request):
-        try:
-            referral_forms = Referral_Form.objects.filter(farmer_username=request.user)
-        except:
-            messages.warning(self.request, f'referral form for {request.user} not available')
-            return redirect('farmer-portal')    
-        if referral_forms:
-            params = {
-                'today':timezone.now,
-                'forms': referral_forms,
-                'request': request          
-            }
-            return Render.render('portals/referral_pdf_form.html', params)
-        else:
-            messages.warning(self.request, f'No referral form available for {self.request.user}')
-            return redirect('index')    
-
-
-class Referral_Form_Pdf_Vet(View):
-
-    def get(self, request):
-        try:
-            referral_forms = Referral_Form.objects.filter(vet_form__vet_username=self.request.user)
-        except:
-            messages.warning(self.request, f'referral form for {request.user} not available')
-            return redirect('vet-portal')    
-        if referral_forms:
-            params = {
-                'today':timezone.now,
-                'forms': referral_forms,
-                'request': request
-            }
-            return Render.render('portals/referral_pdf_form.html', params)
-        else:
-            messages.warning(self.request, f'No referral form available for {self.request.user}')
-            return redirect('index') 
-
-
-@login_required
-def edit_referral_form(request, pk):
-	try:
-		referral_sel = Referral_Form.objects.get(pk = pk)
-	except Referral_Form.DoesNotExist:
-		return redirect('index')
-	referral_form = ReferalForm(request.POST or None, instance = referral_sel)
-	if referral_form.is_valid():
-		referral_form.save()
-		return redirect('index')
-	return render(request, 'portals/editform.html', {'form':referral_form, 'form_name':'referral'})
-
-def sick_form_pdf(request):
-    farmer = Farmer.objects.get(user=request.user)
-    sick_forms = Sick_Approach_Form.objects.filter(farmer=farmer)
-    if sick_forms:
-        pdf = FPDF('P', 'mm', 'A4')
-        for form in sick_forms:
-            print(form)
-            pdf.add_page()
-            pdf.set_font('courier', 'B', 16)
-            pdf.cell(40, 10, 'Clinical Approach Form',0,1)
-            #pdf.cell(40, 10, f'{form.vet_form.report_created_on}', 0, 1)
-            pdf.cell(40, 10, '',0,1)
-            pdf.set_font('courier', '', 12)
-            pdf.cell(200, 8, f"{'Field'.ljust(30)} {'Value'.rjust(30)}", 0, 1)
-            pdf.line(10, 30, 200, 30)
-            pdf.line(10, 38, 200, 38)
-
-            pdf.cell(200, 8, f"{'Species affected'.ljust(30)} {form.species_affected.rjust(30)}", 0, 1)
-            pdf.cell(200, 8, f"{'Number of Species affected'.ljust(30)} {str(form.num_of_species_affected).rjust(30)}", 0, 1)
-            pdf.cell(200, 8, f"{'Identification number'.ljust(30)} {form.id_animal.rjust(30)}", 0, 1)
-            pdf.cell(200, 8, f"{'nature of the disease'.ljust(30)} {form.disease_nature.rjust(30)}", 0, 1)
-            pdf.cell(200, 8, f"{'Clinical Signs'.ljust(30)} {form.clinical_signs.rjust(30)}", 0, 1)
-            pdf.cell(200, 8, f"{'Disease Diagnosis'.ljust(30)} {form.disease_diagnosis.rjust(30)}", 0, 1)
-            pdf.cell(200, 8, f"{'Differential Diagnosis'.ljust(30)} {form.differential_diagnosis.rjust(30)}", 0, 1)
-            pdf.cell(200, 8, f"{'Final Diagnosis'.ljust(30)} {form.final_diagnosis.rjust(30)}", 0, 1)
-            pdf.cell(200, 8, f"{'Duration of the sickness '.ljust(30)} {form.sickness_duration.rjust(30)}", 0, 1)
-            # more cells here ...
-
-
-        pdf.output('clinical_approach_report.pdf', 'F')
-        return FileResponse(open('clinical_approach_report.pdf', 'rb'), as_attachment=False, content_type='application/pdf')
-
-    else:
-        messages.warning(request, f'No referral form available for {request.user}')
-        return redirect('farmer-portal') 
-class Sick_Form_Pdf(View):
-
-    def get(self, request):
-        try:
-            sick_forms = Sick_Approach_Form.objects.filter(farmer_username=request.user)
-        except:
-            messages.warning(self.request, f'Sick approach form for {request.user} not available')
-            return redirect('farmer-portal')    
-        if sick_forms:
-            params = {
-                'today':timezone.now,
-                'forms': sick_forms,
-                'request': request          
-            }
-            return Render.render('portals/sick_form_pdf.html', params)
-        else:
-            messages.warning(self.request, f'No Sick form available for {self.request.user}')
-            return redirect('index')    
-
-
-class Sick_Form_Pdf_Vet(View):
-
-    def get(self, request):
-        try:
-            sick_forms = Sick_Approach_Form.objects.filter(vet_form__vet_username=self.request.user)
-        except:
-            messages.warning(self.request, f'Sick approach form for {request.user} not available')
-            return redirect('vet-portal')    
-        if sick_forms:
-            params = {
-                'today':timezone.now,
-                'forms': sick_forms,
-                'request': request
-            }
-            return Render.render('portals/sick_form_pdf.html', params)
-        else:
-            messages.warning(self.request, f'No Sick form available for {self.request.user}')
-            return redirect('index') 
-
-
-
-def dead_form_pdf(request):
-    dead_forms = Death_Approach_Form.objects.filter(farmer_username=request.user)
-    if dead_forms:
-        pdf = FPDF('P', 'mm', 'A4')
-        for form in dead_forms:
-            pdf.add_page()
-            pdf.set_font('courier', 'B', 16)
-            pdf.cell(40, 10, 'Post Mortem Approach Form',0,1)
-            pdf.cell(40, 10, '',0,1)
-            pdf.set_font('courier', '', 12)
-            pdf.cell(200, 8, f"{'Field'.ljust(30)} {'Value'.rjust(30)}", 0, 1)
-            pdf.line(10, 30, 200, 30)
-            pdf.line(10, 38, 200, 38)
-
-            pdf.cell(200, 8, f"{'Name or identification number'.ljust(30)} {form.name_of_the_animal.rjust(30)}", 0, 1)
-            pdf.cell(200, 8, f"{'Sex of the animal'.ljust(30)} {str(form.sex_of_the_animal).rjust(30)}", 0, 1)
-            pdf.cell(200, 8, f"{'Number of animals dead'.ljust(30)} {str(form.num_of_species_dead).rjust(30)}", 0, 1)
-            pdf.cell(200, 8, f"{'When was the case reported'.ljust(30)} {form.case_history.rjust(30)}", 0, 1)
-            # more cells here ...
-            
-
-
-        pdf.output('postmortem_approach_report.pdf', 'F')
-        return FileResponse(open('postmortem_approach_report.pdf', 'rb'), as_attachment=False, content_type='application/pdf')
-
-    else:
-        messages.warning(request, f'Post Mortem form for {request.user} is  not available')
-        return redirect('farmer-portal')
-
-
-
-
-class Dead_Form_Pdf(View):
-
-    def get(self, request):
-        try:
-            dead_forms = Death_Approach_Form.objects.filter(farmer_username=request.user)
-        except: 
-            messages.warning(self.request, f'Sick approach form for {request.user} not available')
-            return redirect('farmer-portal')
-        if dead_forms:
-            params = {
-                'today':timezone.now,
-                'forms': dead_forms,
-                'request': request
-            }
-            return Render.render('portals/dead_form_pdf.html',params)
-        else:
-            messages.warning(self.request,f'No dead form available for {self.request.user}')
-            return redirect('index')
-
-
-class Dead_Form_Pdf_Vet(View):
-
-    def get(self, request):
-        try:
-            dead_forms = DeathApproachForm.objects.filter(vet_form__vet_username=self.request.user)
-        except:
-            messages.warning(self.request, f'Death approach form for {request.user} not available')
-            return redirect('vet-portal')    
-        if dead_forms:
-            params = {
-                'today':timezone.now,
-                'forms': dead_forms,
-                'request': request
-            }
-            return Render.render('portals/dead_form_pdf.html', params)
-        else:
-            messages.warning(self.request, f'No Sick form available for {self.request.user}')
-            return redirect('index') 
-
-
-class Surgical_Form_Pdf(View):
-
-    def get(self, request):
-        try:
-            surgical_forms = Surgical_Approach_Form.objects.filter(farmer_username=request.user)
-        except:
-            messages.warning(self.request, f'Sick approach form for {request.user} not available')
-            return redirect('farmer-portal')
-        if surgical_forms:
-            params = {
-                'today':timezone.now,
-                'forms': surgical_forms,
-                'request': request
-            }
-            return Render.render('portals/surgical_form_pdf.html',params)
-        else:
-            messages.warning(self.request,f'No surgical form available for {self.request.user}')
-            return redirect('index')
-
-
-class Deworming_Form_Pdf(View):
-
-    def get(self, request):
-        try:
-            deworming_forms = Deworming_Form.objects.filter(farmer_username=request.user)
-        except:
-            messages.warning(self.request, f'Sick approach form for {request.user} not available')
-            return redirect('farmer-portal')
-        if deworming_forms:
-            params = {
-                'today':timezone.now,
-                'forms': deworming_forms,
-                'request': request
-            }
-            return Render.render('portals/deworming_form_pdf.html', params)
-        else:
-            messages.warning(self.request, f'No deworming form available for {self.request.user}')
-            return redirect('index')    
-
-
-class Vaccination_Form_Pdf(View):
-
-    def get(self, request):
-        try:
-            vaccination_forms = Vaccination_Form.objects.filter(farmer_username=request.user)
-        except:
-            messages.warning(self.request, f'Sick approach form for {request.user} not available')
-            return redirect('farmer-portal')
-        if vaccination_forms:
-            params = {
-                'today':timezone.now,
-                'forms': vaccination_forms,
-                'request': request
-            }
-            return Render.render('portals/vaccination_pdf_form.html', params)
-        else:
-            messages.warning(self.request, f'No vaccination form available for {self.request.user}')
-            return redirect('index') 
-
-
-class Artificial_Insemination_Form_Pdf(View):
-
-    def get(self, request):
-        try:
-            Artificial_forms = Artificial_Insemination_Form.objects.filter(farmer_username=request.user)
-        except:
-            messages.warning(self.request, f'Sick approach form for {request.user} not available')
-            return redirect('farmer-portal')
-        if Artificial_forms:
-            params = {
-                'today':timezone.now,
-                'forms': Artificial_forms,
-                'request': request
-            }
-            return Render.render('portals/artificial_form_pdf.html', params)
-        else:
-            messages.warning(self.request, f'No artificial form available for {self.request.user}')
-            return redirect('index') 
-
-
-
-class Farm_Consultation_Form_Pdf(View):
-
-    def get(self, request):
-        try:
-            consultation_forms = Farm_Consultation.objects.filter(farmer_username=request.user)
-        except:
-            messages.warning(self.request, f'Sick approach form for {request.user} not available')
-            return redirect('farmer-portal')
-        if consultation_forms:
-            params = {
-                'today':timezone.now,
-                'forms': consultation_forms,
-                'request': request
-            }
-            return Render.render('portals/consultation_form.html', params)
-        else:
-            messages.warning(self.request, f'No consultation form available for {self.request.user}')
-            return redirect('index') 
-
-
-class Pregnancy_Diagnosis_Form_Pdf(View):
-
-    def get(self, request):
-        diagnosis_forms = Pregnancy_Diagnosis_Form.objects.filter(farmer_username=request.user)
-        if diagnosis_forms:
-            params = {
-                'today':timezone.now,
-                'forms': diagnosis_forms,
-                'request': request
-            }
-            return Render.render('portals/diagnosis_form.html', params)
-        else:
-            messages.warning(self.request, f'No pregnancy form available for {self.request.user}')
-            return redirect('index') 
-
-class Calf_Registration_Form_Pdf(View):
-
-    def get(self, request):
-        calf_reg_forms = Calf_Registration_Form.objects.filter(farmer_username=request.user)
-        if calf_reg_forms:
-            params = {
-                'today':timezone.now,
-                'forms': calf_reg_forms,
-                'request': request
-            }
-            return Render.render('portals/calf_reg_form.html', params)
-        else:
-            messages.warning(self.request, f'No Calf registration form available for {self.request.user}')
-            return redirect('index') 
-
-class Livestock_Form_Pdf(View):
-
-    def get(self, request):
-        livestock_forms = Livestock_Inventory_Form.objects.filter(farmer_username=request.user)
-        if livestock_forms:
-            params = {
-                'today':timezone.now,
-                'forms': livestock_forms,
-                'request': request
-            }
-            return Render.render('portals/livestock_form.html', params)
-        else:
-            messages.warning(self.request, f'No Livestock form available for {self.request.user}')
-            return redirect('index') 
-
-
-
-def display_images(request):
-    inventory = Livestock_Inventory_Form.objects.get(farmer_username=request.user)
-    context = {
-        'img_obj': inventory
-    }
-    return render(request, 'portals/gallery.html', context)
-
-
-    #records
-def artificial_report(request):
-    
-    return render(request,'portals/reports/artificialinsemination.html')
-
-def artificial_report_data(request):
-    artificial_approach_forms = Artificial_Insemination_Form.objects.all()
-    data = []
-    for form in artificial_approach_forms:
-        data.append({
-            'farmer_username': form.farmer_username,
-            'Name_of_the_cow': form.Name_of_the_cow,
-            'sex_of_the_calf_born': form.sex_of_the_calf_born,
-            'date_of_birth': form.date_of_birth,
-            'nature_of_birth': form.nature_of_birth,
-            'number_of_repeat': form.number_of_repeat,
-            'abortion_rate': form.abortion_rate,
-            'reason_for_the_cause_of_abortion': form.reason_for_the_cause_of_abortion,
-            'time_of_heat_sign': form.time_of_heat_sign,
-            'date_of_insemination': form.date_of_insemination,
-            'time_of_insemination': form.time_of_insemination,
-            'nature_of_the_breeding': form.nature_of_the_breeding,
-            'sire_name': form.sire_name,
-            'sire_origin': form.sire_origin,
-            'bull_code': form.bull_code,
-            'breed_used': form.breed_used,
-            'source_of_semen': form.source_of_semen,
-            'date_of_repeat_checked': form.date_of_repeat_checked,
-            'date_of_pregnancy_diagnosis': form.date_of_pregnancy_diagnosis,
-            'expected_date_of_calving': form.expected_date_of_calving,
-            'comment': form.comment,
-        })
-
-    return JsonResponse({'data': data}, safe=False)
-
-def deworming_report(request):
-    
-    return render(request,'portals/reports/deworming.html')
-
-
-def deworming_report_data(request):
-    deworming_forms = Deworming_Form.objects.all() 
-
-    data = []
-    for form in deworming_forms:
-        data.append(
-        {
-            'farmer_username': form.farmer_username,
-            'species_targeted': form.species_targeted,
-            'number_of_adults': form.number_of_adults,
-            'number_of_young_ones': form.number_of_young_ones,
-            'body_condition_of_the_animal': form.body_condition_of_the_animal,
-            'date_of_deworming': form.date_of_deworming,
-            'drug_choices': form.drug_choices,
-            'target_parasites': form.target_parasites,
-            'withdrawal_period': form.withdrawal_period,
-            'side_effects': form.side_effects,
-            'next_date_deworming': form.next_date_deworming,
-            'comment': form.comment,
-        })
-      
-    
-
-    return JsonResponse({'data': data}, safe=False)
-
-
-
-def sick_report_data(request):
-    sick_reports = Sick_Approach_Form.objects.all() 
-
-    data = []
-    for report in sick_reports:
-        data.append(
-        {
-            'farmer_username': report.farmer.farmer_username,
-            'species_affected': report.species_affected,
-            'num_of_species_affected': report.num_of_species_affected,
-            'id_animal': report.id_animal,
-            'disease_nature': report.disease_nature,
-            'clinical_signs': report.clinical_signs,
-            'disease_diagnosis': report.disease_diagnosis,
-            'differential_diagnosis': report.differential_diagnosis,
-            'final_diagnosis': report.final_diagnosis,
-            'sickness_duration': report.sickness_duration,
-            'sickness_history': report.sickness_history,
-            'drug_of_choice': report.drug_of_choice,
-            'treatment_duration': report.treatment_duration,
-            'start_dose_date': report.start_dose_date,
-            'prognosis': report.prognosis,
-            'harmony_with_clinic_signs_and_lab': report.harmony_with_clinic_signs_and_lab,
-            'cause_of_death_if_in_no_harmony': report.cause_of_death_if_in_no_harmony,
-            'disease_one_of_the_zoonotic': report.disease_one_of_the_zoonotic,
-            'advice_given_if_zoonotic': report.advice_given_if_zoonotic,
-            'relapse': report.relapse,
-            'cause_if_relapse': report.cause_if_relapse,
-            'comment': report.comment,
-        })
-       
-    return JsonResponse({'data': data}, safe=False)
-def sick_report(request):
-    
-    return render(request, 'portals/reports/sickness.html')
-
-def death_report_data(request):
-    death_reports = Death_Approach_Form.objects.all()
-
-    data = []
-    for report in death_reports:
-        data.append(
-        {
-            'vet_form_id': report.vet_form_id,
-            'farmer_username': report.farmer_username,
-            'name_of_the_animal': report.name_of_the_animal,
-            'sex_of_the_animal': report.sex_of_the_animal,
-            'num_of_species_dead': report.num_of_species_dead,
-            'case_history': report.case_history,
-            'mortality_rate': report.mortality_rate,
-            'death_date': report.death_date,
-            'death_time': report.death_time,
-            'signs_of_cadever_on_the_ground': report.signs_of_cadever_on_the_ground,
-            'carcass_opened_for_the_pm': report.carcass_opened_for_the_pm,
-            'if_yes_pathological_signs': report.if_yes_pathological_signs,
-            'if_no_reason': report.if_no_reason,
-            'sample_sent_lab': report.sample_sent_lab,
-            'if_yes_lab_report': report.if_yes_lab_report,
-            'death_cause_notifiable': report.death_cause_notifiable,
-            'if_yes_message_to_relevant_body': report.if_yes_message_to_relevant_body,
-            'intervention_regards_to_death': report.intervention_regards_to_death,
-            'comment': report.comment,
-        })
-       
-
-    return JsonResponse({'data': data}, safe=False)
-
-def death_report(request):
-   
-    return render(request, 'portals/reports/death.html')
-
-def surgical_report(request):
-   
-    return render(request, 'portals/reports/surgery.html')
-
-def surgical_report_data(request):
-    surgical_reports = Surgical_Approach_Form.objects.all()
-
-    data = []
-    for report in surgical_reports:
-        data.append(
-        {
-            'vet_form_id': report.vet_form_id,
-            'farmer_username': report.farmer_username,
-            'species_operated_on': report.species_operated_on,
-            'if_other_specify_species': report.if_other_specify,
-            'sex_of_the_animal': report.sex_of_the_animal,
-            'name_of_the_animal': report.name_of_the_animal,
-            'operation_nature': report.operation_nature,
-            'if_other_specify_operation': report.if_other_specify,
-            'operation_date': report.operation_date,
-            'post_operation_management': report.post_operation_management,
-            'prognosis': report.prognosis,
-            'comment': report.comment,
-        })
-       
-
-    return JsonResponse({'data': data}, safe=False)
-def vaccination_report_data(request):
-    vaccination_reports = Vaccination_Form.objects.all()
-
-    data = []
-    for report in vaccination_reports:
-         data.append(
-        {
-            'vet_form_id': report.vet_form_id,
-            'farmer_username': report.farmer_username,
-            'species_targeted': report.species_targeted,
-            'if_other_specify_species': report.if_other_specify,
-            'number_of_animals_vaccinated': report.number_of_animals_vaccinated,
-            'age_of_animal': report.age_of_animal,
-            'sex_of_the_animal': report.sex_of_the_animal,
-            'animal_breed': report.animal_breed,
-            'animal_colour': report.animal_colour,
-            'other_description': report.other_description,
-            'targetted_disease': report.targetted_disease,
-            'vaccines_used': report.vaccines_used,
-            'date_of_vaccination': report.date_of_vaccination,
-            'next_date_of_vaccination': report.next_date_of_vaccination,
-            'name_of_the_crush': report.name_of_the_crush,
-            'nature_of_the_vaccination_program': report.nature_of_the_vacination_program,
-            'comment': report.comment,
-        })
-       
-
-    return JsonResponse({'data': data}, safe=False)
-
-    
-def vaccination_report(request):
-   
-    return render(request, 'portals/reports/vaccination.html')
-
-
-def pregnancy_diagnosis_report_data(request):
-    pregnancy_diagnosis_reports = Pregnancy_Diagnosis_Form.objects.all()
-
-    data = []
-    for report in pregnancy_diagnosis_reports:
-        data.append(
-            {
-                'vet_form_id': report.vet_form_id,
-                'farmer_username': report.farmer_username,
-                'cow_name': report.cow_name,
-                'cow_category': report.cow_category,
-                'date_of_insemination': report.date_of_insemination,
-                'date_of_pregnancy_diagnosis': report.date_of_pregnancy_diagnosis,
-                'result_of_diagnosis': report.result_of_diagnosis,
-                'if_positive': report.if_positive,
-                'if_result_is_negative_give_observation': report.if_result_is_negative_give_observation,
-                'next_date_of_pregnancy_diagnosis': report.next_date_of_pregnancy_diagnosis,
-                'expected_date_of_delivery': report.expected_date_of_delivery,
-                'comment': report.comment,
-            })
-      
-    
-
-    return JsonResponse({'data': data}, safe=False)
-
-def pregnancy_diagnosis_report(request):
-    
-    return render(request, 'portals/reports/pregnancydiagnosis.html')
-
-def farm_consultation_report_data(request):
-    farm_consultation_reports = Farm_Consultation.objects.all()
-
-    data = []
-    for report in farm_consultation_reports:
-         data.append(
-        {
-            'vet_form_id': report.vet_form_id,
-            'farmer_username': report.farmer_username,
-            'dairy_cows': report.dairy_cows,
-            'beef_production': report.beef_production,
-            'poultry': report.poultry,
-            'sheep': report.sheep,
-            'goat': report.goat,
-            'canine': report.canine,
-            'other': report.other,
-            'give_recommendation': report.give_recommendation,
-            'grazing': report.grazing,
-            'disease': report.disease,
-            'farm': report.farm,
-            'culling_selection': report.culling_selection,
-            'farm_manager': report.farm_manager,
-            'if_no': report.if_no,
-            'name_incharge': report.name_incharge,
-            'reg_number': report.reg_number,
-            'comment': report.comment,
-        })
-       
-    return JsonResponse({'data': data}, safe=False)
-
-def farm_consultation_report(request):
-   
-    return render(request, 'portals/reports/farmconsultation.html')
-
-def veterinary_billing_report_data(request):
-    veterinary_billing_forms = Veterinary_Billing_Form.objects.all()
-
-    data = []
-    for form in veterinary_billing_forms:
-         data.append(
-        {
-            'vet_form_id': form.vet_form_id,
-            'farmer_username': form.farmer_username,
-            'Mobile_number': form.Mobile_number,
-            'farmer_location': form.farmer_location,
-            'nature_of_problem': form.nature_of_problem,
-            'bill_paid': form.bill_paid,
-            'total_bill': form.total_bill,
-            'balance_due': form.balance_due,
-            'agreed_date': form.agreed_date,
-            'suggest_payment': form.suggest_payment,
-            'vet_name': form.vet_name,
-            'registration_number': form.registration_number,
-            'Mobile_number_vet': form.Mobile_number_vet,
-            'comment': form.comment,
-        })
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+           
+            return SurgicalRecord.objects.filter(user=user)
         
-    return JsonResponse({'data': data}, safe=False)
+        elif user.is_farmer:
+            
+            return SurgicalRecord.objects.filter(assigned_to=user)
 
-def veterinary_billing_report(request):
+        return SurgicalRecord.objects.none()
+
     
-    return render(request, 'portals/reports/veterinarybilling.html')
+class SurgicalRecordUpdate(generics.UpdateAPIView):
+    queryset = SurgicalRecord.objects.all()
+    serializer_class = SurgicalRecordSerializer
+    permission_classes = [Is_Vet]
 
-def laboratory_report_data(request):
-    laboratory_forms = Laboratory_Form.objects.all()
+class SurgicalRecordDelete(generics.DestroyAPIView):
+    queryset = SurgicalRecord.objects.all()
+    serializer_class = SurgicalRecordSerializer
+    permission_classes = [Is_Vet]
 
-    data = []
-    for form in laboratory_forms:
-        data.append({
-            'vet_form_id': form.vet_form_id,
-            'farmer_username': form.farmer_username,
-            'Mobile_number': form.Mobile_number,
-            'category_ssp': form.category_ssp,
-            'sample': form.sample,
-            'name_animal': form.name_animal,
-            'date_of_submission': form.date_of_submission,
-            'idenfication': form.idenfication,
-            'storage': form.storage,
-            'transportation': form.transportation,
-            'expected_duration': form.expected_duration,
-            'sample_collected_sick_animal': form.sample_collected_sick_animal,
-            'sample_collected_dead': form.sample_collected_dead,
-            'if_yes_sick': form.if_yes_sick,
-            'findings': form.findings,
-            'vet_name': form.vet_name,
-            'registration_number_vet': form.registration_number_vet,
-            'Mobile_number_vet': form.Mobile_number_vet,
-            'laboratory_officer': form.laboratory_officer,
-            'registration_number_lab_officer': form.registration_number_lab_officer,
-            'Mobile_number_lab_officer': form.Mobile_number_lab_officer,
-            'comment': form.comment,
-        })
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
 
-    return JsonResponse({'data': data}, safe=False)
+def vetbilling(request):
+    return render(request, 'portals/reports/veterinarybilling.html', {})
+def vetbilling_view(request):
+    return render(request, 'portals/reports/vetbillsview.html', {})
 
-def laboratory_report(request):
-   
-    return render(request, 'portals/reports/laboratory.html')
-def referral_report_data(request):
-    referral_forms = Referral_Form.objects.all()
+class VeterinaryBillingCreate(generics.CreateAPIView):
+    queryset = VeterinaryBilling.objects.all()
+    serializer_class = VeterinaryBillingSerializer
+    permission_classes = [Is_Vet]
 
-    data = []
-    for form in referral_forms:
-        data.append({
-            'vet_form_id': form.vet_form_id,
-            'farmer_username': form.farmer_username,
-            'Mobile_number': form.Mobile_number,
-            'case_referal': form.case_referal,
-            'previous_treated': form.previous_treated,
-            'state_prognosis': form.state_prognosis,
-            'referal_date': form.referal_date,
-            'suggest_vet': form.suggest_vet,
-            'if_yes_leave_phone_number': form.if_yes_leave_phone_number,
-            'registration_number_vet': form.registration_number_vet,
-            'comment': form.comment,
-        })
+    def perform_create(self, serializer):
+        # Add any custom behavior here if needed
+        serializer.save(user=self.request.user)
 
-    return JsonResponse({'data': data}, safe=False)
+class VeterinaryBillingList(generics.ListAPIView):
+    serializer_class = VeterinaryBillingSerializer
+    permission_classes = [Is_Vet|Is_Farmer]
+    pagination_class = CustomPagination  # Assuming you have a custom pagination class
 
-def referral_report(request):
-  
-    return render(request, 'portals/reports/referral.html')
+    def get_queryset(self):
+        user = self.request.user
 
-def livestock_inventory_report_data(request):
-    livestock_forms = Livestock_Inventory_Form.objects.all()
+        if user.is_vet_officer:
+           
+            return VeterinaryBilling.objects.filter(user=user).order_by('-id')
+        
+        elif user.is_farmer:
+            
+            return VeterinaryBilling.objects.filter(assigned_to=user).order_by('-id')
 
-    data = []
-    for form in livestock_forms:
-        data.append({
-            'vet_form_id': form.vet_form_id,
-            'farmer_username': form.farmer_username,
-            'species_targeted': form.species_targeted,
-            'name_of_the_animal': form.name_of_the_animal,
-            'number_of_the_male_animals': form.number_of_the_male_animals,
-            'number_of_the_female_animals': form.number_of_the_female_animals,
-            'number_of_live_animals': form.number_of_live_animals,
-            'number_of_dead_animals': form.number_of_dead_animals,
-            'specify_the_cause_of_the_dead': form.specify_the_cause_of_the_dead,
-            'is_your_animals_insured': form.is_your_animals_insured,
-            'if_yes_give_insuring_company': form.if_yes_give_insuring_company,
-            'date_of_culling': form.date_of_culling,
-            'give_reason_for_culling': form.give_reason_for_culling,
-            'comment': form.comment,
-        })
+        return VeterinaryBilling.objects.none()
+class VeterinaryBillingUpdate(generics.UpdateAPIView):
+    queryset = VeterinaryBilling.objects.all()
+    serializer_class = VeterinaryBillingSerializer
+    permission_classes = [Is_Vet]
 
-    return JsonResponse({'data': data}, safe=False)
+class VeterinaryBillingDelete(generics.DestroyAPIView):
+    queryset = VeterinaryBilling.objects.all()
+    serializer_class = VeterinaryBillingSerializer
+    permission_classes = [Is_Vet]
 
-def livestock_inventory_report(request):
-   
-    return render(request, 'portals/reports/inventory.html')
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+# Deworming Views
+def deworming(request):
+    return render(request, 'portals/reports/deworming.html', {})
+def deworming_view(request):
+    return render(request, 'portals/reports/dewormingview.html', {})
+class DewormingCreate(generics.CreateAPIView):
+    queryset = Deworming.objects.all()
+    serializer_class = DewormingSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class DewormingList(generics.ListAPIView):
+    serializer_class = DewormingSerializer
+    permission_classes = [Is_Vet|Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+            user = self.request.user
+
+            if user.is_vet_officer:
+            
+                return Deworming.objects.filter(user=user).order_by('-id')
+            
+            elif user.is_farmer:
+                
+                return Deworming.objects.filter(assigned_to=user).order_by('-id')
+
+            return Deworming.objects.none()
+class DewormingUpdate(generics.UpdateAPIView):
+    queryset = Deworming.objects.all()
+    serializer_class = DewormingSerializer
+    permission_classes = [Is_Vet]
+
+class DewormingDelete(generics.DestroyAPIView):
+    queryset = Deworming.objects.all()
+    serializer_class = DewormingSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+# ArtificialInsemination Views
+def artificial(request):
+    return render(request, 'portals/reports/artificialinsemination.html', {})
+def artificial_view(request):
+    return render(request, 'portals/reports/artificial-inseminationview.html', {})
+def artificial_official_view(request):
+    return render(request, 'portals/reports/artificial_official.html', {})
+def artificial_coop_view(request):
+    return render(request, 'portals/dairy/ai_coop.html', {})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsVetOrOfficial])
+def ai_record_filter(request):
+    try:
+        user = request.user
+
+        # 🧑‍⚕️ If vet officer: show records they assigned
+        if getattr(user, 'is_vet_officer', False):
+            records = ArtificialInsemination.objects.filter(
+                assigned_by=user
+            ).annotate(
+                assigned_to_username=F("assigned_to_official__username")
+            ).values(
+                "id", "insemination_date", "species", "assigned_to_username"
+            )
+            return Response({
+                "user_type": "vet_officer",
+                "records": list(records),
+            })
+
+        # 🏛️ If official: show records assigned to them
+        elif getattr(user, 'is_official', False):
+            records = ArtificialInsemination.objects.filter(
+                assigned_to_official=user
+            ).annotate(
+                assigned_by_username=F("assigned_by__username")
+            ).values(
+                "id", "insemination_date", "species", "assigned_by_username"
+            )
+            return Response({
+                "user_type": "official",
+                "records": list(records),
+            })
+
+        return Response({"error": "You do not have access to these records."}, status=403)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+class ArtificialInseminationCreate(generics.CreateAPIView):
+    queryset = ArtificialInsemination.objects.all()
+    serializer_class = ArtificialInseminationSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+            user = self.request.user
+            logger.info(f"Received Data: {self.request.data}")  # Log request data
+            serializer.save(user=user)
+
+
+class ArtificialInseminationList(generics.ListAPIView):
+    serializer_class = ArtificialInseminationSerializer
+    permission_classes = [Is_Vet | Is_Official | Is_Farmer | Is_Coop]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return ArtificialInsemination.objects.filter(user=user).order_by('-id')
+        if user.is_official:
+            return ArtificialInsemination.objects.filter(assigned_to_official=user).order_by('-id')
+
+        if user.is_farmer:
+            return ArtificialInsemination.objects.filter(assigned_to=user).order_by('-id')
+        
+        if user.is_cooperative:
+            return ArtificialInsemination.objects.filter(assigned_to_cooperative=user).order_by('-id')
+
+
+        return ArtificialInsemination.objects.none()
+class ArtificialInseminationUpdate(generics.UpdateAPIView):
+    queryset = ArtificialInsemination.objects.all()
+    serializer_class = ArtificialInseminationSerializer
+    permission_classes = [Is_Vet]
+
+class ArtificialInseminationDelete(generics.DestroyAPIView):
+    queryset = ArtificialInsemination.objects.all()
+    serializer_class = ArtificialInseminationSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+# PregnancyDiagnosis Views
+def pregdiagnosis(request):
+    return render(request, 'portals/reports/pregnancydiag.html', {})
+def pregdiagnosis_view(request):
+    return render(request, 'portals/reports/pregdiagview.html', {})
+
+
+class PregnancyDiagnosisCreate(generics.CreateAPIView):
+    queryset = PregnancyDiagnosis.objects.all()
+    serializer_class = PregnancyDiagnosisSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class PregnancyDiagnosisList(generics.ListAPIView):
+    serializer_class = PregnancyDiagnosisSerializer
+    permission_classes = [Is_Vet|Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+           
+            return PregnancyDiagnosis.objects.filter(user=user).order_by('-id')
+        
+        elif user.is_farmer:
+            
+            return PregnancyDiagnosis.objects.filter(assigned_to=user).order_by('-id')
+
+        return PregnancyDiagnosis.objects.none()
+    
+class PregnancyDiagnosisUpdate(generics.UpdateAPIView):
+    queryset = PregnancyDiagnosis.objects.all()
+    serializer_class = PregnancyDiagnosisSerializer
+    permission_classes = [Is_Vet]
+
+class PregnancyDiagnosisDelete(generics.DestroyAPIView):
+    queryset = PregnancyDiagnosis.objects.all()
+    serializer_class = PregnancyDiagnosisSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+# FarmConsultation Views
+def consultation(request):
+    return render(request, 'portals/reports/farmconsultation.html', {})
+
+def consultation_view(request):
+    return render(request, 'portals/reports/farmconsultationview.html', {})
+
+class FarmConsultationCreate(generics.CreateAPIView):
+    queryset = FarmConsultation.objects.all()
+    serializer_class = FarmConsultationSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class FarmConsultationList(generics.ListAPIView):
+    serializer_class = FarmConsultationSerializer
+    permission_classes = [Is_Vet|Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+           
+            return FarmConsultation.objects.filter(user=user).order_by('-id')
+        
+        elif user.is_farmer:
+            
+            return FarmConsultation.objects.filter(assigned_to=user).order_by('-id')
+
+        return FarmConsultation.objects.none()
+    
+class FarmConsultationUpdate(generics.UpdateAPIView):
+    queryset = FarmConsultation.objects.all()
+    serializer_class = FarmConsultationSerializer
+    permission_classes = [Is_Vet]
+
+class FarmConsultationDelete(generics.DestroyAPIView):
+    queryset = FarmConsultation.objects.all()
+    serializer_class = FarmConsultationSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+# Referral Views
+@user_passes_test(vet_check, login_url='vet-login')
+def referral(request):
+    return render(request, 'portals/reports/referral.html', {})
+def referral_view(request):
+    return render(request, 'portals/reports/referralview.html', {})
+class ReferralCreate(generics.CreateAPIView):
+    queryset = Referral.objects.all()
+    serializer_class = ReferralSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class ReferralList(generics.ListAPIView):
+    serializer_class = ReferralSerializer
+    permission_classes = [Is_Vet|Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+           
+            return Referral.objects.filter(user=user)
+        
+        elif user.is_farmer:
+            
+            return Referral.objects.filter(assigned_to=user)
+
+        return Referral.objects.none()
+class ReferralUpdate(generics.UpdateAPIView):
+    queryset = Referral.objects.all()
+    serializer_class = ReferralSerializer
+    permission_classes = [Is_Vet]
+
+class ReferralDelete(generics.DestroyAPIView):
+    queryset = Referral.objects.all()
+    serializer_class = ReferralSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
 
 
 # Define views
+@user_passes_test(farmer_check, login_url='farmer-login')
 def calf(request):
     return render(request, 'portals/farmer/calf.html', {})
 
@@ -1484,7 +533,14 @@ class CalfCreate(generics.CreateAPIView):
     permission_classes = [Is_Farmer]  
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+            registration_number = self.request.data.get('registration_number')
+            user = self.request.user
+
+            # Check if the employee exists
+            if Calf.objects.filter(user=user, registration_number=registration_number).exists():
+                raise ValidationError(f"Calf with Registration '{registration_number}' already exists!")
+
+            serializer.save(user=user)
 
 class CalfList(generics.ListAPIView):
     serializer_class = CalfSerializer
@@ -1493,7 +549,7 @@ class CalfList(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        #print(user)
+        ###print(user)
         return Calf.objects.filter(user=self.request.user).order_by('-id')
     
 
@@ -1512,9 +568,7 @@ class CalfDelete(generics.DestroyAPIView):
         if self.request.user == instance.user:
             instance.delete()
 
-
-# dead animal
-@login_required
+@user_passes_test(farmer_check, login_url='farmer-login')
 def dead_animal(request):
     return render(request, 'portals/farmer/dead.html', {})
 
@@ -1533,7 +587,7 @@ class DeadAnimalList(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        #print(user)
+        ###print(user)
         return DeadAnimal.objects.filter(user=self.request.user).order_by('-id')
     
 
@@ -1553,7 +607,7 @@ class DeadAnimalDelete(generics.DestroyAPIView):
             instance.delete()
 
 ###Culling
-@login_required
+@user_passes_test(farmer_check, login_url='farmer-login')
 def culling(request):
     return render(request, 'portals/farmer/culling.html', {})
 
@@ -1572,7 +626,7 @@ class CullingList(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        #print(user)
+        ###print(user)
         return Culling.objects.filter(user=self.request.user).order_by('-id')
     
 
@@ -1592,7 +646,7 @@ class CullingDelete(generics.DestroyAPIView):
             instance.delete()
 
 # livestock inventory
-@login_required
+@user_passes_test(farmer_check, login_url='farmer-login')
 def livestock(request):
     return render(request, 'portals/farmer/livestock.html', {})
 class LivestockCreate(generics.CreateAPIView):
@@ -1610,7 +664,7 @@ class LivestockList(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        #print(user)
+        ###print(user)
         return Livestock.objects.filter(user=self.request.user).order_by('-id')
     
 
@@ -1630,7 +684,7 @@ class LivestockDelete(generics.DestroyAPIView):
             instance.delete()
 
 ##new animal
-@login_required
+@user_passes_test(farmer_check, login_url='farmer-login')
 def new_animal(request):
     return render(request, 'portals/farmer/new.html', {})
 class NewAnimalCreate(generics.CreateAPIView):
@@ -1639,8 +693,14 @@ class NewAnimalCreate(generics.CreateAPIView):
     permission_classes = [Is_Farmer]  
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+            reg_no = self.request.data.get('reg_no')
+            user = self.request.user
 
+            # Check if the employee exists
+            if NewAnimal.objects.filter(user=user, reg_no=reg_no).exists():
+                raise ValidationError(f"Animal With with Registration '{reg_no}' already exists!")
+
+            serializer.save(user=user)
 class NewAnimalList(generics.ListAPIView):
     serializer_class = NewAnimalSerializer
     permission_classes = [Is_Farmer]
@@ -1648,7 +708,7 @@ class NewAnimalList(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        #print(user)
+        ###print(user)
         return NewAnimal.objects.filter(user=self.request.user).order_by('-id')
     
 
@@ -1668,7 +728,7 @@ class NewAnimalDelete(generics.DestroyAPIView):
             instance.delete()
 
 ##############################
-@login_required
+@user_passes_test(farmer_check, login_url='farmer-login')
 def animal_sales(request):
     return render(request, 'portals/farmer/sales.html', {})
 
@@ -1687,7 +747,7 @@ class AnimalSaleList(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        #print(user)
+        ###print(user)
         return AnimalSale.objects.filter(user=self.request.user).order_by('-id')
     
 
@@ -1706,7 +766,7 @@ class AnimalSaleDelete(generics.DestroyAPIView):
         if self.request.user == instance.user:
             instance.delete()
 
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def minerals(request):
     return render(request, 'portals/farmer/minerals.html', {})
 class MineralsCreate(generics.CreateAPIView):
@@ -1735,11 +795,10 @@ class MineralsDelete(generics.DestroyAPIView):
     queryset = Minerals.objects.all()
     serializer_class = MineralsSerializer
     permission_classes = [Is_Farmer]
-
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()  
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def vet_bills(request):
     return render(request, 'portals/farmer/bills.html', {})
 class VeterinaryBillsCreate(generics.CreateAPIView):
@@ -1772,6 +831,129 @@ class VeterinaryBillsDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()
+def daily_checks(request):
+    return render(request, 'portals/farmer/daily_checks.html', {})
+
+class DailyCheckCreate(generics.CreateAPIView):
+    queryset = DailyCheck.objects.all()
+    serializer_class = DailyCheckSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class DailyCheckList(generics.ListAPIView):
+    serializer_class = DailyCheckSerializer
+    permission_classes = [Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return DailyCheck.objects.filter(user=self.request.user).order_by('-id')
+
+class DailyCheckUpdate(generics.UpdateAPIView):
+    queryset = DailyCheck.objects.all()
+    serializer_class = DailyCheckSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return DailyCheck.objects.filter(user=self.request.user)
+
+class DailyCheckDelete(generics.DestroyAPIView):
+    queryset = DailyCheck.objects.all()
+    serializer_class = DailyCheckSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return DailyCheck.objects.filter(user=self.request.user)
+
+    def perform_destroy(self, instance):
+        instance.delete()
+
+def other_expenses_view(request):
+    return render(request, 'portals/farmer/other_expenses.html', {})
+         
+class OtherExpenseCreate(generics.CreateAPIView):
+    queryset = OtherExpense.objects.all()
+    serializer_class = OtherExpenseSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class OtherExpenseList(generics.ListAPIView):
+    serializer_class = OtherExpenseSerializer
+    permission_classes = [Is_Farmer]
+    pagination_class = CustomPagination  # Optional
+
+    def get_queryset(self):
+        return OtherExpense.objects.filter(user=self.request.user).order_by('-id')
+
+
+class OtherExpenseUpdate(generics.UpdateAPIView):
+    queryset = OtherExpense.objects.all()
+    serializer_class = OtherExpenseSerializer
+    permission_classes = [Is_Farmer]
+
+
+class OtherExpenseDelete(generics.DestroyAPIView):
+    queryset = OtherExpense.objects.all()
+    serializer_class = OtherExpenseSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+@user_passes_test(farmer_check, login_url='farmer-login')
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def expenses(request):
+    user = request.user
+
+    vet_bills = VeterinaryBills.objects.filter(user=user).values('id', 'date_of_billing', 'amount')
+    archaricides = Archaricides.objects.filter(user=user).values('id', 'date_of_purchase', 'cost')
+    hygiene = DairyHygiene.objects.filter(user=user).values('id', 'date_of_purchase', 'cost')
+    salaries = Salaries.objects.filter(user=user).values('id', 'payment_date', 'amount')
+    feeds = Feeds.objects.filter(user=user).values('id', 'date_of_purchase', 'cost')
+    equipment = DairyEquipment.objects.filter(user=user).values('id', 'date_of_purchase', 'cost')
+    drugs = VeterinaryDrugs.objects.filter(user=user).values('id', 'date_of_purchase', 'cost')
+    minerals = Minerals.objects.filter(user=user).values('id', 'date_of_purchase', 'cost')
+    insurance = LivestockInsurance.objects.filter(user=user).values('id', 'payment_date', 'total')
+    calving=CalvingRecord.objects.filter(user=user).values('id','date_of_calving','calf_sex')
+    other=OtherExpense.objects.filter(user=user).values('id','date','cost')
+
+    vet_bills_total = VeterinaryBills.objects.filter(user=user).aggregate(Sum('amount'))['amount__sum'] or 0
+    archaricides_total = Archaricides.objects.filter(user=user).aggregate(Sum('cost'))['cost__sum'] or 0
+    hygiene_total = DairyHygiene.objects.filter(user=user).aggregate(Sum('cost'))['cost__sum'] or 0
+    salaries_total = Salaries.objects.filter(user=user).aggregate(Sum('amount'))['amount__sum'] or 0
+    feeds_total = Feeds.objects.filter(user=user).aggregate(Sum('cost'))['cost__sum'] or 0
+    equipment_total = DairyEquipment.objects.filter(user=user).aggregate(Sum('cost'))['cost__sum'] or 0
+    drugs_total = VeterinaryDrugs.objects.filter(user=user).aggregate(Sum('cost'))['cost__sum'] or 0
+    minerals_total = Minerals.objects.filter(user=user).aggregate(Sum('cost'))['cost__sum'] or 0
+    insurance_total = LivestockInsurance.objects.filter(user=user).aggregate(Sum('total'))['total__sum'] or 0
+    other_total = OtherExpense.objects.filter(user=user).aggregate(Sum('cost'))['cost__sum'] or 0
+    
+
+    total_for_all_expenses = (
+        vet_bills_total + archaricides_total + hygiene_total + salaries_total +
+        feeds_total + equipment_total + drugs_total + minerals_total + insurance_total + other_total
+    )
+
+    return Response({
+        'vet_bills': list(vet_bills),
+        'archaricides': list(archaricides),
+        'hygiene': list(hygiene),
+        'salaries': list(salaries),
+        'feeds': list(feeds),
+        'equipment': list(equipment),
+        'drugs': list(drugs),
+        'minerals': list(minerals),
+        'insurance': list(insurance),
+        'other': list(other),
+        'calving':calving,
+        'total_for_all_expenses': total_for_all_expenses,
+    })
 def archaricides(request):
     return render(request, 'portals/farmer/archaricides.html', {})
 
@@ -1805,7 +987,7 @@ class ArcharicidesDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def equipment(request):
     return render(request, 'portals/farmer/equipment.html', {})
 class DairyEquipmentCreate(generics.CreateAPIView):
@@ -1838,7 +1020,7 @@ class DairyEquipmentDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def hygiene(request):
     return render(request, 'portals/farmer/hygiene.html', {})
 class DairyHygieneCreate(generics.CreateAPIView):
@@ -1865,6 +1047,7 @@ class DairyHygieneUpdate(generics.UpdateAPIView):
 
 class DairyHygieneDelete(generics.DestroyAPIView):
     queryset = DairyHygiene.objects.all()
+    ##print(queryset)
     serializer_class = DairyHygieneSerializer
     permission_classes = [Is_Farmer]
 
@@ -1872,25 +1055,34 @@ class DairyHygieneDelete(generics.DestroyAPIView):
         if self.request.user == instance.user:
             instance.delete()
 
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def salaries(request):
     return render(request, 'portals/farmer/salaries.html', {})
 class SalariesCreate(generics.CreateAPIView):
     queryset = Salaries.objects.all()
+    #print(queryset)
     serializer_class = SalariesSerializer
     permission_classes = [Is_Farmer]  
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+            identification = self.request.data.get('identification')
+            user = self.request.user
+
+            # Check if the employee exists
+            if Salaries.objects.filter(user=user, identification=identification).exists():
+                raise ValidationError(f"Employee with ID '{identification}' already exists!")
+
+            serializer.save(user=user)
 
 class SalariesList(generics.ListAPIView):
     serializer_class = SalariesSerializer
     permission_classes = [Is_Farmer]
-    pagination_class = CustomPagination  # If you have a custom pagination class
+    pagination_class = CustomPagination
+    
 
     def get_queryset(self):
         user = self.request.user
-        return LivestockInsurance.objects.filter(user=user).order_by('-id')
+        return Salaries.objects.filter(user=user).order_by('-id')
 
 class SalariesUpdate(generics.UpdateAPIView):
     queryset = Salaries.objects.all()
@@ -1905,7 +1097,7 @@ class SalariesDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def insurance(request):
     return render(request, 'portals/farmer/insurance.html', {})
 class LivestockInsuranceCreate(generics.CreateAPIView):
@@ -1938,7 +1130,7 @@ class LivestockInsuranceDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def drugs(request):
     return render(request, 'portals/farmer/drugs.html', {})
 class VeterinaryDrugsCreate(generics.CreateAPIView):
@@ -1975,17 +1167,24 @@ class VeterinaryDrugsDelete(generics.DestroyAPIView):
 def pdf_notes(request):
     return render(request, 'portals/farmer/pdfnotes.html', {})
 
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def employees(request):
     return render(request, 'portals/farmer/employment.html', {})
 
 class EmployeesCreate(generics.CreateAPIView):
     queryset = Employees.objects.all()
     serializer_class = EmployeesSerializer
-    permission_classes = [Is_Farmer]  # Replace with your custom permission class if needed
+    permission_classes = [Is_Farmer]  
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+            id_no = self.request.data.get('id_no')
+            user = self.request.user
+
+            # Check if the employee exists
+            if Employees.objects.filter(user=user, id_no=id_no).exists():
+                raise ValidationError(f"Employee with ID '{id_no}' already exists!")
+
+            serializer.save(user=user)
 
 class EmployeesList(generics.ListAPIView):
     serializer_class = EmployeesSerializer
@@ -1994,8 +1193,12 @@ class EmployeesList(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        return Employees.objects.filter(user=user).order_by('-id')
-
+        params = dict()
+        if self.request.GET.get('id_no',False):
+            
+            params['id_no'] = self.request.GET.get('id_no')
+            print(params)
+        return Employees.objects.filter(user=user,**params).order_by('-id')
 class EmployeesUpdate(generics.UpdateAPIView):
     queryset = Employees.objects.all()
     serializer_class = EmployeesSerializer
@@ -2009,7 +1212,7 @@ class EmployeesDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def lactation(request):
     return render(request, 'portals/farmer/lactation.html', {})
 
@@ -2019,7 +1222,14 @@ class LactatingCowCreate(generics.CreateAPIView):
     permission_classes = [Is_Farmer]
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+            cow_name = self.request.data.get('cow_name')
+            #print()
+            user = self.request.user
+
+            if LactatingCow.objects.filter(user=user, cow_name=cow_name).exists():
+                raise ValidationError(f"Cow with Name '{cow_name}' already exists!")
+
+            serializer.save(user=user)
 
 class LactatingCowList(generics.ListAPIView):
     serializer_class = LactatingCowSerializer
@@ -2031,7 +1241,6 @@ class LactatingCowList(generics.ListAPIView):
         params = dict()
         if self.request.GET.get('cow_name',False):
             params['cow_name'] = self.request.GET.get('cow_name')
-
         return LactatingCow.objects.filter(user=user,**params).order_by('-id')
 
 class LactatingCowUpdate(generics.UpdateAPIView):
@@ -2047,57 +1256,51 @@ class LactatingCowDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def milk_record(request):
     return render(request, 'portals/farmer/milk_records.html', {})
 
+class FilteredMilkRecordsView(View):
+    def get(self, request):
+        user = request.user
+        cow_id = request.GET.get('cow_id')
+        period = request.GET.get('period', 'all')
+        date_from = request.GET.get('from')
+        date_to = request.GET.get('to')
+
+        # Base filters
+        filters = {'user': user}
+        if cow_id and cow_id != 'all':
+            filters['cow_name_id'] = cow_id
+
+        # Choose the correct model and date field
+        if period == 'daily':
+            model = DailyMilkRecord
+            date_field = 'date'
+        elif period == 'weekly' or period == 'two_weeks':
+            model = WeeklyMilkRecord
+            date_field = 'week_start_date'
+        elif period == 'monthly' or period == 'yearly':
+            model = MonthlyMilkRecord
+            date_field = 'month'
+        else:
+            model = MilkRecord
+            date_field = 'date'
+
+        if date_from and date_to:
+            filters[f'{date_field}__range'] = (date_from, date_to)
+
+        records = model.objects.filter(**filters).values()
+        return JsonResponse(list(records), safe=False)
 class MilkRecordCreate(generics.CreateAPIView):
     queryset = MilkRecord.objects.all()
     serializer_class = MilkRecordSerializer
     permission_classes = [Is_Farmer]
 
     def perform_create(self, serializer):
-        # Set the employee to the first employee in the database and user to the request user
-        employee = Employees.objects.first()
-        serializer.save(employee_name=employee, user=self.request.user)
-        
-        # Get the date of the milk record
-        milk_record_date = serializer.instance.date
-        
-        # Calculate the start of the week (Monday)
-        week_start_date = milk_record_date - timedelta(days=milk_record_date.weekday())
-        
-        # Calculate the start of the month
-        month_start_date = milk_record_date.replace(day=1)
-        
-        # Update or create weekly record
-        weekly_record, created = WeeklyMilkRecord.objects.get_or_create(
-            cow_name=serializer.instance.cow_name,
-            week_start_date=week_start_date,
-            defaults={'total_quantity': 0.0}
-        )
-        # Calculate total quantity for the week and update the record
-        total_weekly_quantity = MilkRecord.objects.filter(
-            cow_name=serializer.instance.cow_name,
-            date__range=[week_start_date, week_start_date + timedelta(days=6)]
-        ).aggregate(Sum('quantity'))['quantity__sum'] or 0.0
-        weekly_record.total_quantity = total_weekly_quantity
-        weekly_record.save()
-        
-        # Update or create monthly record
-        monthly_record, created = MonthlyMilkRecord.objects.get_or_create(
-            cow_name=serializer.instance.cow_name,
-            month=month_start_date,
-            defaults={'total_quantity': 0.0}
-        )
-        # Calculate total quantity for the month and update the record
-        total_monthly_quantity = MilkRecord.objects.filter(
-            cow_name=serializer.instance.cow_name,
-            date__year=milk_record_date.year,
-            date__month=milk_record_date.month
-        ).aggregate(Sum('quantity'))['quantity__sum'] or 0.0
-        monthly_record.total_quantity = total_monthly_quantity
-        monthly_record.save()
+        serializer.save(user=self.request.user)
+
+
 
 class MilkRecordList(generics.ListAPIView):
     serializer_class = MilkRecordSerializer
@@ -2122,6 +1325,38 @@ class MilkRecordDelete(generics.DestroyAPIView):
         if self.request.user == instance.user:
             instance.delete()
 
+@user_passes_test(farmer_check, login_url='farmer-login')
+def daily_record(request):
+    return render(request, 'portals/farmer/daily_milk.html', {})
+
+class DailyMilkRecordList(generics.ListAPIView):
+    serializer_class = DailyMilkRecordSerializer
+    permission_classes = [ Is_Farmer]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # Get the latest id for each cow_name for the authenticated user
+        subquery = DailyMilkRecord.objects.filter(
+            user=user,
+            cow_name=OuterRef('cow_name')
+        ).order_by('-id').values('id')[:1]
+
+        latest_records = DailyMilkRecord.objects.filter(
+            id__in=Subquery(subquery)
+        ).order_by('-date')
+
+        return latest_records
+    
+class DailyMilkRecordDelete(generics.DestroyAPIView):
+    queryset = MilkRecord.objects.all()
+    serializer_class = DailyMilkRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+@user_passes_test(farmer_check, login_url='farmer-login')
 def weekly_record(request):
     return render(request, 'portals/farmer/weekly_records.html', {})
 class WeeklyMilkRecordListView(generics.ListAPIView):
@@ -2146,7 +1381,7 @@ class WeeklyMilkRecordDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def monthly_record(request):
     return render(request, 'portals/farmer/monthly_records.html', {})
 class MonthlyMilkRecordListView(generics.ListAPIView):
@@ -2166,7 +1401,7 @@ class MonthlyMilkRecordDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()
-
+@user_passes_test(farmer_check, login_url='farmer-login')
 def sales_of_milk(request):
     return render(request, 'portals/farmer/milk_sales.html', {})
 
@@ -2186,6 +1421,8 @@ class SalesOfMilkList(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         return SalesOfMilk.objects.filter(user=user).order_by('-id')
+    
+
 
 class SalesOfMilkUpdate(generics.UpdateAPIView):
     queryset = SalesOfMilk.objects.all()
@@ -2200,3 +1437,4611 @@ class SalesOfMilkDelete(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
             instance.delete()
+def payments(request):
+    return render(request, 'portals/farmer/payments.html', {})
+
+class PaymentsCreate(generics.CreateAPIView):
+    queryset = Payments.objects.all()
+    serializer_class = PaymentsSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+class PaymentsList(generics.ListAPIView):
+    serializer_class = PaymentsSerializer
+    permission_classes = [Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return Payments.objects.filter(user=self.request.user).order_by('-id')
+    
+class PaymentsUpdate(generics.UpdateAPIView):
+    queryset = Payments.objects.all()
+    serializer_class = PaymentsSerializer
+    permission_classes = [Is_Farmer]
+    
+class PaymentsDelete(generics.DestroyAPIView):
+    queryset = Payments.objects.all()
+    serializer_class = PaymentsSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+@user_passes_test(farmer_check, login_url='farmer-login')
+def buyers(request):
+    return render(request, 'portals/farmer/buyer.html', {})  # Your template
+
+
+class BuyerCreate(generics.CreateAPIView):
+    queryset = Buyer.objects.all()
+    serializer_class = BuyerSerializer
+    permission_classes = [Is_Farmer]
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class BuyerList(generics.ListAPIView):
+    serializer_class = BuyerSerializer
+    permission_classes = [Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return Buyer.objects.filter(user=self.request.user).order_by('-id')
+    
+@api_view(['GET'])
+@permission_classes([Is_Farmer])
+def get_buyers_by_category(request):
+    category = request.GET.get('category')
+    if category:
+        buyers = Buyer.objects.filter(category=category, user=request.user)
+    else:
+        buyers = Buyer.objects.none()
+
+    serializer = BuyerSerializer(buyers, many=True)
+    return Response(serializer.data)
+
+def buyers_by_category(request):
+    category = request.GET.get('category')
+    if category:
+        buyers = Buyer.objects.filter(category=category)
+        data = [{'id': b.id, 'name': b.name, 'category': b.category} for b in buyers]
+    else:
+        data = []
+    return JsonResponse(data, safe=False)
+
+
+class BuyerUpdate(generics.UpdateAPIView):
+    queryset = Buyer.objects.all()
+    serializer_class = BuyerSerializer
+    permission_classes = [Is_Farmer]
+
+
+class BuyerDelete(generics.DestroyAPIView):
+    queryset = Buyer.objects.all()
+    serializer_class = BuyerSerializer
+    permission_classes = [Is_Farmer]
+
+def lab_record(request):
+    return render(request, 'portals/reports/laboratory.html', {})
+
+def lab_record_view(request):
+    return render(request, 'portals/reports/laboratoryview.html', {})
+class LaboratoryRecordCreate(generics.CreateAPIView):
+    queryset = LaboratoryRecord.objects.all()
+    serializer_class = LaboratoryRecordSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class LaboratoryRecordList(generics.ListAPIView):
+    serializer_class = LaboratoryRecordSerializer
+    permission_classes = [Is_Vet|Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+           
+            return LaboratoryRecord.objects.filter(user=user)
+        
+        elif user.is_farmer:
+            
+            return LaboratoryRecord.objects.filter(assigned_to=user)
+
+        return LaboratoryRecord.objects.none()
+    
+class LaboratoryRecordUpdate(generics.UpdateAPIView):
+    queryset = LaboratoryRecord.objects.all()
+    serializer_class = LaboratoryRecordSerializer
+    permission_classes = [Is_Vet]
+
+class LaboratoryRecordDelete(generics.DestroyAPIView):
+    queryset = LaboratoryRecord.objects.all()
+    serializer_class = LaboratoryRecordSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+
+def incidence_record(request):
+    return render(request, 'portals/reports/incidence.html', {})
+    
+def incidence_view(request):
+    return render(request, 'portals/reports/incidenceview.html', {})
+    
+class LivestockIncidentCreate(generics.CreateAPIView):
+    queryset = LivestockIncident.objects.all()
+    serializer_class = LivestockIncidentSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class LivestockIncidentList(generics.ListAPIView):
+    serializer_class = LivestockIncidentSerializer
+    permission_classes = [Is_Vet|Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+           
+            return LivestockIncident.objects.filter(user=user)
+        
+        elif user.is_farmer:
+            
+            return LivestockIncident.objects.filter(assigned_to=user)
+
+        return LivestockIncident.objects.none()
+class LivestockIncidentUpdate(generics.UpdateAPIView):
+    queryset = LivestockIncident.objects.all()
+    serializer_class = LivestockIncidentSerializer
+    permission_classes = [Is_Vet]
+
+class LivestockIncidentDelete(generics.DestroyAPIView):
+    queryset = LivestockIncident.objects.all()
+    serializer_class = LivestockIncidentSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+def sample_collection(request):
+    return render(request, 'portals/reports/collection.html', {})
+def sample_collection_view(request):
+    return render(request, 'portals/reports/collectionview.html', {})
+class SampleCollectionCreate(generics.CreateAPIView):
+    queryset = SampleCollection.objects.all()
+    serializer_class = SampleCollectionSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class SampleCollectionList(generics.ListAPIView):
+    serializer_class = SampleCollectionSerializer
+    permission_classes = [Is_Vet|Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+           
+            return SampleCollection.objects.filter(user=user).order_by('-id')
+        
+        elif user.is_farmer:
+            
+            return SampleCollection.objects.filter(assigned_to=user).order_by('-id')
+
+        return SampleCollection.objects.none()
+    
+class SampleCollectionUpdate(generics.UpdateAPIView):
+    queryset = SampleCollection.objects.all()
+    serializer_class = SampleCollectionSerializer
+    permission_classes = [Is_Vet]
+
+class SampleCollectionDelete(generics.DestroyAPIView):
+    queryset = SampleCollection.objects.all()
+    serializer_class = SampleCollectionSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+def sample_processing(request):
+    return render(request, 'portals/reports/processing.html', {})
+def sample_processing_view(request):
+    return render(request, 'portals/reports/processingview.html', {})
+class SampleProcessingCreate(generics.CreateAPIView):
+    queryset = SampleProcessing.objects.all()
+    serializer_class = SampleProcessingSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class SampleProcessingList(generics.ListAPIView):
+    serializer_class = SampleProcessingSerializer
+    permission_classes = [Is_Vet|Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+           
+            return SampleProcessing.objects.filter(user=user).order_by('-id')
+        
+        elif user.is_farmer:
+            
+            return SampleProcessing.objects.filter(assigned_to=user).order_by('-id')
+
+        return SampleProcessing.objects.none()
+    
+class SampleProcessingUpdate(generics.UpdateAPIView):
+    queryset = SampleProcessing.objects.all()
+    serializer_class = SampleProcessingSerializer
+    permission_classes = [Is_Vet]
+
+class SampleProcessingDelete(generics.DestroyAPIView):
+    queryset = SampleProcessing.objects.all()
+    serializer_class = SampleProcessingSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+
+def post_mortem(request):
+    return render(request, 'portals/reports/postmortem.html', {})
+def post_mortem_view(request):
+    return render(request, 'portals/reports/postmortemview.html', {})
+class PostMortemRecordCreate(generics.CreateAPIView):
+    queryset = PostMortemRecord.objects.all()
+    serializer_class = PostMortemRecordSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class PostMortemRecordList(generics.ListAPIView):
+    serializer_class = PostMortemRecordSerializer
+    permission_classes = [Is_Vet|Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+           
+            return PostMortemRecord.objects.filter(user=user).order_by('-id')
+        
+        elif user.is_farmer:
+            
+            return PostMortemRecord.objects.filter(assigned_to=user)
+
+        return PostMortemRecord.objects.none()
+    
+class PostMortemRecordgUpdate(generics.UpdateAPIView):
+    queryset = PostMortemRecord.objects.all()
+    serializer_class = PostMortemRecordSerializer
+    permission_classes = [Is_Vet]
+
+class PostMortemRecordDelete(generics.DestroyAPIView):
+    queryset = PostMortemRecord.objects.all()
+    serializer_class = PostMortemRecordSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+
+def vaccination(request):
+    return render(request, 'portals/reports/vaccination.html', {})
+def vaccination_view(request):
+    return render(request, 'portals/reports/vaccinationview.html', {})
+def vaccination_official_view(request):
+    return render(request, 'portals/reports/vaccination_official.html', {})
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsVetOrOfficial])
+def vaccination_record_filter(request):
+    try:
+        user = request.user
+
+        # 🧑‍⚕️ If vet officer: show records they assigned
+        if getattr(user, 'is_vet_officer', False):
+            records = VaccinationRecord.objects.filter(
+                assigned_by=user
+            ).annotate(
+                assigned_to_username=F("assigned_to_official__username")
+            ).values(
+                "id", "date_of_vaccination", "species_targeted", "vaccination_of",
+                "number_of_animals_vaccinated", "assigned_to_username"
+            )
+            return Response({
+                "user_type": "vet_officer",
+                "records": list(records),
+            })
+
+        # 🏛️ If official: show records assigned to them
+        elif getattr(user, 'is_official', False):
+            records = VaccinationRecord.objects.filter(
+                assigned_to_official=user
+            ).annotate(
+                assigned_by_username=F("assigned_by__username")
+            ).values(
+                "id", "date_of_vaccination", "species_targeted", "vaccination_of",
+                "number_of_animals_vaccinated", "assigned_by_username"
+            )
+            return Response({
+                "user_type": "official",
+                "records": list(records),
+            })
+
+        return Response({"error": "You do not have access to these records."}, status=403)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+CERT_DIR = "vaccination_certificates"   # sub-folder inside MEDIA_ROOT
+ 
+ 
+def save_certificate_to_media(record, pdf_bytes: bytes) -> str:
+    """
+    Write *pdf_bytes* to:
+        MEDIA_ROOT/vaccination_certificates/<pk>_certificate.pdf
+ 
+    Works with any DEFAULT_FILE_STORAGE backend (local disk, S3, GCS …).
+    Deletes any stale copy first so orphan files don't accumulate.
+ 
+    Returns the relative media path, e.g.:
+        "vaccination_certificates/42_certificate.pdf"
+    """
+    path = f"{CERT_DIR}/{record.pk}_certificate.pdf"
+ 
+    if default_storage.exists(path):
+        default_storage.delete(path)
+ 
+    saved_path = default_storage.save(path, ContentFile(pdf_bytes))
+    return saved_path
+ 
+ 
+def certificate_url(saved_path: str) -> str:
+    """Return the absolute public URL for *saved_path*."""
+    return default_storage.url(saved_path)
+ 
+ 
+# ──────────────────────────────────────────────────────────────────────────────
+#  Drawing primitives
+# ──────────────────────────────────────────────────────────────────────────────
+ 
+GOLD      = colors.HexColor("#CFB53B")
+DARK_GOLD = colors.HexColor("#8B6914")
+NAVY      = colors.HexColor("#1a237e")
+ 
+ 
+def _decorative_border(c, x, y, w, h):
+    c.setStrokeColor(colors.black); c.setLineWidth(6)
+    c.rect(x, y, w, h, fill=0, stroke=1)
+    c.setStrokeColor(GOLD); c.setLineWidth(4)
+    c.rect(x + 5, y + 5, w - 10, h - 10, fill=0, stroke=1)
+    c.setStrokeColor(colors.white); c.setLineWidth(1.5)
+    c.rect(x + 10, y + 10, w - 20, h - 20, fill=0, stroke=1)
+    for (cx, cy) in [(x, y + h), (x + w, y + h), (x, y), (x + w, y)]:
+        c.setFillColor(GOLD); c.circle(cx, cy, 4, fill=1, stroke=0)
+ 
+ 
+def _logo_circle(c, cx, cy, r=20):
+    c.setFillColor(colors.white); c.setStrokeColor(DARK_GOLD); c.setLineWidth(1.5)
+    c.circle(cx, cy, r, fill=1, stroke=1)
+    c.setFillColor(DARK_GOLD); c.setFont("Helvetica-Bold", 7)
+    c.drawCentredString(cx, cy + 4, "VET")
+    c.drawCentredString(cx, cy - 4, "PROF")
+ 
+ 
+def _gold_seal(c, cx, cy, r=26):
+    c.setStrokeColor(GOLD); c.setLineWidth(1)
+    for i in range(16):
+        a = math.radians(i * 22.5)
+        c.line(cx + (r - 4) * math.cos(a), cy + (r - 4) * math.sin(a),
+               cx + (r + 6) * math.cos(a), cy + (r + 6) * math.sin(a))
+    c.setFillColor(GOLD); c.setStrokeColor(DARK_GOLD); c.setLineWidth(1.5)
+    c.circle(cx, cy, r, fill=1, stroke=1)
+    c.setFillColor(DARK_GOLD); c.circle(cx, cy, r * 0.7, fill=1, stroke=0)
+    c.setFillColor(colors.white); c.setFont("Helvetica-Bold", 5)
+    c.drawCentredString(cx, cy + 4, "VET PRO")
+    c.drawCentredString(cx, cy - 2, "SERVICES")
+ 
+ 
+def _table_row(c, x, y, col_w, values, row_h=14, header=False):
+    n = len(values)
+    tw = col_w * n
+    c.setFillColor(NAVY if header else colors.HexColor("#f5f5f5"))
+    c.rect(x, y - row_h, tw, row_h, fill=1, stroke=0)
+    c.setStrokeColor(GOLD); c.setLineWidth(0.5)
+    c.rect(x, y - row_h, tw, row_h, fill=0, stroke=1)
+    for i in range(1, n):
+        c.line(x + i * col_w, y, x + i * col_w, y - row_h)
+    c.setFont("Helvetica-Bold" if header else "Helvetica", 9)
+    c.setFillColor(colors.white if header else colors.black)
+    for i, val in enumerate(values):
+        c.drawString(x + i * col_w + 3, y - row_h + 5, str(val or "")[:20])
+ 
+ 
+# ──────────────────────────────────────────────────────────────────────────────
+#  Main PDF builder
+# ──────────────────────────────────────────────────────────────────────────────
+ 
+def generate_vaccination_certificate(record) -> bytes:
+    """
+    Build a Veterinary Professional Services Vaccination Certificate PDF
+    styled to match the reference design (gold/navy/black border, seal, tables).
+    Returns raw PDF bytes.
+    """
+    buf = io.BytesIO()
+    page_w, page_h = A4
+    c = canvas.Canvas(buf, pagesize=A4)
+ 
+    MRG = 18          # outer page margin (pts)
+    IL  = MRG + 14    # inner left x
+    IR  = page_w - MRG - 14   # inner right x
+    ROW = 22          # ↑ increased row height so text breathes
+    TBL = 18          # table data row height
+    TBL_H = 16        # table header row height
+    FS  = 11          # ↑ font size for labels & values
+    LBL = ("Helvetica-Bold", FS)
+    VAL = ("Helvetica",      FS)
+ 
+    # ── Border & decorations ─────────────────────────────────────────────────
+    _decorative_border(c, MRG, MRG, page_w - 2 * MRG, page_h - 2 * MRG)
+    _logo_circle(c, MRG + 28, page_h - MRG - 28)
+    _gold_seal(c,  page_w - MRG - 32, page_h - MRG - 30)
+ 
+    # ── Title ────────────────────────────────────────────────────────────────
+    ty = page_h - MRG - 20
+    business_name = (record.user.business_name or "VETERINARY PROFESSIONAL SERVICES").upper()
+    c.setFillColor(NAVY)
+    c.setFont("Helvetica-Bold", 15)
+    c.drawCentredString(page_w / 2, ty,      business_name)
+    # ── Sub-header row: username | KVB No | contact  (above "VACCINATION CERTIFICATE") ──
+    sub_y = ty - 18
+    c.setFont("Helvetica", 10)
+    c.setFillColor(colors.black)
+    third = (page_w) / 3
+    # Left-ish: username (1/4 from left)
+    
+    c.drawCentredString(page_w * 0.25, sub_y, f"Name: {record.user.first_name} {record.user.last_name}")
+    # Centre: KVB No
+    c.drawCentredString(page_w / 2, sub_y, f"KVB No: {record.user.registration_number or ''}")
+    # Right-ish: contact (3/4 from left)
+    c.drawCentredString(page_w * 0.75, sub_y, f"Contact: {record.user.phone_number or ''}")
+ 
+    c.setFont("Helvetica-Bold", 11)
+    c.setFillColor(NAVY)
+    c.drawCentredString(page_w / 2, ty - 32, "VACCINATION CERTIFICATE")
+ 
+    ry = ty - 46      # rule below "VACCINATION CERTIFICATE"
+    c.setStrokeColor(GOLD); c.setLineWidth(1)
+    c.line(MRG + 10, ry, page_w - MRG - 10, ry)
+ 
+    # ── Closure helpers ──────────────────────────────────────────────────────
+    def lv(x, y, label, value, lw=90):
+        """Render  Label: ...value  with a dotted underline."""
+        c.setFont(*LBL); c.setFillColor(colors.black); c.drawString(x, y, label)
+        c.setFont(*VAL); c.drawString(x + lw, y, str(value or ""))
+        c.setStrokeColor(colors.grey); c.setLineWidth(0.4); c.setDash(1, 2)
+        c.line(x + lw, y - 3, x + lw + 150, y - 3)
+        c.setDash()
+ 
+    def sh(y, text):
+        """Section heading in navy, slightly larger."""
+        c.setFont("Helvetica-Bold", 11); c.setFillColor(NAVY)
+        c.drawString(IL, y, text);       c.setFillColor(colors.black)
+ 
+    # ── OWNER DETAILS ────────────────────────────────────────────────────────
+    y = ry - 14
+    sh(y, "Owner Details:")
+    y -= ROW
+    half = (IR - IL) / 2
+    lv(IL,        y, "Name:",        record.name_of_owner, lw=48)
+    lv(IL + half, y, "Location:",    record.location,      lw=62)
+    y -= ROW
+    lv(IL,        y, "Village:",     record.village,       lw=48)
+    lv(IL + half, y, "Contact No.:", record.contact,       lw=72)
+    y -= ROW
+    lv(IL,        y, "Sub-County:",  record.sub_county,    lw=68)
+    lv(IL + half, y, "Ward:",        record.ward,          lw=42)
+ 
+    # ── ANIMAL DETAILS ───────────────────────────────────────────────────────
+    y -= ROW + 6
+    sh(y, "Animal Details:")
+    y -= 8
+    col_w = (IR - IL) / 7
+    _table_row(c, IL, y, col_w,
+               ["Animal Species", "Breed", "Reg. no.", "Age", "Sex", "Colour", "No. of Animal"],
+               row_h=TBL_H, header=True)
+    y -= TBL_H
+    species = (record.other_species if record.species_targeted == "OTHER"
+               and record.other_species else record.species_targeted)
+    _table_row(c, IL, y, col_w, [
+        species, record.breed_of_animal, "",
+        record.age_of_animal, record.sex_of_animal,
+        record.color_of_animal, str(record.number_of_animals_vaccinated),
+    ], row_h=TBL)
+    y -= TBL + 8
+ 
+    lv(IL, y, "Name:", record.name_of_rash or "", lw=48)
+    c.setFont(*LBL); c.drawString(IL + 230, y, "Other Description:")
+    c.setFont(*VAL); c.drawString(IL + 340, y, str(record.other_description or ""))
+ 
+    # ── VACCINE DETAILS ──────────────────────────────────────────────────────
+    y -= ROW + 6
+    sh(y, "Vaccine Details:")
+    y -= 8
+    vcol = (IR - IL) / 6
+    _table_row(c, IL, y, vcol,
+               ["Name of Vaccine used", "Vaccinate against", "Batch No.",
+                "Manufacturer", "Dosage", "Route of Admin."],
+               row_h=TBL_H, header=True)
+    y -= TBL_H
+    disease = (record.other_disease if record.vaccination_of == "OTHER"
+               and record.other_disease else record.vaccination_of)
+    _table_row(c, IL, y, vcol,
+               [record.vaccines_used, disease, record.batch_number, "", record.dosage, ""],
+               row_h=TBL)
+    y -= TBL + ROW
+ 
+    # ── DATES ────────────────────────────────────────────────────────────────
+    lv(IL,       y, "Date of Vaccination:",      str(record.date_of_vaccination),      lw=130)
+    lv(IL + 255, y, "Next Date of Vaccination:", str(record.next_date_of_vaccination), lw=150)
+    y -= ROW
+    lv(IL,       y, "Expiry Date of Vaccine:",   str(record.expiry_date),              lw=130)
+    y -= ROW
+ 
+    # ── TYPE & NATURE ────────────────────────────────────────────────────────
+    c.setFont(*LBL); c.drawString(IL, y, "Vaccination Details:")
+    c.setFont(*VAL)
+    c.drawString(IL + 132, y,
+                 f"Single Vaccination {'☑' if record.vaccination_type == 'SINGLE' else '☐'}"
+                 f"    Mass Vaccination {'☑' if record.vaccination_type == 'MASS' else '☐'}")
+    y -= ROW
+    c.setFont(*LBL); c.drawString(IL, y, "Vaccination status:")
+    c.setFont(*VAL)
+    c.drawString(IL + 120, y,
+                 f"Primary {'☑' if record.nature_of_vaccination_program == 'PRIMARY' else '☐'}"
+                 f"    Booster {'☑' if record.nature_of_vaccination_program == 'BOOSTER' else '☐'}")
+    y -= ROW
+    lv(IL, y, "Village vaccination done:", record.village_vaccination_done or "", lw=150)
+    y -= ROW
+ 
+    # ── VET DETAILS  (licence no., mobile no. and vet category removed) ──────
+    y -= 6
+    c.setStrokeColor(GOLD); c.setLineWidth(0.6)
+    c.line(IL, y, IR, y)
+    y -= ROW
+    lv(IL,       y, "Veterinary practitioner:", record.reg_no or "", lw=148)
+    lv(IL + 290, y, "KVB NO:",                  record.reg_no or "", lw=55)
+    y -= ROW + 6
+ 
+    # Signature line
+    c.setFont(*LBL); c.drawString(IL, y, "Signature & Stamp:")
+    c.setStrokeColor(colors.grey); c.setLineWidth(0.5)
+    c.line(IL + 132, y - 2, IL + 340, y - 2)
+ 
+    # ── Footer ───────────────────────────────────────────────────────────────
+    c.setFont("Helvetica-Oblique", 8); c.setFillColor(colors.grey)
+    c.drawCentredString(page_w / 2, MRG + 6,
+                        "This certificate is issued by Veterinary Professional Services")
+ 
+    c.save()
+    buf.seek(0)
+    return buf.read()
+ 
+ 
+# ──────────────────────────────────────────────────────────────────────────────
+#  API View
+# ──────────────────────────────────────────────────────────────────────────────
+ 
+class VaccinationRecordCreate(generics.CreateAPIView):
+    """
+    POST  /api/vaccination-records/
+ 
+    1. Saves the VaccinationRecord to the DB.
+    2. Generates the PDF certificate (ReportLab).
+    3. Stores it at  MEDIA_ROOT/vaccination_certificates/<pk>_certificate.pdf
+       via Django's default_storage.
+    4. Writes the relative path back to record.certificate_file.
+    5. Returns JSON with the public URL.
+    """
+    queryset           = VaccinationRecord.objects.all()
+    serializer_class   = VaccinationRecordSerializer
+    permission_classes = [Is_Vet]
+ 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+ 
+        # 1. Persist record
+        record = serializer.save(user=request.user)
+ 
+        # 2. Generate PDF
+        pdf_bytes = generate_vaccination_certificate(record)
+ 
+        # 3. Save to  MEDIA_ROOT/vaccination_certificates/<pk>_certificate.pdf
+        saved_path = save_certificate_to_media(record, pdf_bytes)
+ 
+        # 4. Write the relative path back onto the record
+        #    (uses update() to avoid a full model save + avoid re-triggering signals)
+        VaccinationRecord.objects.filter(pk=record.pk).update(
+            certificate_file=saved_path
+        )
+ 
+        # 5. Return JSON
+        return Response(
+            {
+                "detail":           "Vaccination record created and certificate saved.",
+                "record_id":        record.pk,
+                "certificate_path": saved_path,              # relative to MEDIA_ROOT
+                "certificate_url":  certificate_url(saved_path),  # full public URL
+            },
+            status=status.HTTP_201_CREATED,
+        )
+ 
+class VaccinationRecordList(generics.ListAPIView):
+    serializer_class = VaccinationRecordSerializer
+    permission_classes = [Is_Vet|Is_Farmer | Is_Official]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+           
+            return VaccinationRecord.objects.filter(user=user).order_by('-id')
+        
+        if user.is_official:
+           
+            return VaccinationRecord.objects.filter(assigned_to_official=user).order_by('-id')
+        
+        
+        if user.is_farmer:
+            
+            return VaccinationRecord.objects.filter(assigned_to=user).order_by('-id')
+
+        return VaccinationRecord.objects.none()
+    
+class VaccinationRecordUpdate(generics.UpdateAPIView):
+    queryset = VaccinationRecord.objects.all()
+    serializer_class = VaccinationRecordSerializer
+    permission_classes = [Is_Vet]
+
+class VaccinationRecordDelete(generics.DestroyAPIView):
+    queryset = VaccinationRecord.objects.all()
+    serializer_class = VaccinationRecordSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+            
+            
+            
+def clinical(request):
+    return render(request, 'portals/reports/clinical.html', {})
+def clinical_view(request):
+    return render(request, 'portals/reports/clinicalview.html', {})
+class ClinicalRecordCreate(generics.CreateAPIView):
+    queryset = ClinicalRecord.objects.all()
+    serializer_class = ClinicalRecordSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class ClinicalRecordList(generics.ListAPIView):
+    serializer_class = ClinicalRecordSerializer
+    permission_classes = [Is_Vet | Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+        
+        if user.is_vet_officer:
+            # Vet officers can view records they have created
+            return ClinicalRecord.objects.filter(user=user).order_by('-id')
+
+        elif user.is_farmer:
+            # Farmers can view records assigned to them
+            return ClinicalRecord.objects.filter(assigned_to=user).order_by('-id')
+
+        return ClinicalRecord.objects.none()
+
+
+class ClinicalRecordUpdate(generics.UpdateAPIView):
+    queryset = ClinicalRecord.objects.all()
+    serializer_class = ClinicalRecordSerializer
+    permission_classes = [Is_Vet]
+
+    
+
+class ClinicalRecordDelete(generics.DestroyAPIView):
+    queryset = ClinicalRecord.objects.all()
+    serializer_class = ClinicalRecordSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+
+#############Shop############################
+
+def shop(request):
+    return render(request, 'portals/shop/myshop.html', {})
+
+def client(request):
+    return render(request, 'portals/reports/clients.html', {})
+
+class ClientCreate(generics.CreateAPIView):
+    queryset = Client.objects.all()
+    serializer_class = ClientSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+class ClientList(generics.ListAPIView):
+    serializer_class = ClientSerializer
+    permission_classes = [Is_Vet]
+    pagination_class = CustomPagination
+    
+    def get_queryset(self):
+        user = self.request.user
+        ###print(user)
+        return Client.objects.filter(user=self.request.user).order_by('-id')
+class ClientUpdate(generics.UpdateAPIView):
+    queryset = Client.objects.all()
+    serializer_class = ClientSerializer
+    permission_classes = [Is_Vet]
+
+
+class ClientDelete(generics.DestroyAPIView):
+    queryset = Client.objects.all()
+    serializer_class = ClientSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+            
+def diary(request):
+    return render(request, 'portals/reports/diary.html', {})
+
+# Class-based view for creating a Diary record
+class DiaryCreate(generics.CreateAPIView):
+    queryset = Diary.objects.all()
+    serializer_class = DiarySerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class DiaryList(generics.ListAPIView):
+    serializer_class = DiarySerializer
+    permission_classes = [Is_Vet ]
+    pagination_class = CustomPagination
+    def get_queryset(self):
+        user = self.request.user
+        ###print(user)
+        return Diary.objects.filter(user=self.request.user).order_by('-id')
+
+    
+
+
+class DiaryUpdate(generics.UpdateAPIView):
+    queryset = Diary.objects.all()
+    serializer_class = DiarySerializer
+    permission_classes = [Is_Vet]
+
+
+class DiaryDelete(generics.DestroyAPIView):
+    queryset = Diary.objects.all()
+    serializer_class = DiarySerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+def disease_report(request):
+    return render(request, 'portals/reports/disease_report.html', {})
+
+def disease_report_view(request):
+    return render(request, 'portals/reports/disease_report_view.html', {})
+
+class DiseaseReportCreate(generics.CreateAPIView):
+    queryset = DiseaseReport.objects.all()
+    serializer_class = DiseaseReportSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class DiseaseReportList(generics.ListAPIView):
+    serializer_class = DiseaseReportSerializer
+    permission_classes = [Is_Vet | Is_Official]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return DiseaseReport.objects.filter(user=user).order_by('-id')
+        
+        if user.is_official:
+            return DiseaseReport.objects.filter(assigned_to_official=user).order_by('-id')
+
+    
+        return DiseaseReport.objects.none()
+
+class DiseaseReportUpdate(generics.UpdateAPIView):
+    queryset = DiseaseReport.objects.all()
+    serializer_class = DiseaseReportSerializer
+    permission_classes = [Is_Vet]
+
+class DiseaseReportDelete(generics.DestroyAPIView):
+    queryset = DiseaseReport.objects.all()
+    serializer_class = DiseaseReportSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+def resources(request):
+    return render(request, 'portals/reports/resources.html', {})
+
+def slaughterhouse(request):
+    return render(request, 'portals/reports/slaughter.html', {})
+
+def slaughterhouse_view(request):
+    return render(request, 'portals/reports/slaughter_official.html', {})
+
+class SlaughterhouseCreate(generics.CreateAPIView):
+    queryset = Slaughterhouse.objects.all()
+    serializer_class = SlaughterhouseSerializer
+    permission_classes = [Is_Vet | Is_Farmer | Is_Official]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class SlaughterhouseList(generics.ListAPIView):
+    serializer_class = SlaughterhouseSerializer
+    permission_classes = [Is_Vet | Is_Farmer | Is_Official]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return Slaughterhouse.objects.filter(assigned_to_vet=user).order_by('-id')
+        
+        if user.is_official:
+            return Slaughterhouse.objects.filter(assigned_to_official=user).order_by('-id')
+        
+        if user.is_farmer:
+            return Slaughterhouse.objects.filter(user=user).order_by('-id')
+
+        return Slaughterhouse.objects.none()
+
+class SlaughterhouseUpdate(generics.UpdateAPIView):
+    queryset = Slaughterhouse.objects.all()
+    serializer_class = SlaughterhouseSerializer
+    permission_classes = [Is_Vet]
+
+class SlaughterhouseDelete(generics.DestroyAPIView):
+    queryset = Slaughterhouse.objects.all()
+    serializer_class = SlaughterhouseSerializer
+    permission_classes = [Is_Vet]
+
+
+# Employee Views
+def employee(request):
+    return render(request, 'portals/reports/employee.html', {})
+def employee_view(request):
+     return render(request, 'portals/reports/employee_view.html', {})
+class EmployeeCreate(generics.CreateAPIView):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class EmployeeList(generics.ListAPIView):
+    serializer_class = EmployeeSerializer
+    permission_classes = [Is_Vet | Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return Employee.objects.filter(assigned_to_vet=user).order_by('-id')
+        
+        # if user.is_official:
+        #     return Employee.objects.filter(assigned_to_official=user).order_by('-id')
+        
+        if user.is_farmer:
+            return Employee.objects.filter(user=user).order_by('-id')
+
+        return Employee.objects.none()
+
+class EmployeeUpdate(generics.UpdateAPIView):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+    permission_classes = [Is_Vet]
+
+class EmployeeDelete(generics.DestroyAPIView):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+    permission_classes = [Is_Vet]
+
+
+# Butcher Views
+def butcher(request):
+    return render(request, 'portals/reports/butcher.html', {})
+def butcher_view(request):
+    return render(request, 'portals/reports/butcher_view.html', {})
+class ButcherCreate(generics.CreateAPIView):
+    queryset = Butcher.objects.all()
+    serializer_class = ButcherSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class ButcherList(generics.ListAPIView):
+    serializer_class = ButcherSerializer
+    permission_classes = [Is_Vet | Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return Butcher.objects.filter(user=user).order_by('-id').order_by('-id')
+        
+        elif user.is_farmer:
+            return Butcher.objects.filter(user=user).order_by('-id').order_by('-id')
+
+        return Butcher.objects.none()
+
+class ButcherUpdate(generics.UpdateAPIView):
+    queryset = Butcher.objects.all()
+    serializer_class = ButcherSerializer
+    permission_classes = [Is_Vet]
+
+class ButcherDelete(generics.DestroyAPIView):
+    queryset = Butcher.objects.all()
+    serializer_class = ButcherSerializer
+    permission_classes = [Is_Vet]
+
+
+# Invoice Views
+def invoice(request):
+    return render(request, 'portals/reports/invoice.html', {})
+
+def invoice_view(request):
+    return render(request, 'portals/reports/invoiceview.html', {})
+class InvoiceCreate(generics.CreateAPIView):
+    queryset = Invoice.objects.all()
+    serializer_class = InvoiceSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class InvoiceList(generics.ListAPIView):
+    serializer_class = InvoiceSerializer
+    permission_classes = [Is_Vet | Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            
+            return Invoice.objects.filter(user=user).order_by('-id')
+        
+        elif user.is_farmer:
+            
+            return Invoice.objects.filter(assigned_to=user).order_by('-id')
+
+        return Invoice.objects.none()
+
+class InvoiceUpdate(generics.UpdateAPIView):
+    queryset = Invoice.objects.all()
+    serializer_class = InvoiceSerializer
+    permission_classes = [Is_Vet]
+
+class InvoiceDelete(generics.DestroyAPIView):
+    queryset = Invoice.objects.all()
+    serializer_class = InvoiceSerializer
+    permission_classes = [Is_Vet]
+    
+   
+def score(request):
+    user=request.user
+    score = Attempt.objects.filter(user=user)
+    context = {
+            'scores': score,
+            
+        }
+    return render(request,'portals/reports/results.html',context)
+ 
+@csrf_exempt
+def start_quiz(request):
+    if request.method == 'GET':
+        user_id = request.GET.get('user_id')
+        if not user_id:
+            return JsonResponse({'message': 'user_id is required'}, status=400)
+
+        try:
+            user = get_object_or_404(User, id=user_id)
+            questions = get_random_questions_for_user(user)
+            if not questions:
+                return JsonResponse({'message': 'No questions available for your category'}, status=400)
+
+            return JsonResponse({
+                'questions': [{
+                    'id': q.id,
+                    'text': q.text,
+                    'options': {'A': q.option_a, 'B': q.option_b, 'C': q.option_c, 'D': q.option_d}
+                } for q in questions]
+            })
+        except Exception as e:
+            return JsonResponse({'message': str(e)}, status=500)
+
+    return JsonResponse({'message': 'Method not allowed'}, status=405)
+
+@csrf_exempt
+def submit_quiz(request):
+    if request.method == 'POST':
+        try:
+            # Parse the JSON data from the request body
+            data = json.loads(request.body)
+            print(data)
+
+            # Extract the user_id and answers
+            user_id = data.get('user_id')
+            answers = data.get('answers', {})
+
+            # Get the user object or return a 404 if not found
+            user = get_object_or_404(User, id=user_id)
+
+            # Get or create the UserRetake object
+            user_retake, created = UserRetake.objects.get_or_create(user=user)
+
+            # Check if the user has any retakes left
+            if user_retake.retakes_left < 1:
+                return JsonResponse({'message': 'No retakes left', 'score': 0, 'retakes_left': 0}, status=400)
+
+            score = 0
+            # Process each question and its answer
+            for question_id, answer in answers.items():
+                question = get_object_or_404(Question, id=question_id)
+                if question.correct_answer == answer:
+                    score += 10
+
+            # Save the attempt to the database
+            attempt = Attempt.objects.create(user=user, score=score, attempt_number=4 - user_retake.retakes_left)
+
+            # Check the score and respond accordingly
+            if score >= 80:
+                return JsonResponse({'message': 'Passed', 'score': score, 'retakes_left': user_retake.retakes_left})
+            else:
+                user_retake.retakes_left -= 1
+                user_retake.save()
+                return JsonResponse({'message': 'Failed', 'score': score, 'retakes_left': user_retake.retakes_left})
+
+        except json.JSONDecodeError:
+            return JsonResponse({'message': 'Invalid JSON format'}, status=400)
+
+        except Exception as e:
+            return JsonResponse({'message': str(e)}, status=500)
+
+    return JsonResponse({'message': 'No attempts left'}, status=405)
+def quiz_page(request):
+    moderator = Moderator.objects.first() 
+    return render(request, 'portals/reports/quiz.html', {'moderator': moderator})
+
+    
+# class QuestionListView(generics.ListAPIView):
+#     permission_classes = [Is_Vet]
+    
+#     def get(self, request):
+#         questions = Question.objects.all()
+#         first_name = request.user.first_name.replace('%', '').strip()
+#         last_name = request.user.last_name.replace('%', '').strip()
+#         failed_attempts = QuestionResult.objects.filter(user=request.user, passed='fail').count()
+
+#         # Determine if the submit button should be disabled (blurry)
+#         disable_submit = failed_attempts >= 2
+
+#         combined_name = f"{first_name} {last_name}"
+#         context = {
+#             'questions': questions,
+#             'combined_name': combined_name,
+#             'failed_attempts': failed_attempts,
+#             'disable_submit': disable_submit  # Pass the flag to the template
+#         }
+#         return render(request, 'portals/reports/quiz.html', context)
+    
+def tutorial(request):
+    return render(request, 'portals/reports/cpd.html', {})
+def tutorialtest(request):
+    
+    return render(request, 'portals/reports/cpdtest.html', {})
+def lesson(request):
+    return render(request, 'portals/reports/lessons.html', {})
+    
+class TutorialCreate(generics.CreateAPIView):
+    queryset = Tutorial.objects.all()
+    serializer_class = TutorialSerializer
+    permission_classes = [Is_Vet]
+
+
+class TutorialList(generics.ListAPIView):
+
+    serializer_class = TutorialSerializer
+    permission_classes = [Is_Vet]
+    pagination_class = PageNumberPagination
+
+    def get_queryset(self):
+
+        user = self.request.user
+
+        purchases = LessonPurchase.objects.filter(
+            lesson=OuterRef('pk'),
+            user=user
+        )
+
+        return Tutorial.objects.annotate(
+            has_paid=Exists(purchases)
+        ).order_by('-created_at')
+class TutorialUpdate(generics.UpdateAPIView):
+    queryset = Tutorial.objects.all()
+    serializer_class = TutorialSerializer
+    permission_classes = [Is_Vet]
+
+class TutorialDelete(generics.DestroyAPIView):
+    queryset = Tutorial.objects.all()
+    serializer_class = TutorialSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        instance.delete()
+
+class SectionCreate(generics.CreateAPIView):
+    queryset = Section.objects.all()
+    serializer_class = SectionSerializer
+    permission_classes = [Is_Vet]
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser]
+
+# class SectionList(generics.ListAPIView):
+#     serializer_class = SectionSerializer
+#     permission_classes = [Is_Vet]
+
+#     def get_queryset(self):
+#         lesson_id = self.kwargs['lesson_id']
+#         return Section.objects.filter(lesson_id=lesson_id).order_by('-id')
+
+class SectionList(View):
+    permission_classes = [Is_Vet]
+    pagination_class=None
+
+    def get(self, request, lesson_id):
+        sections = Section.objects.filter(lesson_id=lesson_id).order_by('-id')
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            serializer = SectionSerializer(sections, many=True)
+            return Response(serializer.data)
+        context = {
+            'sections': sections,
+            'lesson_id': lesson_id  
+        }
+        return render(request, 'portals/reports/lessons.html', context)
+    
+def download_file(request, section_id):
+    try:
+        section = Section.objects.get(id=section_id)
+        file_path = section.file.path  # Get the absolute file path
+        
+        # Verify that the file is in the 'media/uploads/' directory
+        if os.path.exists(file_path) and 'media/uploads/' in file_path:
+            # Serve the file as a downloadable response
+            response = FileResponse(open(file_path, 'rb'))
+            response['Content-Disposition'] = f'attachment; filename="{os.path.basename(file_path)}"'
+            return response
+        else:
+            raise Http404("File not found in the uploads directory")
+    except Section.DoesNotExist:
+        raise Http404("Section not found")
+      
+class CommentCreateView(generics.CreateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        section_id = self.kwargs.get('section_id')
+        section = Section.objects.get(id=section_id)
+        serializer.save(author=self.request.user, section=section)
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        section_id = self.kwargs.get('section_id')
+        if response.status_code == status.HTTP_201_CREATED:
+            return redirect('comment-list', section_id=section_id)
+        return response
+        
+class CommentListView(View):
+    permission_classes = [Is_Vet]
+
+    def get(self, request, section_id):
+        comments = Comment.objects.filter(section__id=section_id).order_by('-created_at')
+        section = Section.objects.get(id=section_id)
+        
+        context = {
+            'comments': comments,
+            'section_id': section_id,
+        }
+        return render(request, 'portals/reports/comments.html',context)
+#cpd qustions 
+class QuizView(View):
+    permission_classes = [Is_Vet]
+    
+    def get(self, request, section_id):
+        section = get_object_or_404(Section, id=section_id)
+        questions = CpdQuestions.objects.filter(section=section)
+        first_name = request.user.first_name.replace('%', '').strip()
+        last_name = request.user.last_name.replace('%', '').strip()
+        failed_attempts = QuizResult.objects.filter(user=request.user, section=section, passed='fail').count()
+
+        # Determine if the submit button should be disabled (blurry)
+        disable_submit = failed_attempts >= 2
+
+        combined_name = f"{first_name} {last_name}"
+        context = {
+            'questions': questions,
+            'section': section,
+            'combined_name': combined_name,
+            'failed_attempts': failed_attempts,
+            'disable_submit': disable_submit  # Pass the flag to the template
+        }
+        return render(request, 'portals/reports/cpdquestions.html', context)
+class QuizSubmit(View):
+    permission_classes = [Is_Vet]
+
+    def post(self, request, section_id):
+        # Combine user's first and last name
+        first_name = f"{request.user.first_name}"
+        last_name = f"{request.user.last_name}"
+        
+        # Fetch the section instance or raise 404
+        section = get_object_or_404(Section, id=section_id)
+        
+        # Ensure the quiz has a time limit (optional logic)
+        start_time = timezone.now()
+        end_time = start_time + timezone.timedelta(minutes=30)
+        if timezone.now() > end_time:
+            return JsonResponse({"error": "Time's up!"}, status=400)
+        
+        
+        questions = CpdQuestions.objects.filter(section=section)
+        total_questions = questions.count()
+        
+        if total_questions == 0:
+            messages.error(request,"No questions available in this section")
+
+        
+        failed_attempts = QuizResult.objects.filter(user=request.user, section=section, passed='fail').count()
+        
+        if failed_attempts >= 2:
+             messages.error(request,"You have already failed this quiz twice and can no longer retake it.")
+
+      
+        correct_count = 0
+        for question in questions:
+            question_id = str(question.id)
+            selected_choice_id = request.POST.get(f'answers[{question_id}]')
+            
+            
+            correct_choice = CpdChoices.objects.filter(question_id=question.id, is_correct=True).first()
+            if correct_choice and str(correct_choice.id) == selected_choice_id:
+                correct_count += 1
+        
+        
+        score = (correct_count / total_questions) * 100 if total_questions > 0 else 0
+        passed_status = 'pass' if score >= 80 else 'fail'
+        
+        
+        result = QuizResult.objects.create(
+            user=request.user,
+            section=section,  
+            score=score,
+            passed=passed_status, 
+            failed_attempts=failed_attempts,
+        )
+        
+        
+        context = {
+            'result': result,
+            'score': score,
+            'passed': passed_status,
+            'section': section,
+            'first_name': first_name,
+            'last_name': last_name,
+            'failed_attempts':failed_attempts,
+        }
+        
+        if passed_status == 'fail':
+            context['retake'] = True
+        
+        # Render the results page
+        return render(request, 'portals/reports/cpdresult.html', context)
+
+class QuestionCreateAPIView(generics.CreateAPIView):
+    queryset = CpdQuestions.objects.all()
+    serializer_class = CpdQuestionsSerializer
+    permission_classes = [Is_Vet]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Question created successfully!'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+def result(request):
+    return render(request,'portals/reports/myresults.html',{})
+
+
+
+
+def generate_certificate(request, first_name, last_name):
+    template_path = os.path.join(settings.STATIC_ROOT, "portals", "assets", "img", "certificate_1.png")
+    template = cv2.imread(template_path)
+    if template is None:
+        return HttpResponse("Certificate template not found", status=500)
+
+    registration_number = request.user.registration_number
+    date = now()
+    date_string = date.strftime('%d/%m/%Y')
+
+    
+    font = cv2.FONT_HERSHEY_COMPLEX
+    font_scale = 2
+    font_color = (0, 0, 255)
+    thickness = 3
+
+    
+    canvas_width = template.shape[1]
+    y_coordinate = 680
+    spacing = 50  
+
+   
+    first_name_size = cv2.getTextSize(first_name, font, font_scale, thickness)[0]
+    last_name_size = cv2.getTextSize(last_name, font, font_scale, thickness)[0]
+    total_name_width = first_name_size[0] + spacing + last_name_size[0]
+
+    if total_name_width <= canvas_width:
+        first_name_coords = ((canvas_width - total_name_width) // 2, y_coordinate)
+        last_name_coords = (first_name_coords[0] + first_name_size[0] + spacing, y_coordinate)
+    else:
+        
+        first_name_coords = (100, y_coordinate)
+        last_name_coords = (first_name_coords[0] + first_name_size[0] + spacing, y_coordinate)
+
+    
+    date_coords = (800, 930)
+    signature_coords = (1200, 950)
+    kvb_no_coords = (993, 760)
+
+    
+    cv2.putText(template, first_name, first_name_coords, font, font_scale, font_color, thickness, cv2.LINE_AA)
+    cv2.putText(template, last_name, last_name_coords, font, font_scale, font_color, thickness, cv2.LINE_AA)
+
+    
+    cv2.putText(template, date_string, date_coords, font, 1, (0, 0, 0), 2, cv2.LINE_AA)
+
+    
+    #cv2.putText(template, "Authorized Signature", signature_coords, font, 1, (0, 0, 0), 2, cv2.LINE_AA)
+    cv2.putText(template, registration_number, kvb_no_coords, font, 1, (0, 0, 0), 2, cv2.LINE_AA)
+
+    
+    success, buffer = cv2.imencode(".jpg", template)
+    if not success:
+        return HttpResponse("Error generating certificate", status=500)
+
+    
+    response = HttpResponse(buffer.tobytes(), content_type="image/jpeg")
+    response["Content-Disposition"] = f'attachment; filename="{first_name}_certificate.jpg"'
+
+    return response
+
+def get_certificate(request, first_name, last_name):
+    template_path = os.path.join(settings.STATIC_ROOT, "portals", "assets", "img", "certificate_1.png")
+    template = cv2.imread(template_path)
+    if template is None:
+        return HttpResponse("Certificate template not found", status=500)
+
+    registration_number = request.user.registration_number
+    date = now()
+    date_string = date.strftime('%d/%m/%Y')
+
+    
+    font = cv2.FONT_HERSHEY_COMPLEX
+    font_scale = 2
+    font_color = (0, 0, 255)
+    thickness = 3
+
+    
+    canvas_width = template.shape[1]
+    y_coordinate = 680
+    spacing = 50  
+
+   
+    first_name_size = cv2.getTextSize(first_name, font, font_scale, thickness)[0]
+    last_name_size = cv2.getTextSize(last_name, font, font_scale, thickness)[0]
+    total_name_width = first_name_size[0] + spacing + last_name_size[0]
+
+    if total_name_width <= canvas_width:
+        first_name_coords = ((canvas_width - total_name_width) // 2, y_coordinate)
+        last_name_coords = (first_name_coords[0] + first_name_size[0] + spacing, y_coordinate)
+    else:
+        
+        first_name_coords = (100, y_coordinate)
+        last_name_coords = (first_name_coords[0] + first_name_size[0] + spacing, y_coordinate)
+
+    
+    date_coords = (400, 950)
+    signature_coords = (1200, 950)
+    kvb_no_coords = (910, 760)
+
+    
+    cv2.putText(template, first_name, first_name_coords, font, font_scale, font_color, thickness, cv2.LINE_AA)
+    cv2.putText(template, last_name, last_name_coords, font, font_scale, font_color, thickness, cv2.LINE_AA)
+
+    
+    cv2.putText(template, date_string, date_coords, font, 1, (0, 0, 0), 2, cv2.LINE_AA)
+
+    
+    #cv2.putText(template, "Authorized Signature", signature_coords, font, 1, (0, 0, 0), 2, cv2.LINE_AA)
+    cv2.putText(template, registration_number, kvb_no_coords, font, 1, (0, 0, 0), 2, cv2.LINE_AA)
+
+    
+    success, buffer = cv2.imencode(".jpg", template)
+    if not success:
+        return HttpResponse("Error generating certificate", status=500)
+
+    
+    response = HttpResponse(buffer.tobytes(), content_type="image/jpeg")
+    response["Content-Disposition"] = f'attachment; filename="{first_name}_certificate.jpg"'
+
+    return response
+
+
+
+class QuizResultList(generics.ListAPIView):
+    serializer_class = QuizResultSerializer
+    permission_classes = [Is_Vet]
+    
+    def get_queryset(self):
+        return QuizResult.objects.all()
+    
+def livestock_examination(request):
+    return render(request, 'portals/reports/examination.html', {})
+def livestock_examination_view(request):
+    return render(request, 'portals/reports/examination_view.html', {})
+
+# Create View
+class LivestockExaminationCreate(generics.CreateAPIView):
+    queryset = LivestockExaminationRecord.objects.all()
+    serializer_class = LivestockExaminationRecordSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+# List View
+class LivestockExaminationList(generics.ListAPIView):
+    serializer_class = LivestockExaminationRecordSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+        return LivestockExaminationRecord.objects.filter(user=user).order_by('-id')
+
+# Update View
+class LivestockExaminationUpdate(generics.UpdateAPIView):
+    queryset = LivestockExaminationRecord.objects.all()
+    serializer_class = LivestockExaminationRecordSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+# Delete View
+class LivestockExaminationDelete(generics.DestroyAPIView):
+    queryset = LivestockExaminationRecord.objects.all()
+    serializer_class = LivestockExaminationRecordSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+def calving_record(request):
+    return render(request, 'portals/reports/calving_records.html', {})
+
+# Create View
+class CalvingRecordCreate(generics.CreateAPIView):
+    queryset = CalvingRecord.objects.all()
+    serializer_class = CalvingRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+# List View
+class CalvingRecordList(generics.ListAPIView):
+    serializer_class = CalvingRecordSerializer
+    permission_classes = [Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+        return CalvingRecord.objects.filter(user=user).order_by('-id')
+
+# Update View
+class CalvingRecordUpdate(generics.UpdateAPIView):
+    queryset = CalvingRecord.objects.all()
+    serializer_class = CalvingRecordSerializer
+    permission_classes = [Is_Farmer]
+
+# Delete View
+class CalvingRecordDelete(generics.DestroyAPIView):
+    queryset = CalvingRecord.objects.all()
+    serializer_class = CalvingRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+    
+def assessment_record(request):
+    return render(request, 'portals/reports/assessment.html', {})
+def assessment_record_view(request):
+    return render(request, 'portals/reports/assessment_official.html', {})
+
+# Create View
+class AssessmentRecordCreate(generics.CreateAPIView):
+    queryset = AssessmentRecord.objects.all()
+    serializer_class = AssessmentRecordSerializer
+    permission_classes = [Is_Farmer | Is_Vet ]  
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+# List View
+class AssessmentRecordList(generics.ListAPIView):
+    serializer_class = AssessmentRecordSerializer
+    permission_classes = [Is_Farmer | Is_Vet |Is_Official]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return AssessmentRecord.objects.filter(user=user).order_by('-id')
+        if user.is_farmer:
+                return AssessmentRecord.objects.filter(assigned_to=user).order_by('-id')
+
+        return AssessmentRecord.objects.none()
+# Update View
+class AssessmentRecordUpdate(generics.UpdateAPIView):
+    queryset = AssessmentRecord.objects.all()
+    serializer_class = AssessmentRecordSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+# Delete View
+class AssessmentRecordDelete(generics.DestroyAPIView):
+    queryset = AssessmentRecord.objects.all()
+    serializer_class = AssessmentRecordSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+        
+def daily_kill_report(request):
+    return render(request, 'portals/reports/kills.html', {})
+def daily_kill_report_view(request):
+    return render(request, 'portals/reports/kills_official.html', {})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsVetOrOfficial])
+def daily_kill_filter(request):
+    try:
+        user = request.user
+
+        # 🧑‍⚕️ If vet officer: show records they assigned
+        if getattr(user, 'is_vet_officer', False):
+            records = DailyKill.objects.filter(
+                assigned_by=user
+            ).annotate(
+                assigned_to_username=F("assigned_to_official__username")
+            ).values(
+                "id", "date", "livestock_category", "total_kills_per_day", "assigned_to_username"
+            )
+            return Response({
+                "user_type": "vet_officer",
+                "records": list(records),
+            })
+
+        # 🏛️ If official: show records assigned to them
+        elif getattr(user, 'is_official', False):
+            records = DailyKill.objects.filter(
+                assigned_to_official=user
+            ).annotate(
+                assigned_by_username=F("assigned_by__username")
+            ).values(
+                "id", "date", "livestock_category", "total_kills_per_day", "assigned_by_username"
+            )
+            return Response({
+                "user_type": "official",
+                "records": list(records),
+            })
+
+        return Response({"error": "You do not have access to these records."}, status=403)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+class DailyKillCreate(generics.CreateAPIView):
+    queryset = DailyKill.objects.all()
+    serializer_class = DailyKillSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        assigned_to_official = self.request.data.get("assigned_to_official")
+
+        if assigned_to_official:
+            serializer.save(user=user, assigned_by=user)  # Assign `assigned_by` if an official is assigned
+        else:
+            serializer.save(user=user)
+
+class DailyKillList(generics.ListAPIView):
+    serializer_class = DailyKillSerializer
+    permission_classes = [Is_Vet | Is_Official]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+        user_filter = self.request.query_params.get("user", None)  # Get user filter from query params
+
+        if user_filter and user_filter.lower() == "all":
+            return DailyKill.objects.all().order_by('-id')  # Retrieve all records
+
+        if user.is_vet_officer:
+            return DailyKill.objects.filter(user=user).order_by('-id')
+        
+        if user.is_farmer:
+            return DailyKill.objects.filter(assigned_to_farmer=user).order_by('-id')
+
+
+        if user.is_official:
+            return DailyKill.objects.filter(assigned_to_official=user).order_by('-id')
+
+        return DailyKill.objects.none()
+class DailyKillUpdate(generics.UpdateAPIView):
+    queryset = DailyKill.objects.all()
+    serializer_class = DailyKillSerializer
+    permission_classes = [Is_Vet]
+
+class DailyKillDelete(generics.DestroyAPIView):
+    queryset = DailyKill.objects.all()
+    serializer_class = DailyKillSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+        
+def movement_permit_report(request):
+    return render(request, 'portals/reports/movement.html', {})
+def movement_permit_report_view(request):
+    return render(request, 'portals/reports/movement_view.html', {})
+
+class MovementPermitCreate(generics.CreateAPIView):
+    queryset = MovementPermit.objects.all()
+    serializer_class = MovementPermitSerializer
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser]
+    permission_classes = [Is_Vet]
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+class MovementPermitList(generics.ListAPIView):
+    serializer_class = MovementPermitSerializer
+    permission_classes = [Is_Vet | Is_Official]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return MovementPermit.objects.filter(user=user).order_by('-id')
+        if user.is_official:
+            return MovementPermit.objects.filter(assigned_to_official=user).order_by('-id')
+
+        return MovementPermit.objects.none()
+
+    def stream_file(self, request, permit_id):
+        # Get the movement permit object based on the ID
+        try:
+            permit = MovementPermit.objects.get(id=permit_id)
+        except MovementPermit.DoesNotExist:
+            return HttpResponseNotFound("Movement Permit not found.")
+
+        # Assuming `uploaded_report` is the file field on MovementPermit model
+        file_path = permit.uploaded_permit.path
+
+        # Check if the file exists
+        if not os.path.exists(file_path):
+            return HttpResponseNotFound("File not found.")
+
+        # Open the file and stream it
+        file = open(file_path, 'rb')
+        response = FileResponse(file, content_type='application/octet-stream')
+        response['Content-Disposition'] = f'attachment; filename="{permit.uploaded_permit.name}"'
+        return response
+
+class MovementPermitUpdate(generics.UpdateAPIView):
+    queryset = MovementPermit.objects.all()
+    serializer_class = MovementPermitSerializer
+    permission_classes = [Is_Vet]
+
+class MovementPermitDelete(generics.DestroyAPIView):
+    queryset = MovementPermit.objects.all()
+    serializer_class = MovementPermitSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+# No Objection Views
+
+def no_objection_report(request):
+    return render(request, 'portals/reports/no_objection.html', {})
+
+def no_objection_report_view(request):
+    return render(request, 'portals/reports/no_objection_view.html', {})
+
+
+class NoObjectionCreate(generics.CreateAPIView):
+    queryset = NoObjection.objects.all()
+    serializer_class = NoObjectionSerializer
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser]
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+class NoObjectionList(generics.ListAPIView):
+    serializer_class = NoObjectionSerializer
+    permission_classes = [Is_Vet |Is_Official]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return NoObjection.objects.filter(user=user)
+        if user.is_official:
+            return NoObjection.objects.filter(assigned_to_official=user)
+
+        return NoObjection.objects.none()
+class NoObjectionUpdate(generics.UpdateAPIView):
+    queryset = NoObjection.objects.all()
+    serializer_class = NoObjectionSerializer
+    permission_classes = [Is_Vet|Is_Official]
+
+class NoObjectionDelete(generics.DestroyAPIView):
+    queryset = NoObjection.objects.all()
+    serializer_class = NoObjectionSerializer
+    permission_classes = [Is_Vet|Is_Official]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+# Monthly Report Views
+
+def monthly_report(request):
+    return render(request, 'portals/reports/monthly_report.html', {})
+
+def monthly_report_view(request):
+    return render(request, 'portals/reports/monthly_report_official.html', {})
+
+
+class MonthlyReportCreate(generics.CreateAPIView):
+    queryset = MonthlyReport.objects.all()
+    serializer_class = MonthlyReportSerializer
+    permission_classes = [Is_Vet |Is_Official]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+class MonthlyReportList(generics.ListAPIView):
+    serializer_class = MonthlyReportSerializer
+    permission_classes = [Is_Vet |Is_Official]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return MonthlyReport.objects.filter(user=user).order_by('-id')
+        if user.is_official:
+            return MonthlyReport.objects.filter(assigned_to_official=user).order_by('-id')
+
+        return MonthlyReport.objects.none()
+class MonthlyReportUpdate(generics.UpdateAPIView):
+    queryset = MonthlyReport.objects.all()
+    serializer_class = MonthlyReportSerializer
+    permission_classes = [Is_Vet |Is_Official]
+
+class MonthlyReportDelete(generics.DestroyAPIView):
+    queryset = MonthlyReport.objects.all()
+    serializer_class = MonthlyReportSerializer
+    permission_classes = [Is_Vet |Is_Official]
+
+    def perform_destroy(self, instance):
+        instance.delete()
+def quarterly_report(request):
+    return render(request, 'portals/reports/quarterly_report.html', {})
+
+def quarterly_report_view(request):
+    return render(request, 'portals/reports/quarterly_report_official.html', {})
+        
+class QuarterlyReportCreate(generics.CreateAPIView):
+    queryset = QuarterlyReport.objects.all()
+    serializer_class = QuarterlyReportSerializer
+    permission_classes = [Is_Vet | Is_Official]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+class QuarterlyReportList(generics.ListAPIView):
+    serializer_class = QuarterlyReportSerializer
+    permission_classes = [Is_Vet | Is_Official]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return  QuarterlyReport.objects.filter(user=user).order_by('-id')
+        if user.is_official:
+            return QuarterlyReport.objects.filter(assigned_to_official=user).order_by('-id')
+
+        return QuarterlyReport.objects.none()
+class QuarterlyReportUpdate(generics.UpdateAPIView):
+    queryset = QuarterlyReport.objects.all()
+    serializer_class = QuarterlyReportSerializer
+    permission_classes = [Is_Vet | Is_Official]
+
+class QuarterlyReportDelete(generics.DestroyAPIView):
+    queryset = QuarterlyReport.objects.all()
+    serializer_class = QuarterlyReportSerializer
+    permission_classes = [Is_Vet | Is_Official]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+# Yearly Report Views
+def yearly_report(request):
+    return render(request, 'portals/reports/yearly_report.html', {})
+
+def yearly_report_view(request):
+    return render(request, 'portals/reports/yearly_report_official.html', {})
+
+# Yearly Report Views
+class YearlyReportCreate(generics.CreateAPIView):
+    queryset = YearlyReport.objects.all()
+    serializer_class = YearlyReportSerializer
+    permission_classes = [Is_Vet | Is_Official]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+class YearlyReportList(generics.ListAPIView):
+    serializer_class = YearlyReportSerializer
+    permission_classes = [Is_Vet | Is_Official]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return YearlyReport.objects.filter(user=user).order_by('-id')
+        if user.is_official:
+            return YearlyReport.objects.filter(assigned_to_official=user).order_by('-id')
+
+        return YearlyReport.objects.none()
+class YearlyReportUpdate(generics.UpdateAPIView):
+    queryset = YearlyReport.objects.all()
+    serializer_class = YearlyReportSerializer
+    permission_classes = [Is_Vet | Is_Official]
+
+class YearlyReportDelete(generics.DestroyAPIView):
+    queryset = YearlyReport.objects.all()
+    serializer_class = YearlyReportSerializer
+    permission_classes = [Is_Vet | Is_Official]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+ 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsVetOrOfficial])
+def prac_record_filter(request):
+    try:
+        user = request.user
+
+        # 🧑‍⚕️ Vet officer: show records they assigned
+        if getattr(user, 'is_vet_officer', False):
+            records = Practitioner.objects.filter(
+                assigned_by=user
+            ).annotate(
+                assigned_to_username=F("assigned_to_official__username")
+            ).values(
+                "id", "reg_date", "subcounty", "vet_category", "assigned_to_username"
+            )
+            return Response({
+                "user_type": "vet_officer",
+                "records": list(records),
+            })
+
+        # 🏛️ Government official: show records assigned to them
+        elif getattr(user, 'is_official', False):
+            records = Practitioner.objects.filter(
+                assigned_to_official=user
+            ).annotate(
+                assigned_by_username=F("assigned_by__username")
+            ).values(
+                "id", "reg_date", "subcounty", "vet_category", "assigned_by_username"
+            )
+            return Response({
+                "user_type": "official",
+                "records": list(records),
+            })
+
+        return Response({"error": "You do not have access to these records."}, status=403)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+        
+def practitioner_record(request):
+    return render(request, 'portals/reports/practitioner.html', {})
+
+def practitioner_record_view(request):
+    return render(request, 'portals/reports/practitioner_official.html', {})
+
+class PractitionerCreate(generics.CreateAPIView):
+    queryset = Practitioner.objects.all()
+    serializer_class = PractitionerSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+class PractitionerList(generics.ListAPIView):
+    serializer_class = PractitionerSerializer
+    permission_classes = [Is_Vet | Is_Official]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return Practitioner.objects.filter(user=user).order_by('-county')
+        if user.is_official:
+            return Practitioner.objects.filter(assigned_to_official=user)
+
+        return Practitioner.objects.none()
+
+class PractitionerUpdate(generics.UpdateAPIView):
+    queryset = Practitioner.objects.all()
+    serializer_class = PractitionerSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+class PractitionerDelete(generics.DestroyAPIView):
+    queryset = Practitioner.objects.all()
+    serializer_class = PractitionerSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+        
+def irrigation(request):
+    return render(request, 'portals/reports/irrigation.html', {})
+
+def irrigation_view(request):
+    return render(request, 'portals/reports/irrigation_view.html', {})
+class UterineIrrigationCreate(generics.CreateAPIView):
+    queryset = UterineIrrigationRecord.objects.all()
+    serializer_class = UterineIrrigationRecordSerializer
+    permission_classes = [Is_Vet | Is_Farmer]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)  
+
+
+class UterineIrrigationList(generics.ListAPIView):
+    serializer_class = UterineIrrigationRecordSerializer
+    permission_classes = [Is_Vet | Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        
+        if  user.is_vet_officer:
+            return UterineIrrigationRecord.objects.filter(user=user).order_by('-id')
+        if  user.is_farmer:
+            return UterineIrrigationRecord.objects.filter(assigned_to=user).order_by('-id')
+
+        return UterineIrrigationRecord.objects.none()
+
+
+class UterineIrrigationUpdate(generics.UpdateAPIView):
+    queryset = UterineIrrigationRecord.objects.all()
+    serializer_class = UterineIrrigationRecordSerializer
+    permission_classes = [Is_Vet | Is_Farmer]
+
+
+class UterineIrrigationDelete(generics.DestroyAPIView):
+    queryset = UterineIrrigationRecord.objects.all()
+    serializer_class = UterineIrrigationRecordSerializer
+    permission_classes = [Is_Vet | Is_Farmer]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+        
+        
+def emergency_care(request):
+    return render(request, 'portals/reports/emergency_care.html', {})
+
+def emergency_care_view(request):
+    return render(request, 'portals/reports/emergency_care_view.html', {})
+
+class EmergencyCareCreate(generics.CreateAPIView):
+    queryset = EmergencyCare.objects.all()
+    serializer_class = EmergencyCareSerializer
+    permission_classes = [Is_Vet | Is_Farmer]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+class EmergencyCareList(generics.ListAPIView):
+    serializer_class = EmergencyCareSerializer
+    permission_classes = [Is_Vet | Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return EmergencyCare.objects.filter(user=user).order_by('-id')
+        if user.is_farmer:
+            return EmergencyCare.objects.filter(assigned_to=user).order_by('-id')
+
+        return EmergencyCare.objects.none()
+
+class EmergencyCareUpdate(generics.UpdateAPIView):
+    queryset = EmergencyCare.objects.all()
+    serializer_class = EmergencyCareSerializer
+    permission_classes = [Is_Vet | Is_Farmer]
+
+class EmergencyCareDelete(generics.DestroyAPIView):
+    queryset = EmergencyCare.objects.all()
+    serializer_class = EmergencyCareSerializer
+    permission_classes = [Is_Vet | Is_Farmer]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+        
+
+# PriceList Views
+def price_list(request):
+    return render(request, 'portals/reports/price_list.html', {})
+
+def price_list_view(request):
+    return render(request, 'portals/reports/price_list_view.html', {})
+
+class PriceListCreate(generics.CreateAPIView):
+    queryset = PriceList.objects.all()
+    serializer_class = PriceListSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+class PriceListList(generics.ListAPIView):
+    serializer_class = PriceListSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+        return PriceList.objects.filter(user=user).order_by('-id')
+
+class PriceListUpdate(generics.UpdateAPIView):
+    queryset = PriceList.objects.all()
+    serializer_class = PriceListSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+class PriceListDelete(generics.DestroyAPIView):
+    queryset = PriceList.objects.all()
+    serializer_class = PriceListSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+# Supplier Views
+def supplier(request):
+    return render(request, 'portals/reports/supplier.html', {})
+
+def supplier_view(request):
+    return render(request, 'portals/reports/supplier_view.html', {})
+
+class SupplierCreate(generics.CreateAPIView):
+    queryset = Supplier.objects.all()
+    serializer_class = SupplierSerializer
+    permission_classes = [Is_Farmer | Is_Vet |Is_Coop]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+class SupplierList(generics.ListAPIView):
+    serializer_class = SupplierSerializer
+    permission_classes = [Is_Farmer | Is_Vet |Is_Coop]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_cooperative:
+            return Supplier.objects.filter(user=user)
+
+        if user.is_official:
+            return Supplier.objects.all()           
+
+class SupplierUpdate(generics.UpdateAPIView):
+    queryset = Supplier.objects.all()
+    serializer_class = SupplierSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+class SupplierDelete(generics.DestroyAPIView):
+    queryset = Supplier.objects.all()
+    serializer_class = SupplierSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+# Client Views
+def client(request):
+    return render(request, 'portals/reports/customer.html', {})
+
+def client_view(request):
+    return render(request, 'portals/reports/client_view.html', {})
+
+class CustomerCreate(generics.CreateAPIView):
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+class CustomerList(generics.ListAPIView):
+    serializer_class = CustomerSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+        return Customer.objects.filter(user=user).order_by('-id')
+
+class CustomerUpdate(generics.UpdateAPIView):
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+class CustomerDelete(generics.DestroyAPIView):
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+# Creditor Views
+def creditor(request):
+    return render(request, 'portals/reports/creditor.html', {})
+
+def creditor_view(request):
+    return render(request, 'portals/reports/creditor_view.html', {})
+
+class CreditorCreate(generics.CreateAPIView):
+    queryset = Creditor.objects.all()
+    serializer_class = CreditorSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+class CreditorList(generics.ListAPIView):
+    serializer_class = CreditorSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+        return Creditor.objects.filter(user=user).order_by('-id')
+
+class CreditorUpdate(generics.UpdateAPIView):
+    queryset = Creditor.objects.all()
+    serializer_class = CreditorSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+class CreditorDelete(generics.DestroyAPIView):
+    queryset = Creditor.objects.all()
+    serializer_class = CreditorSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+# Debtor Views
+def debtor(request):
+    return render(request, 'portals/reports/debtor.html', {})
+
+def debtor_view(request):
+    return render(request, 'portals/reports/debtor_view.html', {})
+
+class DebtorCreate(generics.CreateAPIView):
+    queryset = Debtor.objects.all()
+    serializer_class = DebtorSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+class DebtorList(generics.ListAPIView):
+    serializer_class = DebtorSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+        return Debtor.objects.filter(user=user).order_by('-id')
+
+class DebtorUpdate(generics.UpdateAPIView):
+    queryset = Debtor.objects.all()
+    serializer_class = DebtorSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+class DebtorDelete(generics.DestroyAPIView):
+    queryset = Debtor.objects.all()
+    serializer_class = DebtorSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+def client_request(request):
+    return render(request, 'portals/reports/request.html', {})
+
+def client_request_view(request):
+    return render(request, 'portals/reports/request_view.html', {})
+
+@csrf_exempt
+def update_request_status(request):
+    if request.method == "POST":
+        request_id = request.POST.get("request_id")
+        new_status = request.POST.get("status")
+
+        if not request_id or not new_status:
+            return JsonResponse({"success": False, "error": "Missing data"}, status=400)
+
+        try:
+            client_request = ClientRequest.objects.get(id=request_id)
+            client_request.status = new_status
+            client_request.save()
+            return JsonResponse({"success": True, "status": new_status})
+
+        except ClientRequest.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Request not found"}, status=404)
+
+    elif request.method == "GET":
+        requests = ClientRequest.objects.values("id", "status","judgement")
+        return JsonResponse({"success": True, "requests": list(requests)})
+
+    return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
+
+
+class ClientRequestCreate(generics.CreateAPIView):
+    queryset = ClientRequest.objects.all()
+    serializer_class = ClientRequestSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+    
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+class ClientRequestList(generics.ListAPIView):
+    serializer_class = ClientRequestSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_farmer:
+            return ClientRequest.objects.filter(user=user).order_by('-id')
+       
+        if user.is_vet_officer:
+            return ClientRequest.objects.filter(assigned_to=user).order_by('-id')
+
+
+
+class ClientRequestUpdate(generics.UpdateAPIView):
+    queryset = ClientRequest.objects.all()
+    serializer_class = ClientRequestSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+class ClientRequestDelete(generics.DestroyAPIView):
+    queryset = ClientRequest.objects.all()
+    serializer_class = ClientRequestSerializer
+    permission_classes = [Is_Farmer | Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+
+def vet_judgment(request):
+    return render(request, 'portals/reports/judgement.html', {})
+
+def vet_judgment_view(request):
+    return render(request, 'portals/reports/judgement_view.html', {})
+
+
+class VetJudgmentCreate(generics.CreateAPIView):
+    serializer_class = VetJudgmentSerializer
+    permission_classes = [Is_Vet | Is_Farmer]
+    queryset = VetJudgment.objects.all()
+    
+    def perform_create(self, serializer):
+        user = self.request.user
+        vet_judgment = serializer.save(user=user)  # Save VetJudgment first
+        
+        client_request_id = self.request.data.get("client_request_id")
+        
+        if client_request_id:
+            try:
+                client_request = ClientRequest.objects.get(id=client_request_id)
+                print("Before updating judgment:", client_request.judgement)  # Print before update
+                
+                client_request.judgement = True
+                client_request.save()
+                #client_request.refresh_from_db()# Save updated ClientRequest
+                
+                print("After updating judgment:", client_request.judgement)  # Print after update
+            except ClientRequest.DoesNotExist:
+                raise serializers.ValidationError({"client_request_id": "ClientRequest not found."}) 
+              
+class VetJudgmentList(generics.ListAPIView):
+    serializer_class = VetJudgmentSerializer
+    permission_classes = [Is_Vet | Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return VetJudgment.objects.filter(user=user).order_by('-id')
+       
+        if user.is_farmer:
+            return VetJudgment.objects.filter(assigned_to=user).order_by('-id')
+
+
+class VetJudgmentUpdate(generics.UpdateAPIView):
+    queryset = VetJudgment.objects.all()
+    serializer_class = VetJudgmentSerializer
+    permission_classes = [Is_Vet]
+
+class VetJudgmentDelete(generics.DestroyAPIView):
+    queryset = VetJudgment.objects.all()
+    serializer_class = VetJudgmentSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+  
+def payment(request, lesson_id):
+    return render(request, 'portals/reports/payment.html', {'lesson_id': lesson_id})  
+    
+def payment_zoom(request, meeting_id):
+    return render(request, 'portals/conf/payment.html', {'meeting_id': meeting_id})    
+def format_phone_number(phone):
+    if phone.startswith("0"):
+        return "254" + phone[1:]
+    return phone
+
+
+
+@csrf_exempt
+@user_passes_test(vet_check, login_url='vet-login')
+def zoom_mpesa_payment(request):
+
+    if request.method != "POST":
+        return JsonResponse({
+            "error": "Invalid request method"
+        }, status=405)
+
+    user = request.user
+
+    meeting_id = request.POST.get("meeting_id")
+
+    if not meeting_id:
+        return JsonResponse({
+            "error": "Missing meeting_id"
+        }, status=400)
+
+    try:
+
+        zoom_meeting = ZoomMeeting.objects.get(
+            id=meeting_id
+        )
+
+        amount = int(zoom_meeting.price)
+
+    except ZoomMeeting.DoesNotExist:
+
+        return JsonResponse({
+            "error": "Meeting not found"
+        }, status=404)
+
+    phone_number = request.POST.get("phone_number")
+
+    if not phone_number:
+        return JsonResponse({
+            "error": "Missing phone_number"
+        }, status=400)
+
+    phone_number = format_phone_number(phone_number)
+
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+
+    password = base64.b64encode(
+        f"{MPESA_SHORTCODE}{MPESA_PASSKEY}{timestamp}".encode()
+    ).decode()
+
+    access_token = get_mpesa_access_token()
+
+    if not access_token:
+
+        return JsonResponse({
+            "error": "Failed to get access token"
+        }, status=400)
+
+    payload = {
+        "BusinessShortCode": MPESA_SHORTCODE,
+        "Password": password,
+        "Timestamp": timestamp,
+        "TransactionType": "CustomerBuyGoodsOnline",
+        "Amount": amount,
+        "PartyA": phone_number,
+        "PartyB": TILL_NO,
+        "PhoneNumber": phone_number,
+        "CallBackURL": CALLBACK_URL,
+        "TransactionDesc": f"Payment for Meeting {meeting_id}",
+    }
+
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+
+    try:
+
+        response = requests.post(
+            MPESA_API_URL,
+            json=payload,
+            headers=headers
+        )
+
+        response_data = response.json()
+
+    except Exception as e:
+
+        return JsonResponse({
+            "error": str(e)
+        }, status=500)
+
+    # =========================================
+    # SAVE PAYMENT
+    # =========================================
+
+    if response_data.get("ResponseCode") == "0":
+
+        Payment.objects.create(
+            user=user,
+            merchant_request_id=response_data["MerchantRequestID"],
+            checkout_request_id=response_data["CheckoutRequestID"],
+            amount=amount,
+            phone_number=phone_number,
+            zoom_meeting=zoom_meeting,
+            status="Pending",
+        )
+
+    return JsonResponse({
+        "payload": payload,
+        "response": response_data
+    }, safe=True)
+
+
+@csrf_exempt
+@user_passes_test(vet_check, login_url='vet-login')
+def initiate_mpesa_payment(request):
+
+    if request.method != "POST":
+        return JsonResponse({
+            "error": "Invalid request method"
+        }, status=405)
+
+    user = request.user
+
+    lesson_id = request.POST.get("lesson_id")
+    phone_number = request.POST.get("phone_number")
+
+    if not lesson_id:
+        return JsonResponse({
+            "error": "Missing lesson_id"
+        }, status=400)
+
+    if not phone_number:
+        return JsonResponse({
+            "error": "Missing phone_number"
+        }, status=400)
+
+    try:
+        lesson = Tutorial.objects.get(id=lesson_id)
+
+    except Tutorial.DoesNotExist:
+        return JsonResponse({
+            "error": "Lesson not found"
+        }, status=404)
+
+    # Prevent duplicate purchases
+    already_purchased = LessonPurchase.objects.filter(
+        user=user,
+        lesson=lesson
+    ).exists()
+
+    if already_purchased:
+        return JsonResponse({
+            "error": "You already purchased this lesson"
+        }, status=400)
+
+    amount = int(lesson.unit_price)
+
+    phone_number = format_phone_number(phone_number)
+
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+
+    password = base64.b64encode(
+        f"{MPESA_SHORTCODE}{MPESA_PASSKEY}{timestamp}".encode()
+    ).decode()
+
+    access_token = get_mpesa_access_token()
+
+    if not access_token:
+        return JsonResponse({
+            "error": "Failed to get access token"
+        }, status=400)
+
+    payload = {
+        "BusinessShortCode": MPESA_SHORTCODE,
+        "Password": password,
+        "Timestamp": timestamp,
+        "TransactionType": "CustomerBuyGoodsOnline",
+        "Amount": amount,
+        "PartyA": phone_number,
+        "PartyB": TILL_NO,
+        "PhoneNumber": phone_number,
+        "CallBackURL": CALLBACK_URL,
+        "AccountReference": f"Lesson-{lesson.id}",
+        "TransactionDesc": f"Payment for {lesson.lesson}",
+    }
+
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+
+    try:
+
+        response = requests.post(
+            MPESA_API_URL,
+            json=payload,
+            headers=headers
+        )
+
+        response_data = response.json()
+
+        print("MPESA RESPONSE:", response_data)
+
+    except Exception as e:
+
+        return JsonResponse({
+            "error": str(e)
+        }, status=500)
+
+    # Save payment only if request accepted
+    if str(response_data.get("ResponseCode")) == "0":
+
+        Payment.objects.create(
+            user=user,
+            merchant_request_id=response_data["MerchantRequestID"],
+            checkout_request_id=response_data["CheckoutRequestID"],
+            amount=amount,
+            phone_number=phone_number,
+            lesson=lesson,
+            status="Pending",
+        )
+
+    return JsonResponse({
+        "response": response_data
+    }, status=200)
+
+
+# =========================================
+# MPESA CALLBACK
+# =========================================
+
+@csrf_exempt
+def mpesa_callback(request):
+
+    if request.method != "POST":
+
+        return JsonResponse({
+            "message": "Invalid request"
+        }, status=200)
+
+    try:
+
+        raw_body = request.body.decode("utf-8")
+
+        print("RAW CALLBACK:", raw_body)
+
+        data = json.loads(raw_body)
+
+        stk = data.get("Body", {}).get("stkCallback", {})
+
+        result_code = str(stk.get("ResultCode"))
+
+        checkout_id = stk.get("CheckoutRequestID")
+
+        if not checkout_id:
+
+            return JsonResponse({
+                "message": "No checkout ID"
+            }, status=200)
+
+        payment = Payment.objects.filter(
+            checkout_request_id=checkout_id
+        ).first()
+
+        if not payment:
+
+            return JsonResponse({
+                "message": "Payment not found"
+            }, status=200)
+
+        # =========================================
+        # AVOID DUPLICATES
+        # =========================================
+
+        if payment.status == "Completed":
+
+            return JsonResponse({
+                "message": "Already processed"
+            }, status=200)
+
+        # =========================================
+        # SUCCESS
+        # =========================================
+
+        if result_code == "0":
+
+            metadata = stk.get(
+                "CallbackMetadata",
+                {}
+            ).get("Item", [])
+
+            amount = next(
+                (
+                    item.get("Value")
+                    for item in metadata
+                    if item.get("Name") == "Amount"
+                ),
+                None
+            )
+
+            receipt = next(
+                (
+                    item.get("Value")
+                    for item in metadata
+                    if item.get("Name") == "MpesaReceiptNumber"
+                ),
+                None
+            )
+
+            # =========================================
+            # VERIFY AMOUNT
+            # =========================================
+
+            if float(amount) != float(payment.amount):
+
+                payment.status = "Failed"
+                payment.save()
+
+                return JsonResponse({
+                    "message": "Amount mismatch"
+                }, status=200)
+
+            payment.mpesa_receipt = receipt
+            payment.status = "Completed"
+
+            payment.save()
+
+            # =========================================
+            # LESSON ACCESS
+            # =========================================
+
+            if payment.lesson:
+
+                LessonPurchase.objects.get_or_create(
+                    user=payment.user,
+                    lesson=payment.lesson,
+                    payment=payment
+                )
+
+            # =========================================
+            # ZOOM ACCESS
+            # =========================================
+
+            if payment.zoom_meeting:
+
+                ZoomMeetingPurchase.objects.get_or_create(
+                    user=payment.user,
+                    zoom_meeting=payment.zoom_meeting,
+                    payment=payment
+                )
+
+                payment.zoom_meeting.is_paid = True
+                payment.zoom_meeting.save()
+
+            return JsonResponse({
+                "message": "Payment successful"
+            }, status=200)
+
+        # =========================================
+        # FAILED
+        # =========================================
+
+        payment.status = "Failed"
+        payment.save()
+
+        return JsonResponse({
+            "message": "Payment failed"
+        }, status=200)
+
+    except Exception as e:
+
+        print("CALLBACK ERROR:", str(e))
+
+        return JsonResponse({
+            "message": "Callback error"
+        }, status=200)
+
+# =========================================
+# CHECK PAYMENT STATUS
+# =========================================
+
+@csrf_exempt
+@user_passes_test(vet_check, login_url='vet-login')
+def check_mpesa_status(request):
+
+    if request.method != "POST":
+
+        return JsonResponse({
+            "message": "Invalid request"
+        }, status=400)
+
+    checkout_request_id = request.POST.get(
+        "checkout_request_id"
+    )
+
+    if not checkout_request_id:
+
+        return JsonResponse({
+            "error": "Missing checkout_request_id"
+        }, status=400)
+
+    payment = Payment.objects.filter(
+        checkout_request_id=checkout_request_id,
+        user=request.user
+    ).first()
+
+    if not payment:
+
+        return JsonResponse({
+            "error": "Payment not found"
+        }, status=404)
+
+    lesson_is_paid = False
+    zoom_meeting_is_paid = False
+
+    join_url = None
+
+    # =========================================
+    # LESSON ACCESS
+    # =========================================
+
+    if payment.lesson:
+
+        lesson_is_paid = LessonPurchase.objects.filter(
+            user=request.user,
+            lesson=payment.lesson
+        ).exists()
+
+    # =========================================
+    # ZOOM ACCESS
+    # =========================================
+
+    if payment.zoom_meeting:
+
+        zoom_meeting_is_paid = ZoomMeetingPurchase.objects.filter(
+            user=request.user,
+            zoom_meeting=payment.zoom_meeting
+        ).exists()
+
+        if zoom_meeting_is_paid:
+
+            join_url = payment.zoom_meeting.join_url
+
+    return JsonResponse({
+        "status": payment.status,
+        "lesson_is_paid": lesson_is_paid,
+        "zoom_meeting_is_paid": zoom_meeting_is_paid,
+        "join_url": join_url,
+    }, status=200)
+
+# =========================================
+# LESSON ACCESS VIEW
+# =========================================
+
+
+def management_committee(request):
+    return render(request, 'portals/farmer/management_committee.html', {})
+
+# Create View
+class ManagementCommitteeCreate(generics.CreateAPIView):
+    queryset = ManagementCommittee.objects.all()
+    serializer_class = ManagementCommitteeSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+# List View
+class ManagementCommitteeList(generics.ListAPIView):
+    serializer_class = ManagementCommitteeSerializer
+    permission_classes = [Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+        return ManagementCommittee.objects.filter(user=user).order_by('-id')
+
+# Update View
+class ManagementCommitteeUpdate(generics.UpdateAPIView):
+    queryset = ManagementCommittee.objects.all()
+    serializer_class = ManagementCommitteeSerializer
+    permission_classes = [Is_Farmer]
+
+# Delete View
+class ManagementCommitteeDelete(generics.DestroyAPIView):
+    queryset = ManagementCommittee.objects.all()
+    serializer_class = ManagementCommitteeSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+
+# -------------------------------------------
+# Hides and Skins Record Views
+# -------------------------------------------
+
+def hides_and_skins_record(request):
+    return render(request, 'portals/farmer/hides_skins.html', {})
+
+# Create View
+class HidesAndSkinsRecordCreate(generics.CreateAPIView):
+    queryset = HidesAndSkinsRecord.objects.all()
+    serializer_class = HidesAndSkinsRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+# List View
+class HidesAndSkinsRecordList(generics.ListAPIView):
+    serializer_class = HidesAndSkinsRecordSerializer
+    permission_classes = [Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+        return HidesAndSkinsRecord.objects.filter(user=user).order_by('-id')
+
+# Update View
+class HidesAndSkinsRecordUpdate(generics.UpdateAPIView):
+    queryset = HidesAndSkinsRecord.objects.all()
+    serializer_class = HidesAndSkinsRecordSerializer
+    permission_classes = [Is_Farmer]
+
+# Delete View
+class HidesAndSkinsRecordDelete(generics.DestroyAPIView):
+    queryset = HidesAndSkinsRecord.objects.all()
+    serializer_class = HidesAndSkinsRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+def approved_dairy_farms(request):
+    return render(request, 'portals/farmer/approved_farms.html', {})
+def approved_dairy_view(request):
+    return render(request, 'portals/farmer/approved_view.html', {})
+
+
+# Create View
+class ApprovedDairyFarmCreate(generics.CreateAPIView):
+    queryset = ApprovedDairyFarm.objects.all()
+    serializer_class = ApprovedDairyFarmSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+# List View
+class ApprovedDairyFarmList(generics.ListAPIView):
+    serializer_class = ApprovedDairyFarmSerializer
+    permission_classes = [Is_Farmer | Is_Vet | Is_Official]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        
+        return ApprovedDairyFarm.objects.all().order_by('-id')
+
+# Update View
+class ApprovedDairyFarmUpdate(generics.UpdateAPIView):
+    queryset = ApprovedDairyFarm.objects.all()
+    serializer_class = ApprovedDairyFarmSerializer
+    permission_classes = [Is_Farmer]
+
+# Delete View
+class ApprovedDairyFarmDelete(generics.DestroyAPIView):
+    queryset = ApprovedDairyFarm.objects.all()
+    serializer_class = ApprovedDairyFarmSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+def slaughterhouse_hygiene_page(request):
+    return render(request, 'portals/farmer/slaughter_hygiene.html', {})
+
+class SlaughterhouseHygieneCreate(generics.CreateAPIView):
+    queryset = SlaughterhouseHygiene.objects.all()
+    serializer_class = SlaughterhouseHygieneSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class SlaughterhouseHygieneList(generics.ListAPIView):
+    serializer_class = SlaughterhouseHygieneSerializer
+    permission_classes = [Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return SlaughterhouseHygiene.objects.filter(user=self.request.user).order_by('-id')
+
+class SlaughterhouseHygieneUpdate(generics.UpdateAPIView):
+    queryset = SlaughterhouseHygiene.objects.all()
+    serializer_class = SlaughterhouseHygieneSerializer
+    permission_classes = [Is_Farmer]
+
+class SlaughterhouseHygieneDelete(generics.DestroyAPIView):
+    queryset = SlaughterhouseHygiene.objects.all()
+    serializer_class = SlaughterhouseHygieneSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+# =============================
+# Slaughterhouse Asset Views
+# =============================
+
+def slaughterhouse_asset_page(request):
+    return render(request, 'portals/farmer/slaughter_assets.html', {})
+
+class SlaughterhouseAssetCreate(generics.CreateAPIView):
+    queryset = SlaughterhouseAsset.objects.all()
+    serializer_class = SlaughterhouseAssetSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class SlaughterhouseAssetList(generics.ListAPIView):
+    serializer_class = SlaughterhouseAssetSerializer
+    permission_classes = [Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return SlaughterhouseAsset.objects.filter(user=self.request.user).order_by('-id')
+
+class SlaughterhouseAssetUpdate(generics.UpdateAPIView):
+    queryset = SlaughterhouseAsset.objects.all()
+    serializer_class = SlaughterhouseAssetSerializer
+    permission_classes = [Is_Farmer]
+
+class SlaughterhouseAssetDelete(generics.DestroyAPIView):
+    queryset = SlaughterhouseAsset.objects.all()
+    serializer_class = SlaughterhouseAssetSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()         
+
+def livestock_registration(request):
+    return render(request, 'portals/reports/live_registration.html', {})
+def livestock_data(request, livestock_type):
+    records = LivestockRegistration.objects.filter(
+        livestock_type=livestock_type
+    ).order_by('-id').values()
+
+    data = {
+        "count": records.count(),
+        "next": None,
+        "previous": None,
+        "results": list(records)
+    }
+
+    return JsonResponse(data, safe=False)
+# Template render views
+def dairy_cow_page(request):
+    return render(request, 'portals/reports/dairy.html')
+
+def beef_page(request):
+    return render(request, 'portals/reports/beef.html')
+
+def sheep_page(request):
+    return render(request, 'portals/reports/sheep.html')
+
+def goat_page(request):
+    return render(request, 'portals/reports/goat.html')
+class LivestockRegistrationCreate(generics.CreateAPIView):
+    queryset = LivestockRegistration.objects.all()
+    serializer_class = LivestockRegistrationSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+class LivestockRegistrationList(generics.ListAPIView):
+    serializer_class = LivestockRegistrationSerializer
+    permission_classes = [Is_Vet]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return LivestockRegistration.objects.filter(user=self.request.user).order_by('-id')
+
+class LivestockRegistrationUpdate(generics.UpdateAPIView):
+    queryset = LivestockRegistration.objects.all()
+    serializer_class = LivestockRegistrationSerializer
+    permission_classes = [Is_Vet]
+
+class LivestockRegistrationDelete(generics.DestroyAPIView):
+    queryset = LivestockRegistration.objects.all()
+    serializer_class = LivestockRegistrationSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+            
+def eprescription(request):
+    return render(request, 'portals/reports/eprescription.html', {})            
+            
+class VeterinaryEPrescriptionCreate(generics.CreateAPIView):
+    queryset = VeterinaryEPrescription.objects.all()
+    serializer_class = VeterinaryEPrescriptionSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+
+class VeterinaryEPrescriptionList(generics.ListAPIView):
+    serializer_class = VeterinaryEPrescriptionSerializer
+    permission_classes = [Is_Vet]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return VeterinaryEPrescription.objects.filter(user=self.request.user).order_by('-id')
+
+
+class VeterinaryEPrescriptionUpdate(generics.UpdateAPIView):
+    queryset = VeterinaryEPrescription.objects.all()
+    serializer_class = VeterinaryEPrescriptionSerializer
+    permission_classes = [Is_Vet]
+
+
+class VeterinaryEPrescriptionDelete(generics.DestroyAPIView):
+    queryset = VeterinaryEPrescription.objects.all()
+    serializer_class = VeterinaryEPrescriptionSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+def routine(request):
+    return render(request, 'portals/reports/routine.html', {})
+class RoutineManagementCreate(generics.CreateAPIView):
+    queryset = RoutineManagement.objects.all()
+    serializer_class = RoutineManagementSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+
+class RoutineManagementList(generics.ListAPIView):
+    serializer_class = RoutineManagementSerializer
+    permission_classes = [Is_Vet]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return RoutineManagement.objects.filter(user=self.request.user).order_by('-id')
+
+
+class RoutineManagementUpdate(generics.UpdateAPIView):
+    queryset = RoutineManagement.objects.all()
+    serializer_class = RoutineManagementSerializer
+    permission_classes = [Is_Vet]
+
+
+class RoutineManagementDelete(generics.DestroyAPIView):
+    queryset = RoutineManagement.objects.all()
+    serializer_class = RoutineManagementSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+            
+            
+def abortion(request):
+    return render(request, 'portals/reports/abortion.html', {})            
+class AbortionRecordCreate(generics.CreateAPIView):
+    queryset = AbortionRecord.objects.all()
+    serializer_class = AbortionRecordSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+
+class AbortionRecordList(generics.ListAPIView):
+    serializer_class = AbortionRecordSerializer
+    permission_classes = [Is_Vet]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return AbortionRecord.objects.filter(user=self.request.user).order_by('-id')
+
+
+class AbortionRecordUpdate(generics.UpdateAPIView):
+    queryset = AbortionRecord.objects.all()
+    serializer_class = AbortionRecordSerializer
+    permission_classes = [Is_Vet]
+
+
+class AbortionRecordDelete(generics.DestroyAPIView):
+    queryset = AbortionRecord.objects.all()
+    serializer_class = AbortionRecordSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+def extension_service(request):
+    return render(request, 'portals/reports/extension_service.html', {})
+
+
+# API Views
+class ExtensionServiceCreate(generics.CreateAPIView):
+    queryset = ExtensionService.objects.all()
+    serializer_class = ExtensionServiceSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+
+class ExtensionServiceList(generics.ListAPIView):
+    serializer_class = ExtensionServiceSerializer
+    permission_classes = [Is_Vet | Is_Official]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return ExtensionService.objects.filter(user=user).order_by('-id')
+        
+        if user.is_official:
+            return ExtensionService.objects.filter(assigned_to_official=user).order_by('-id')
+
+    
+        return ExtensionService.objects.none()
+
+class ExtensionServiceUpdate(generics.UpdateAPIView):
+    queryset = ExtensionService.objects.all()
+    serializer_class = ExtensionServiceSerializer
+    permission_classes = [Is_Vet]
+
+
+class ExtensionServiceDelete(generics.DestroyAPIView):
+    queryset = ExtensionService.objects.all()
+    serializer_class = ExtensionServiceSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.created_by:
+            instance.delete()
+            
+            
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def search_users(request):
+
+    search = request.GET.get('search', '')
+    role = request.GET.get('role', '')  # farmer OR vet
+
+    queryset = User.objects.all()
+
+    # Filter by role
+    if role == "farmer":
+        queryset = queryset.filter(is_farmer=True)
+    elif role == "vet":
+        queryset = queryset.filter(is_vet_officer=True)
+    elif role == "official":
+        queryset = queryset.filter(is_official=True)
+
+
+    # Search username
+    if search:
+        queryset = queryset.filter(username__icontains=search)
+
+    # Pagination (DRF)
+    paginator = PageNumberPagination()
+    paginator.page_size = 10
+    paginated = paginator.paginate_queryset(queryset, request)
+
+    serializer = UserSearchSerializer(paginated, many=True)
+    return paginator.get_paginated_response(serializer.data)
+
+def field_quotation(request):
+    return render(request, 'portals/reports/field.html', {})
+def field_quotation_view(request):
+    return render(request, 'portals/farmer/field_view.html', {})
+
+
+
+# API Views
+class FieldQuotationCreate(generics.CreateAPIView):
+    queryset = FieldQuotation.objects.all()
+    serializer_class = FieldQuotationSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(user=user)
+
+
+class FieldQuotationList(generics.ListAPIView):
+    serializer_class = FieldQuotationSerializer
+    permission_classes = [Is_Vet |Is_Farmer]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            
+            return FieldQuotation.objects.filter(user=user)
+        
+        elif user.is_farmer:
+            
+            return FieldQuotation.objects.filter(assigned_to=user)
+
+        return FieldQuotation.objects.none()
+
+
+class FieldQuotationUpdate(generics.UpdateAPIView):
+    queryset = FieldQuotation.objects.all()
+    serializer_class = FieldQuotationSerializer
+    permission_classes = [Is_Vet]
+
+
+class FieldQuotationDelete(generics.DestroyAPIView):
+    queryset = FieldQuotation.objects.all()
+    serializer_class = FieldQuotationSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+            
+ZOOM_CLIENT_ID = config("ZOOM_API_KEY")
+ZOOM_CLIENT_SECRET = config("ZOOM_API_SECRET")
+ZOOM_REDIRECT_URI= config("REDIRECT_URL")
+
+#@user_passes_test(vet_check, login_url='vet-login')
+def zoom_auth(request):
+    client_id = ZOOM_CLIENT_ID
+    redirect_uri = ZOOM_REDIRECT_URI
+    url = f"https://zoom.us/oauth/authorize?response_type=code&client_id={client_id}&redirect_uri={redirect_uri}"
+    return redirect(url)
+
+#@user_passes_test(vet_check, login_url='vet-login')
+def zoom_callback(request):
+    code = request.GET.get("code")
+    if not code:
+        return JsonResponse({"error": "No code provided"}, status=400)
+
+    client_id = ZOOM_CLIENT_ID
+    client_secret = ZOOM_CLIENT_SECRET
+    redirect_uri = ZOOM_REDIRECT_URI
+
+    auth_header = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode()
+    token_url = "https://zoom.us/oauth/token"
+    headers = {
+        "Authorization": f"Basic {auth_header}",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    data = {
+        "grant_type": "authorization_code",
+        "code": code,
+        "redirect_uri": redirect_uri
+    }
+
+    response = requests.post(token_url, headers=headers, data=data)
+    token_data = response.json()
+    if "access_token" in token_data:
+        expires_at = timezone.now() + timedelta(seconds=token_data["expires_in"])
+        ZoomToken.objects.update_or_create(
+            user=request.user,
+            defaults={
+                "access_token": token_data["access_token"],
+                "refresh_token": token_data["refresh_token"],
+                "expires_at": expires_at
+            }
+        )
+        return redirect("schedule_zoom")
+    else:
+        return JsonResponse({"error": token_data}, status=400)
+
+# ==========================
+# Refresh token if expired
+# ==========================
+def get_valid_access_token(user):
+    token = ZoomToken.objects.filter(user=user).first()
+    if not token:
+        return None
+
+    if token.expires_at < timezone.now():
+        # Refresh token
+        client_id = ZOOM_CLIENT_ID
+        client_secret = ZOOM_CLIENT_SECRET
+        auth_header = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode()
+        token_url = "https://zoom.us/oauth/token"
+        headers = {
+            "Authorization": f"Basic {auth_header}",
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+        data = {
+            "grant_type": "refresh_token",
+            "refresh_token": token.refresh_token
+        }
+        response = requests.post(token_url, headers=headers, data=data)
+        token_data = response.json()
+        if "access_token" in token_data:
+            token.access_token = token_data["access_token"]
+            token.refresh_token = token_data["refresh_token"]
+            token.expires_at = timezone.now() + timedelta(seconds=token_data["expires_in"])
+            token.save()
+        else:
+            return None
+    return token.access_token
+
+# ==========================
+# Schedule Zoom Meeting
+# ==========================
+
+
+
+
+def user_can_join_meeting(user, meeting):
+
+     return Payment.objects.filter(
+        user=user,
+        zoom_meeting=meeting,
+        status="Completed",
+        user_access_enabled=True
+    ).exists() and meeting.access_enabled
+@user_passes_test(vet_check, login_url='vet-login')
+def zoom_schedule(request):
+
+    # =========================================
+    # CREATE MEETING
+    # =========================================
+    if request.method == "POST":
+
+        topic = request.POST.get("topic")
+        start_time = request.POST.get("start_time")
+
+        access_token = get_valid_access_token(request.user)
+
+        if not access_token:
+            return redirect("zoom_auth")
+
+        url = "https://api.zoom.us/v2/users/me/meetings"
+
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json"
+        }
+
+        data = {
+            "topic": topic,
+            "type": 2,
+            "start_time": start_time,
+            "duration": 30,
+            "timezone": "Africa/Nairobi"
+        }
+
+        response = requests.post(url, headers=headers, json=data)
+
+        if response.status_code == 201:
+
+            meeting = response.json()
+
+            ZoomMeeting.objects.create(
+                user=request.user,
+                meeting_id=meeting["id"],
+                topic=meeting["topic"],
+                start_time=meeting["start_time"],
+                join_url=meeting["join_url"],
+                price=0
+            )
+
+            return redirect("zoom_schedule")
+
+        return JsonResponse(
+            {"error": response.json()},
+            status=500
+        )
+
+    # =========================================
+    # LIST MEETINGS (ACCESS LOGIC)
+    # =========================================
+    meetings = ZoomMeeting.objects.all().order_by("-start_time")
+
+    for m in meetings:
+
+        # -----------------------------------------
+        # CHECK IF USER IS BLOCKED (ABSOLUTE RULE)
+        # -----------------------------------------
+        is_blocked = m.blocked_users.filter(
+            id=request.user.id
+        ).exists()
+
+        m.is_blocked = is_blocked  # optional for template/debug
+
+        # -----------------------------------------
+        # CHECK PAYMENT STATUS
+        # -----------------------------------------
+        m.user_has_paid = Payment.objects.filter(
+            zoom_meeting=m,
+            user=request.user,
+            status="Completed"
+        ).exists()
+
+        # -----------------------------------------
+        # PRINT DEBUG INFO
+        # -----------------------------------------
+        print("\n========================")
+        print(f"MEETING: {m.topic}")
+        print(f"BLOCKED: {is_blocked}")
+        print(f"PAID: {m.user_has_paid}")
+        print("========================\n")
+
+        # -----------------------------------------
+        # FINAL ACCESS RULE (BLOCK OVERRIDES EVERYTHING)
+        # -----------------------------------------
+        if is_blocked:
+
+            # 🚫 HARD BLOCK (EVEN IF PAID OR ACCESS ENABLED)
+            m.can_join = False
+            m.safe_join_url = None
+
+        else:
+
+            # ✅ ONLY UNBLOCKED USERS CAN BE CHECKED FOR ACCESS
+            m.can_join = (
+                m.access_enabled
+                and m.user_has_paid
+            )
+
+            m.safe_join_url = m.join_url if m.can_join else None
+
+    return render(
+        request,
+        "portals/conf/conf.html",
+        {"meetings": meetings}
+    )
+# @user_passes_test(vet_check, login_url='vet-login')
+# def fetch_zoom_attendance(request, meeting_id):
+#     meeting = ZoomMeeting.objects.filter(meeting_id=meeting_id).first()
+#     if not meeting:
+#         return render(request, "portals/conf/points.html", {
+#             "error": "Meeting not found"
+#         })
+
+#     access_token = get_valid_access_token(request.user)
+#     if not access_token:
+#         return redirect("zoom_auth")
+
+#     url = f"https://api.zoom.us/v2/report/meetings/{meeting_id}/participants"
+#     headers = {
+#         "Authorization": f"Bearer {access_token}"
+#     }
+
+#     response = requests.get(url, headers=headers)
+#     if response.status_code != 200:
+#         return render(request, "portals/conf/points.html", {
+#             "error": response.json(),
+#             "meeting": meeting
+#         })
+
+#     participants = response.json().get("participants", [])
+
+#     # Save attendance and calculate points
+#     for p in participants:
+#         email = p.get("email")
+#         user = User.objects.filter(email=email).first()  # link registered user if exists
+
+#         join_time = p.get("join_time")
+#         leave_time = p.get("leave_time")
+#         duration_minutes = p.get("duration", 0)
+#         points = round(duration_minutes / 60, 2)  # 1 point per hour
+
+#         ZoomAttendance.objects.update_or_create(
+#             meeting=meeting,
+#             user_email=email,
+#             defaults={
+#                 "user": user,
+#                 "user_name": p.get("name"),
+#                 "join_time": join_time,
+#                 "leave_time": leave_time,
+#                 "duration": duration_minutes,
+#                 "points": points
+#             }
+#         )
+
+#     attendance_list = ZoomAttendance.objects.filter(meeting=meeting)
+
+#     return render(request, "portals/conf/points.html", {
+#         "meeting": meeting,
+#         "attendance": attendance_list,
+#         "message": "Attendance fetched and points calculated successfully"
+#     })
+
+@user_passes_test(vet_check, login_url='vet-login')
+def fetch_zoom_attendance(request, meeting_id):
+    meeting = ZoomMeeting.objects.filter(meeting_id=meeting_id).first()
+    if not meeting:
+        return render(request, "portals/conf/points.html", {"error": "Meeting not found"})
+
+    # -------------------------------
+    # Dummy data instead of Zoom API
+    # -------------------------------
+    response_data = {
+        "participants": [
+            {"id": "82582195509", "name": "Alice Johnson", "email": "alice@example.com",
+             "join_time": "2025-12-10T15:00:00Z", "leave_time": "2025-12-10T16:30:00Z", "duration": 90},
+            {"id": "82582195509", "name": "Bob Smith", "email": "bob@example.com",
+             "join_time": "2025-12-10T15:10:00Z", "leave_time": "2025-12-10T16:00:00Z", "duration": 50},
+            {"id": "82582195509", "name": "Charlie Lee", "email": "charlie@example.com",
+             "join_time": "2025-12-10T15:30:00Z", "leave_time": "2025-12-10T16:15:00Z", "duration": 45},
+        ]
+    }
+    participants = response_data["participants"]
+
+    # Save attendance and calculate points
+    for p in participants:
+        email = p.get("email")
+        user = User.objects.filter(email=email).first()
+        duration_minutes = p.get("duration", 0)
+        points = round(duration_minutes / 60, 2)  # 1 point per hour
+
+        ZoomAttendance.objects.update_or_create(
+            meeting=meeting,
+            user_email=email,
+            defaults={
+                "user": user,
+                "user_name": p.get("name"),
+                "join_time": p.get("join_time"),
+                "leave_time": p.get("leave_time"),
+                "duration": duration_minutes,
+                "points": points
+            }
+        )
+
+    attendance_list = ZoomAttendance.objects.filter(meeting=meeting)
+
+    return render(request, "portals/conf/points.html", {
+        "meeting": meeting,
+        "attendance": attendance_list,
+        "message": "Dummy attendance saved successfully"
+    })
+    
+    
+def dairy_farmer_view(request):
+    return render(request, 'portals/dairy/dairy_farmer_view.html', {})
+
+def milk_center_view(request):
+    return render(request, 'portals/dairy/milk_center_view.html', {})
+
+def milk_price_view(request):
+    return render(request, 'portals/dairy/milk_price_view.html', {})
+
+def milk_payment_view(request):
+    return render(request, 'portals/dairy/milk_payment_view.html', {})
+def collection_cooler(request):
+    return render(request, 'portals/dairy/supply_cooler.html', {})
+
+def collection_center(request):
+    return render(request, 'portals/dairy/milk_collection.html', {})
+class DairyFarmerRegistrationCreate(generics.CreateAPIView):
+    queryset = DairyFarmerRegistration.objects.all()
+    serializer_class = DairyFarmerRegistrationSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class DairyFarmerRegistrationList(generics.ListAPIView):
+    serializer_class = DairyFarmerRegistrationSerializer
+    permission_classes = [Is_Coop]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return DairyFarmerRegistration.objects.filter(
+            user=self.request.user
+        ).order_by('-id')
+
+
+class DairyFarmerRegistrationUpdate(generics.UpdateAPIView):
+    queryset = DairyFarmerRegistration.objects.all()
+    serializer_class = DairyFarmerRegistrationSerializer
+    permission_classes = [Is_Coop]
+
+
+class DairyFarmerRegistrationDelete(generics.DestroyAPIView):
+    queryset = DairyFarmerRegistration.objects.all()
+    serializer_class = DairyFarmerRegistrationSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+
+# ---------------------------------------------------------------------
+# 2. MILK COLLECTION CENTER VIEWS
+# ---------------------------------------------------------------------
+
+class MilkCollectionCenterCreate(generics.CreateAPIView):
+    queryset = MilkCollectionCenter.objects.all()
+    serializer_class = MilkCollectionCenterSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class MilkCollectionCenterList(generics.ListAPIView):
+    serializer_class = MilkCollectionCenterSerializer
+    permission_classes = [Is_Coop]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return MilkCollectionCenter.objects.filter(
+            user=self.request.user
+        ).order_by('-id')
+
+
+class MilkCollectionCenterUpdate(generics.UpdateAPIView):
+    queryset = MilkCollectionCenter.objects.all()
+    serializer_class = MilkCollectionCenterSerializer
+    permission_classes = [Is_Coop]
+
+
+class MilkCollectionCenterDelete(generics.DestroyAPIView):
+    queryset = MilkCollectionCenter.objects.all()
+    serializer_class = MilkCollectionCenterSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+
+# ---------------------------------------------------------------------
+# 3. CURRENT MILK PRICE VIEWS
+# ---------------------------------------------------------------------
+
+class CurrentMilkPriceCreate(generics.CreateAPIView):
+    queryset = CurrentMilkPrice.objects.all()
+    serializer_class = CurrentMilkPriceSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class CurrentMilkPriceList(generics.ListAPIView):
+    serializer_class = CurrentMilkPriceSerializer
+    permission_classes = [Is_Coop]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return CurrentMilkPrice.objects.filter(
+            user=self.request.user
+        ).order_by('-id')
+
+
+class CurrentMilkPriceUpdate(generics.UpdateAPIView):
+    queryset = CurrentMilkPrice.objects.all()
+    serializer_class = CurrentMilkPriceSerializer
+    permission_classes = [Is_Coop]
+
+
+class CurrentMilkPriceDelete(generics.DestroyAPIView):
+    queryset = CurrentMilkPrice.objects.all()
+    serializer_class = CurrentMilkPriceSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+
+# ---------------------------------------------------------------------
+# 4. FARMER MILK PAYMENT VIEWS
+# ---------------------------------------------------------------------
+
+class FarmerMilkPaymentCreate(generics.CreateAPIView):
+    queryset = FarmerMilkPayment.objects.all()
+    serializer_class = FarmerMilkPaymentSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class FarmerMilkPaymentList(generics.ListAPIView):
+    serializer_class = FarmerMilkPaymentSerializer
+    permission_classes = [Is_Coop]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return FarmerMilkPayment.objects.filter(
+            user=self.request.user
+        ).order_by('-id')
+
+
+class FarmerMilkPaymentUpdate(generics.UpdateAPIView):
+    queryset = FarmerMilkPayment.objects.all()
+    serializer_class = FarmerMilkPaymentSerializer
+    permission_classes = [Is_Coop]
+
+
+class FarmerMilkPaymentDelete(generics.DestroyAPIView):
+    queryset = FarmerMilkPayment.objects.all()
+    serializer_class = FarmerMilkPaymentSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+class  MilkCollectionCoolerCreate(generics.CreateAPIView):
+    queryset =  MilkCollectionCooler.objects.all()
+    serializer_class =  MilkCollectionCoolerSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class  MilkCollectionCoolerList(generics.ListAPIView):
+    serializer_class =  MilkCollectionCoolerSerializer
+    permission_classes = [Is_Coop]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return  MilkCollectionCooler.objects.filter(
+            user=self.request.user
+        ).order_by('-id')
+
+
+class  MilkCollectionCoolerUpdate(generics.UpdateAPIView):
+    queryset =  MilkCollectionCooler.objects.all()
+    serializer_class =  MilkCollectionCoolerSerializer
+    permission_classes = [Is_Coop]
+
+
+class  MilkCollectionCoolerDelete(generics.DestroyAPIView):
+    queryset =  MilkCollectionCooler.objects.all()
+    serializer_class =  MilkCollectionCoolerSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+            
+class MilkCollectionCenterRecordCreate(generics.CreateAPIView):
+    queryset = MilkCollectionCenterRecord.objects.all()
+    serializer_class = MilkCollectionCenterRecordSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class MilkCollectionCenterRecordList(generics.ListAPIView):
+    serializer_class = MilkCollectionCenterRecordSerializer
+    permission_classes = [Is_Coop]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        return MilkCollectionCenterRecord.objects.filter(
+            user=self.request.user
+        ).order_by('-id')
+
+
+class MilkCollectionCenterRecordUpdate(generics.UpdateAPIView):
+    queryset = MilkCollectionCenterRecord.objects.all()
+    serializer_class = MilkCollectionCenterRecordSerializer
+    permission_classes = [Is_Coop]
+
+
+class MilkCollectionCenterRecordDelete(generics.DestroyAPIView):
+    queryset = MilkCollectionCenterRecord.objects.all()
+    serializer_class = MilkCollectionCenterRecordSerializer
+    permission_classes = [Is_Coop]
+
+    def perform_destroy(self, instance):
+        if self.request.user == instance.user:
+            instance.delete()
+
+def revenue_collection(request):
+    return render(request, 'portals/svco/revenue.html', {})
+def revenue_collection_gov(request):
+    return render(request, 'portals/svco/revenue_gov.html', {})
+
+
+
+class DailyRevenueCollectionCreate(generics.CreateAPIView):
+    queryset = DailyRevenueCollection.objects.all()
+    serializer_class = DailyRevenueCollectionSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class DailyRevenueCollectionList(generics.ListAPIView):
+    serializer_class = DailyRevenueCollectionSerializer
+    permission_classes =[Is_Vet | Is_Official]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return DailyRevenueCollection.objects.filter(user=user)
+        if user.is_official:
+            return DailyRevenueCollection.objects.filter(assigned_to_official=user)
+
+
+class DailyRevenueCollectionUpdate(generics.UpdateAPIView):
+    queryset = DailyRevenueCollection.objects.all()
+    serializer_class = DailyRevenueCollectionSerializer
+    permission_classes = [Is_Vet]
+
+
+class DailyRevenueCollectionDelete(generics.DestroyAPIView):
+    queryset = DailyRevenueCollection.objects.all()
+    serializer_class = DailyRevenueCollectionSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        instance.delete()
+        
+def leave_request_view(request):
+    return render(request, 'portals/svco/leave.html', {})
+def leave_request_view_gov(request):
+    return render(request, 'portals/svco/leave_gov.html', {})
+
+
+
+class LeaveRequestCreate(generics.CreateAPIView):
+    queryset = LeaveRequest.objects.all()
+    serializer_class = LeaveRequestSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class LeaveRequestList(generics.ListAPIView):
+    serializer_class = LeaveRequestSerializer
+    permission_classes = [Is_Vet | Is_Official]
+
+    def get_queryset(self):
+        user = self.request.user
+        
+        if user.is_vet_officer:
+            return LeaveRequest.objects.filter(user=user).order_by('-id')
+        if user.is_official:
+            return LeaveRequest.objects.filter(assigned_to_official=user).order_by('-id')
+
+       
+
+class LeaveRequestUpdate(generics.UpdateAPIView):
+    queryset = LeaveRequest.objects.all()
+    serializer_class = LeaveRequestSerializer
+    permission_classes = [Is_Vet]
+
+
+class LeaveRequestDelete(generics.DestroyAPIView):
+    queryset = LeaveRequest.objects.all()
+    serializer_class = LeaveRequestSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_destroy(self, instance):
+        instance.delete()
+        
+
+
+
+# def practitioner_(request):
+#     return render(request, 'portals/svco/practitioner.html', {})
+
+
+# class PractitionersCreate(generics.CreateAPIView):
+#     queryset = Practitioners.objects.all()
+#     serializer_class = PractitionersSerializer
+#     permission_classes = [Is_Vet]
+#     def perform_create(self, serializer):
+#         serializer.save(user=self.request.user)
+
+
+# class PractitionersList(generics.ListAPIView):
+#     serializer_class = PractitionersSerializer
+#     permission_classes = [Is_Vet]
+
+#     def get_queryset(self):
+#         return Practitioners.objects.filter(user=self.request.user).order_by('-date_of_record')
+
+
+# class PractitionersUpdate(generics.UpdateAPIView):
+#     queryset = Practitioners.objects.all()
+#     serializer_class = PractitionerSerializer
+#     permission_classes = [Is_Vet]
+
+
+# class PractitionersDelete(generics.DestroyAPIView):
+#     queryset = Practitioners.objects.all()
+#     serializer_class = PractitionersSerializer
+#     permission_classes = [Is_Vet]
+#     def perform_destroy(self, instance):
+#         instance.delete()
+        
+
+
+def slaughterhouse_view(request):
+    return render(request, 'portals/svco/slaughter.html', {})
+def slaughterhouse_view_gov(request):
+    return render(request, 'portals/svco/slaughter_gov.html', {})
+
+
+
+class SlaughterHousesCreate(generics.CreateAPIView):
+    queryset = SlaughterHouses.objects.all()
+    serializer_class = SlaughterHousesSerializer
+    permission_classes = [Is_Vet]
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class SlaughterHousesList(generics.ListAPIView):
+    serializer_class = SlaughterHousesSerializer
+    permission_classes = [Is_Vet | Is_Official]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return SlaughterHouses.objects.filter(user=user).order_by('-id')
+        
+        if user.is_official:
+            return SlaughterHouses.objects.filter(assigned_to_official=user).order_by('-id')
+
+    
+        return SlaughterHouses.objects.none()
+       
+       
+
+class SlaughterHousesUpdate(generics.UpdateAPIView):
+    queryset = SlaughterHouses.objects.all()
+    serializer_class = SlaughterHousesSerializer
+    permission_classes = [Is_Vet]
+
+
+class SlaughterHousesDelete(generics.DestroyAPIView):
+    queryset = SlaughterHouses.objects.all()
+    serializer_class = SlaughterHousesSerializer
+    permission_classes = [Is_Vet]
+    def perform_destroy(self, instance):
+        instance.delete()
+        
+def daily_kl(request):
+    return render(request, 'portals/svco/kills.html', {})
+def daily_kl_gov(request):
+    return render(request, 'portals/svco/kills_gov.html', {})
+
+
+
+class DailyKillsCreate(generics.CreateAPIView):
+    queryset = DailyKills.objects.all()
+    serializer_class = DailyKillsSerializer
+    permission_classes = [Is_Vet]
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class DailyKillsList(generics.ListAPIView):
+    serializer_class = DailyKillsSerializer
+    permission_classes = [Is_Vet|Is_Official]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return DailyKills.objects.filter(user=user).order_by('-id')
+        
+        if user.is_official:
+            return DailyKills.objects.filter(assigned_to_official=user).order_by('-id')
+
+    
+        return DailyKills.objects.none()
+       
+       
+
+class DailyKillsUpdate(generics.UpdateAPIView):
+    queryset = DailyKills.objects.all()
+    serializer_class = DailyKillsSerializer
+    permission_classes = [Is_Vet]
+
+
+class DailyKillsDelete(generics.DestroyAPIView):
+    queryset = DailyKills.objects.all()
+    serializer_class = DailyKillsSerializer
+    permission_classes = [Is_Vet]
+    def perform_destroy(self, instance):
+        instance.delete()
+        
+def movement_permits_view(request):
+    return render(request, 'portals/svco/movement.html', {})
+def movement_permits_gov(request):
+    return render(request, 'portals/svco/movement_gov.html', {})
+
+
+
+class MovementPermitsCreate(generics.CreateAPIView):
+    queryset = MovementPermits.objects.all()
+    serializer_class = MovementPermitsSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class MovementPermitsList(generics.ListAPIView):
+    serializer_class = MovementPermitsSerializer
+    permission_classes = [Is_Vet|Is_Official]
+
+    def get_queryset(self):
+        return MovementPermits.objects.filter(
+            user=self.request.user
+        ).order_by('-date_of_record')
+
+
+class MovementPermitsUpdate(generics.UpdateAPIView):
+    queryset = MovementPermits.objects.all()
+    serializer_class = MovementPermitsSerializer
+    permission_classes = [Is_Vet]
+
+
+class MovementPermitsDelete(generics.DestroyAPIView):
+    queryset = MovementPermits.objects.all()
+    serializer_class = MovementPermitsSerializer
+    permission_classes = [Is_Vet | Is_Official]
+    def perform_destroy(self, instance):
+        instance.delete()
+        
+def no_objections_view(request):
+    return render(request, 'portals/svco/objection.html', {})
+def no_objections_view_gov(request):
+    return render(request, 'portals/svco/objection_gov.html', {})
+
+
+
+class NoObjectionsCreate(generics.CreateAPIView):
+    queryset = NoObjections.objects.all()
+    serializer_class = NoObjectionsSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class NoObjectionsList(generics.ListAPIView):
+    serializer_class = NoObjectionsSerializer
+    permission_classes =[Is_Vet | Is_Official]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return NoObjections.objects.filter(user=user)
+        if user.is_official:
+            return NoObjections.objects.filter(assigned_to_official=user)
+
+
+class NoObjectionsUpdate(generics.UpdateAPIView):
+    queryset = NoObjections.objects.all()
+    serializer_class = NoObjectionsSerializer
+    permission_classes = [Is_Vet]
+
+
+class NoObjectionsDelete(generics.DestroyAPIView):
+    queryset = NoObjections.objects.all()
+    serializer_class = NoObjectionsSerializer
+    permission_classes = [Is_Vet]
+    def perform_destroy(self, instance):
+        instance.delete()
+        
+    
+def artificial_inseminations_view(request):
+    return render(request, 'portals/svco/art.html', {})
+def artificial_inseminations_view_gov(request):
+    return render(request, 'portals/svco/art_gov.html', {})
+
+
+class ArtificialInseminationsCreate(generics.CreateAPIView):
+    queryset = ArtificialInseminations.objects.all()
+    serializer_class = ArtificialInseminationsSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        # Automatically set the user field to the logged-in user
+        serializer.save(user=self.request.user)
+
+
+class ArtificialInseminationsList(generics.ListAPIView):
+    serializer_class = ArtificialInseminationsSerializer
+    permission_classes = [Is_Vet | Is_Official]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_vet_officer:
+            return ArtificialInseminations.objects.filter(user=user).order_by('-id')
+        if user.is_official:
+            return ArtificialInseminations.objects.filter(assigned_to_official=user).order_by('-id')
+
+
+class ArtificialInseminationsUpdate(generics.UpdateAPIView):
+    queryset = ArtificialInseminations.objects.all()
+    serializer_class = ArtificialInseminationsSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_update(self, serializer):
+        # Ensure the user remains the owner during updates
+        serializer.save(user=self.request.user)
+
+
+class ArtificialInseminationsDelete(generics.DestroyAPIView):
+    queryset = ArtificialInseminations.objects.all()
+    serializer_class = ArtificialInseminationsSerializer
+    permission_classes = [Is_Vet]
+
+    def get_queryset(self):
+        # Ensure users can only delete their own records
+        return ArtificialInseminations.objects.filter(user=self.request.user)   
+def vaccinations_list(request):
+    return render(request, 'portals/svco/vaccination.html', {})
+def vaccinations_list_gov(request):
+    return render(request, 'portals/svco/vaccination_gov.html', {})
+
+
+
+class VaccinationsCreate(generics.CreateAPIView):
+    queryset = Vaccinations.objects.all()
+    serializer_class = VaccinationsSerializer
+    permission_classes = [Is_Vet]
+    def perform_create(self, serializer):
+        # Automatically set the user field to the logged-in user
+        serializer.save(user=self.request.user)
+
+
+
+class VaccinationsList(generics.ListAPIView):
+    serializer_class = VaccinationsSerializer
+    permission_classes = [Is_Vet | Is_Official]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return Vaccinations.objects.filter(user=user).order_by('-id')
+        
+        if user.is_official:
+            return Vaccinations.objects.filter(assigned_to_official=user).order_by('-id')
+
+    
+        return Vaccinations.objects.none()
+       
+       
+
+class VaccinationsUpdate(generics.UpdateAPIView):
+    queryset = Vaccinations.objects.all()
+    serializer_class = VaccinationsSerializer
+    permission_classes = [Is_Vet]
+
+
+class VaccinationsDelete(generics.DestroyAPIView):
+    queryset = Vaccinations.objects.all()
+    serializer_class = VaccinationsSerializer
+    permission_classes = [Is_Vet]
+    def perform_destroy(self, instance):
+        instance.delete()
+        
+def extension_services_view(request):
+    return render(request, 'portals/reports/extension_services.html', {})
+
+
+class ExtensionServicesCreate(generics.CreateAPIView):
+    queryset = ExtensionServices.objects.all()
+    serializer_class = ExtensionServicesSerializer
+    permission_classes = [Is_Vet]
+    def perform_create(self, serializer):
+        # Automatically set the user field to the logged-in user
+        serializer.save(user=self.request.user)
+
+
+
+class ExtensionServicesList(generics.ListAPIView):
+    serializer_class = ExtensionServicesSerializer
+    permission_classes = [Is_Vet]
+
+    def get_queryset(self):
+        return ExtensionServices.objects.filter(user=self.request.user).order_by('-date_of_record')
+
+
+class ExtensionServicesUpdate(generics.UpdateAPIView):
+    queryset = ExtensionServices.objects.all()
+    serializer_class = ExtensionServicesSerializer
+    permission_classes = [Is_Vet]
+
+
+class ExtensionServicesDelete(generics.DestroyAPIView):
+    queryset = ExtensionServices.objects.all()
+    serializer_class = ExtensionServicesSerializer
+    permission_classes = [Is_Vet]
+    def perform_destroy(self, instance):
+        instance.delete()
+        
+    
+def disease_rep(request):
+    return render(request, 'portals/svco/disease.html', {})
+def disease_rep_gov(request):
+    return render(request, 'portals/svco/disease_gov.html', {})
+
+
+class DiseaseReportMovsCreate(generics.CreateAPIView):
+    queryset = DiseaseReportMov.objects.all()
+    serializer_class = DiseaseReportMovsSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        # Automatically link the report to the logged-in Vet
+        serializer.save(user=self.request.user)
+
+
+class DiseaseReportMovsList(generics.ListAPIView):
+    serializer_class = DiseaseReportMovsSerializer
+    permission_classes = [Is_Vet | Is_Official]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return DiseaseReportMov.objects.filter(user=user).order_by('-id')
+        
+        if user.is_official:
+            return DiseaseReportMov.objects.filter(assigned_to_official=user).order_by('-id')
+
+    
+        return DiseaseReportMov.objects.none()
+       
+
+class DiseaseReportMovsUpdate(generics.UpdateAPIView):
+    queryset = DiseaseReportMov.objects.all()
+    serializer_class = DiseaseReportMovsSerializer
+    permission_classes = [Is_Vet]
+
+    def get_queryset(self):
+        # Ensure a vet can only update their own reports
+        return DiseaseReportMov.objects.filter(user=self.request.user)
+
+
+class DiseaseReportMovsDelete(generics.DestroyAPIView):
+    queryset = DiseaseReportMov.objects.all()
+    serializer_class = DiseaseReportMovsSerializer
+    permission_classes = [Is_Vet]
+
+    def get_queryset(self):
+        # Ensure a vet can only delete their own reports
+        return DiseaseReportMov.objects.filter(user=self.request.user)
+    
+class ExtensionServicesCreate(generics.CreateAPIView):
+    queryset = ExtensionServices.objects.all()
+    serializer_class = ExtensionServicesSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        # Automatically set the 'user' field to the current logged-in user
+        serializer.save(user=self.request.user)
+
+
+def extension_serve(request):
+    return render(request,'portals/svco/extension.html',{})
+def extension_serve_gov(request):
+    return render(request,'portals/svco/extension_gov.html',{})
+class ExtensionServicesList(generics.ListAPIView):
+    serializer_class = ExtensionServicesSerializer
+    permission_classes = [Is_Vet | Is_Official]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return ExtensionServices.objects.filter(user=user).order_by('-id')
+        
+        if user.is_official:
+            return ExtensionServices.objects.filter(assigned_to_official=user).order_by('-id')
+
+    
+        return ExtensionServices.objects.none()
+       
+       
+
+class ExtensionServicesUpdate(generics.UpdateAPIView):
+    queryset = ExtensionServices.objects.all()
+    serializer_class = ExtensionServicesSerializer
+    permission_classes = [Is_Vet]
+
+    def get_queryset(self):
+        # Ownership check: users can only update their own records
+        return ExtensionServices.objects.filter(user=self.request.user)
+
+
+class ExtensionServicesDelete(generics.DestroyAPIView):
+    queryset = ExtensionServices.objects.all()
+    serializer_class = ExtensionServicesSerializer
+    permission_classes = [Is_Vet]
+
+    def get_queryset(self):
+        # Ownership check: users can only delete their own records
+        return ExtensionServices.objects.filter(user=self.request.user)
+    
+def practitioner_(request):
+    return render(request, 'portals/svco/practitioner.html', {})
+def practitioner_gov(request):
+    return render(request, 'portals/svco/practitioner_gov.html', {})
+class PractitionersCreate(generics.CreateAPIView):
+    queryset = Practitioners.objects.all()
+    serializer_class = PractitionersSerializer
+    permission_classes = [Is_Vet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+class PractitionersList(generics.ListAPIView):
+    serializer_class = PractitionersSerializer
+    permission_classes = [Is_Vet | Is_Official]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_vet_officer:
+            return Practitioners.objects.filter(user=user)
+        if user.is_official:
+            return Practitioners.objects.filter(assigned_to_official=user)
+
+class PractitionersUpdate(generics.UpdateAPIView):
+    serializer_class = PractitionersSerializer
+    permission_classes = [Is_Vet]
+
+    def get_queryset(self):
+        return Practitioners.objects.filter(user=self.request.user)
+class PractitionersDelete(generics.DestroyAPIView):
+    serializer_class = PractitionersSerializer
+    permission_classes = [Is_Vet]
+
+    def get_queryset(self):
+        return Practitioners.objects.filter(user=self.request.user)
+
+def clerk(request):
+    return render(request, 'portals/reports/clerks.html', {})
+def clerk_view(request):
+    return render(request, 'portals/reports/clerk_view.html', {})
+class MilkCollectionClerkCreate(generics.CreateAPIView):
+    queryset = MilkCollectionClerk.objects.all()
+    serializer_class = MilkCollectionClerkSerializer
+    permission_classes = [Is_Vet | Is_Official | Is_Coop]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+class MilkCollectionClerkList(generics.ListAPIView):
+    serializer_class = MilkCollectionClerkSerializer
+    permission_classes = [Is_Vet | Is_Official | Is_Coop]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_cooperative:
+            return MilkCollectionClerk.objects.filter(user=user)
+
+        if user.is_official:
+            return MilkCollectionClerk.objects.all()           
+
+
+class MilkCollectionClerkUpdate(generics.UpdateAPIView):
+    serializer_class = MilkCollectionClerkSerializer
+    permission_classes = [Is_Vet | Is_Official]
+
+    def get_queryset(self):
+        return MilkCollectionClerk.objects.filter(user=self.request.user)
+class MilkCollectionClerkDelete(generics.DestroyAPIView):
+    serializer_class = MilkCollectionClerkSerializer
+    permission_classes =[Is_Vet | Is_Official]
+
+    def get_queryset(self):
+        return MilkCollectionClerk.objects.filter(user=self.request.user)

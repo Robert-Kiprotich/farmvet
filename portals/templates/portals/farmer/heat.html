@@ -70,7 +70,7 @@
     </div>
    
    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#heatAddModal">
-     Add 
+    Add Record
     </button>
      <!-- form modal -->
      <div class="modal fade" id="heatAddModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -109,18 +109,14 @@
                     <input type="date" name="date_of_heat_sign" id="id_date_of_heat_sign" class="form-control editable-field">
                     <div class="invalid-feedback">Please provide a valid date.</div>
                 </div>
-                <div class="mb-3">
-                  <label for="id_date_of_heat_monitoring" class="form-label">Date Of Heat Sign</label>
-                  <input type="date" name="date_of_heat_monitoring" id="id_date_of_heat_monitoring" class="form-control editable-field">
-                  <div class="invalid-feedback">Please provide a valid date.</div>
-              </div>
-                <div class="mb-3">
-                    <label for="id_exp_date_of_repeated_heat" class="form-label">Expected Heat Repeat Date</label>
+                
+                <!--<div class="mb-3">
+                    <label for="id_exp_date_of_repeated_heat" class="form-label">Expected Date Of Repeat Heat</label>
                     <input type="date" name="exp_date_of_repeated_heat" id="id_exp_date_of_repeated_heat" class="form-control editable-field">
                     <div class="invalid-feedback">Please provide a valid date.</div>
-                </div>
+                </div>-->
                 <div class="mb-3">
-                    <label for="id_reason_skip_monitoring" class="form-label">Reason To Skip Monitoring</label>
+                    <label for="id_reason_skip_monitoring" class="form-label">Reason To Skip Insemination</label>
                     <textarea name="reason_skip_monitoring" id="id_reason_skip_monitoring" class="form-control editable-field" rows="3"></textarea>
                     <div class="invalid-feedback">Please provide a reason.</div>
                 </div>
@@ -173,18 +169,10 @@
                     <input type="date" name="date_of_heat_sign" id="id_date_of_heat_sign" class="form-control editable-field">
                     <div class="invalid-feedback">Please provide a valid date.</div>
                 </div>
+                
+               
                 <div class="mb-3">
-                  <label for="id_date_of_heat_monitoring" class="form-label">Date Of Heat Sign</label>
-                  <input type="date" name="date_of_heat_monitoring" id="id_date_of_heat_monitoring" class="form-control editable-field">
-                  <div class="invalid-feedback">Please provide a valid date.</div>
-              </div>
-                <div class="mb-3">
-                    <label for="id_exp_date_of_repeated_heat" class="form-label">Expected Heat Repeat Date</label>
-                    <input type="date" name="exp_date_of_repeated_heat" id="id_exp_date_of_repeated_heat" class="form-control editable-field">
-                    <div class="invalid-feedback">Please provide a valid date.</div>
-                </div>
-                <div class="mb-3">
-                    <label for="id_reason_skip_monitoring" class="form-label">Reason To Skip Monitoring</label>
+                    <label for="id_reason_skip_monitoring" class="form-label">Reason To  Skip Insemination</label>
                     <textarea name="reason_skip_monitoring" id="id_reason_skip_monitoring" class="form-control editable-field" rows="3"></textarea>
                     <div class="invalid-feedback">Please provide a reason.</div>
                 </div>
@@ -204,15 +192,8 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <div class="modal-header">
-            <h4 class="col-9 modal-title text-center">Farm Records</h4>
-            <button type="button"  id="closeModalBtn">
-              <i class="fa fa-times" aria-hidden="true"></i>
-            </button>
-          </div>
-          <div class="modal-header">
-            <h5 class="col-12 modal-title text-center " >Heat Monitoring  Records</h5> 
-          </div>
+         
+          <h2 class="text-center text-uppercase">{{request.user.farm_name}}</h2>            <h3 class="text-center">Heat Sign Monitoring Records </h3>
           <div class="modal-body" id="modalBody">
           </div>
           <div class="modal-footer" id="modal-footer">
@@ -222,30 +203,6 @@
         </div><!-- /.modal-content -->
       </div><!-- /.modal-dialog -->
     </div><!-- /. Display  modal -->
-<!-- sucess Modal -->
-<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-confirm">
-      <div class="modal-content">
-          <div class="modal-header">
-              <div class="icon-box">
-                  <i class="material-icons">&#xE876;</i>
-              </div>
-              <h4 class="modal-title">Details Submitted successfully</h4>
-          </div>
-          <div class="modal-body">
-              <div class="spinner-border text-success" role="status">
-                  <span class="sr-only">Loading...</span>
-              </div>
-              <p class="text-center">Saving....</p>
-          </div>
-          <div class="modal-footer">
-              <button class="btn btn-success btn-block" data-dismiss="modal">OK</button>
-          </div>
-      </div>
-  </div>
-</div>
-<!-- sucess Modal End -->
-
 
     
     <style>
@@ -394,12 +351,12 @@ $('#heatAddForm').submit(function(e) {
            
             success: function(data) {
               $('#heatAddModal').modal('hide');
-              $('#successModal').modal('show');
+              $('#statusSuccessModal').modal('show');
                 //console.log(data.message);
                 // Redirect after 3 seconds
                 setTimeout(function() {
                   window.location.reload(); // Redirect to the home page
-                }, 3000); 
+                }, 1000); 
                 // Handle success response
                 console.log('Form submitted successfully');
                 console.log(data);   
@@ -414,12 +371,14 @@ $('#heatAddForm').submit(function(e) {
     });
      function operateFormatter(value, row, index) {
         return [
-          '<a class="edit" id="edit" href="javascript:void(0)" title="Edit">',
-          '<i class="fa fa-edit"></i>',
-          '</a>  ',
-          '<a class="remove" href="javascript:void(0)" title="Remove">',
-          '<i class="fa fa-trash"></i>',
-          '</a>'
+         '<div class="btn-group" role="group" aria-label="Actions">',
+          '<a class="btn btn-warning btn-sm edit" id="edit" href="javascript:void(0)" title="Edit">',
+              '<i class="fa fa-edit"></i> Edit',
+          '</a>',
+          '<a class="btn btn-danger btn-sm remove" href="javascript:void(0)" title="Remove">',
+              '<i class="fa fa-trash"></i> Delete',
+          '</a>',
+      '</div>'
           
         ].join('')
       }
@@ -494,7 +453,7 @@ $('#heatAddForm').submit(function(e) {
       
 })
 .then(data=>{
-  $('#successModal').modal('show');
+  $('#statusSuccessModal').modal('show');
 
 })
 .catch(error => console.error('Error:', error));
@@ -603,8 +562,8 @@ $('#heatAddForm').submit(function(e) {
            
           },
           {
-            field: 'date_of_heat_monitoring',
-            title: 'Date Of Heat Monitoring',
+            field: 'date_of_repeat_monitoring',
+            title: 'Date Of Heat Signs Monitoring',
             sortable: true,
             align: 'center',
             formatter: function (value, row) {
@@ -614,7 +573,7 @@ $('#heatAddForm').submit(function(e) {
           },
           {
             field: 'exp_date_of_repeated_heat',
-            title: 'Expected Date Of Next Heat Sign',
+            title: 'Expected Date Of Repeat Heat',
             sortable: true,
             align: 'center',
             formatter: function (value, row) {
@@ -624,7 +583,7 @@ $('#heatAddForm').submit(function(e) {
           },
           {
             field: 'reason_skip_monitoring',
-            title: 'Reason To Skip Monitoring',
+            title: 'Reason To Skip Insemination',
             sortable: true,
             align: 'center',
           },
@@ -686,7 +645,7 @@ $('#heatAddForm').submit(function(e) {
                 };
               
                 document.getElementById("modal-footer").style.display = "none";
-                document.getElementById("closeModalBtn").style.display = "none";
+                //document.getElementById("closeModalBtn").style.display = "none";
 
                 html2pdf().from(invoice).set(opt).save().then(() => {
                     
@@ -716,7 +675,7 @@ $('#heatAddForm').submit(function(e) {
   <script src="{% static 'portals/assets/js/core/popper.min.js' %}"></script>
   <script src="{% static 'portals/assets/js/core/bootstrap.min.js' %}"></script>
   <script src="{% static 'portals/assets/js/main.js' %}"></script>
-  
+  <script src="{% static 'portals/assets/js/scripts.js' %}"></script>
   
   <!--  Notifications Plugin    -->
   
@@ -731,7 +690,7 @@ $('#heatAddForm').submit(function(e) {
             <div class="copyright">
               &copy; Copyright <strong><span>SoinVet</span></strong>. All Rights Reserved
               <div class="credits">
-              Designed by <a>ishasir</a>
+              
             </div>
           </div>
         </footer><!-- End Footer -->
