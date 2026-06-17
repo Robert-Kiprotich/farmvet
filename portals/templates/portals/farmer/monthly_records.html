@@ -130,7 +130,7 @@
     <table
       id="table"
       class="table"
-      data-search="false"
+      data-search="true"
       data-show-refresh="true"
       data-show-toggle="true"   
       data-show-fullscreen="true"
@@ -146,7 +146,7 @@
       data-id-field="id"
       data-page-list="[10, 25, 50, 100, all]"
       data-show-footer="true"
-      data-side-pagination="server"
+      data-side-pagination="client"
       data-url="{% url 'milkrecord-list' %}"
       data-response-handler="responseHandler">
     </table>
@@ -206,7 +206,7 @@ function responseHandler(res) {
     };
 }
 function detailFormatter(index, row) {
-    var html = '<table class="table">';
+    var html = '<table class="table table-striped">';
     var columns = $('#table').bootstrapTable('getOptions').columns[0]; 
     
     // Create table rows

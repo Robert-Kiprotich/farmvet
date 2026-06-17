@@ -7,6 +7,7 @@ class User(AbstractUser):
     is_farmer = models.BooleanField(default=False)
     is_official = models.BooleanField(default=False)
     is_cooperative = models.BooleanField(default=False)
+    is_agrovet= models.BooleanField(default=False)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     email = models.EmailField(null=True, blank=True)
@@ -22,9 +23,21 @@ class User(AbstractUser):
     business_name=models.CharField(max_length=100,default="SOIN VETERINARY SERVICES")
     cooperative_name=models.CharField(max_length=100,default="DAIRY COOPERATIVE SERVICES")
     farm_name = models.CharField(max_length=100,default="SOINFARM")
-    #agree_to_privacy = models.BooleanField(default=False)
     
     
+    
+class Agrovet(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    agrovet_name=models.CharField(max_length=100,null=True)
+    vmd_number=models.CharField(max_length=100,null=True)
+    qualification=models.CharField(max_length=100,null=True)
+    county=models.CharField(max_length=100,null=True)
+    subcounty=models.CharField(max_length=100,null=True)
+    town=models.CharField(max_length=100,null=True)
+    
+    def __str__(self):
+        return f'Name: {self.user.username}'
+
 
 class Vet_Officer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)

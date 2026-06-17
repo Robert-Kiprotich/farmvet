@@ -111,13 +111,7 @@
     <div id="toolbar">
       <h5 class="text-danger">Click the plus sign To view More</h5>
     </div>
-    <style>
-      table, th, td {
-        border: 1px solid black;
-        border-collapse: collapse;
-        font-size: medium;
-      }
-      </style>
+     
       <div class="select" hidden>
         <select class="form-control" id="locale">
           <option value="en-" selected>en-US</option>
@@ -127,7 +121,7 @@
     <table
       id="table"
       class="table"
-      data-search="false"
+      data-search="true"
       data-show-refresh="true"
       data-show-toggle="true"   
       data-show-fullscreen="true"
@@ -143,7 +137,7 @@
       data-id-field="id"
       data-page-list="[10, 25, 50, 100, all]"
       data-show-footer="true"
-      data-side-pagination="server"
+      data-side-pagination="client"
       data-url="{% url 'tutorial-list' %}"
       data-response-handler="responseHandler">
     </table>
@@ -227,9 +221,67 @@ const csrftoken = getCookie('csrftoken');
     });
 }
  
-       
+       function operateFormatter(value, row, index) {
+          // Empty or missing lesson check
+          if (!row.lesson || row.lesson.trim() === "") {
+            return '<span class="badge bg-secondary">Coming Soon</span>';
+          }
+
+          const lessonId = row.id;
+          const hasAccess = row.has_paid === true;
+
+          // Array to hold our button HTML string components
+          const html = ['<div class="btn-group" role="group" aria-label="Actions">'];
+
+          if (hasAccess) {
+            // =========================================
+            // USER HAS PAID -> SHOW "OPEN LESSON"
+            // =========================================
+            const lessonUrl = `${sectionListUrl}/${lessonId}/`;
+
+            html.push(
+              `<a class="btn btn-success btn-sm lesson-click" ` +
+              `href="javascript:void(0)" ` +
+              `data-url="${lessonUrl}" ` +
+              `title="Open Lesson">` +
+              `<i class="fa fa-folder-open"></i> Open Lesson` +
+              `</a>`
+            );
+          } else {
+            // =========================================
+            // USER HAS NOT PAID -> SHOW "PAY NOW"
+            // =========================================
+            const paymentUrl = `/mpesa/payment/${lessonId}/`;
+
+            html.push(
+              `<a class="btn btn-warning btn-sm lesson-click" ` +
+              `href="javascript:void(0)" ` +
+              `data-url="${paymentUrl}" ` +
+              `title="Pay Now">` +
+              `<i class="fa fa-credit-card"></i> Pay Now` +
+              `</a>`
+            );
+          }
+
+          html.push('</div>');
+
+          return html.join('');
+        }
      
-      
+      window.operateEvents = {
+          'click .lesson-click': function (e, value, row, index) {
+            e.preventDefault();
+
+            // Fallback to closest anchor element if an icon (<i>) inside the button was clicked
+            const targetUrl = $(e.target).closest('.lesson-click').data('url');
+
+            if (targetUrl) {
+              window.location.href = targetUrl;
+            } else {
+              console.error("Error: Destination URL not found.");
+            }
+          }
+        };
     
       function totalTextFormatter(data) {
         return 'Total'
@@ -275,61 +327,22 @@ if (sectionListUrl.endsWith('/')) {
             title: 'Lesson',
             sortable: true,
             align: 'center',
+            formatter: function (value, row) {
+              // Fallback check if value is empty or missing
+              if (!value) return '-';
 
-            formatter: (value, row) => {
+              // Check if the user has paid (handles boolean true or string 'paid')
+              const hasPaid = row.is_paid === true || String(row.is_paid).toLowerCase() === 'paid';
 
-              console.log("ROW DATA:", row);
-              console.log("has_paid:", row.has_paid);
-
-              // Empty lesson
-              if (!row.lesson || row.lesson.trim() === "") {
-                return "Coming Soon";
+              if (hasPaid) {
+                // Returns bold emerald green text
+                return `<span class="fw-bold font-weight-bold" style="color: #10b981;">${value}</span>`;
+              } else {
+                // Returns bold crimson red text
+                return `<span class="fw-bold font-weight-bold" style="color: #ef4444;">${value}</span>`;
               }
-
-              const lessonId = row.id;
-
-              // ONLY USE has_paid
-              const hasAccess = row.has_paid === true;
-
-              // =========================================
-              // USER HAS PAID
-              // =========================================
-
-              if (hasAccess) {
-
-                const lessonUrl =
-                  `${sectionListUrl}/${lessonId}/`;
-
-                return `
-                <a href="${lessonUrl}"
-                   style="
-                       color: green;
-                       font-weight: bold;
-                   ">
-                   ${row.lesson}
-                </a>
-            `;
-              }
-
-              // =========================================
-              // USER HAS NOT PAID
-              // =========================================
-
-              const paymentUrl =
-                `/mpesa/payment/${lessonId}/`;
-
-              return `
-            <a href="${paymentUrl}"
-               style="
-                   color: red;
-                   font-weight: bold;
-               ">
-               ${row.lesson}
-            </a>
-        `;
             }
           },
-
 
 
        
@@ -342,6 +355,18 @@ if (sectionListUrl.endsWith('/')) {
           {
             field: 'unit_price',
             title: 'Unit Price',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'start',
+            title: 'Start On',
+            sortable: true,
+            align: 'center'
+          },
+          {
+            field: 'stop',
+            title: 'End On',
             sortable: true,
             align: 'center'
           },
@@ -364,6 +389,15 @@ if (sectionListUrl.endsWith('/')) {
             sortable: true,
             align: 'center'
           },
+          {
+            field: 'operate',
+            title: 'Item Operate',
+            align: 'center',
+            clickToSelect: false,
+            events: window.operateEvents,
+            formatter: operateFormatter
+          }
+          
           
         ],
         [

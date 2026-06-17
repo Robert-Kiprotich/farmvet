@@ -94,19 +94,29 @@
                   <label for="cow_name" class="form-label">Cow Name</label>
                   <select class="form-control editable-field" id="cow_name" name="cow_name">
                       
-                      <!-- Add more options as needed -->
+                      {% for cow in cows %}
+                      <option value="{{ cow.cow_name }}">{{ cow.cow_name }}</option>
+                      {% endfor %}
                   </select>
                   <div class="invalid-feedback">Please select a valid cow name.</div>
               </div>
               
-              <div class="mb-3">
-                  <label for="employee_name" class="form-label">Employee Name</label>
-                  <select class="form-control editable-field" id="employee_name" name="employee_name">
-                     
-                      <!-- Add more options as needed -->
-                  </select>
-                  <div class="invalid-feedback">Please select a valid employee name.</div>
+            <div class="mb-3">
+              <label for="employee_name" class="form-label">Employee Name</label>
+            
+              <select class="form-control" id="employee_name" name="employee_name" required>
+                <option value="">Select Employee</option>
+                {% for employee in employees %}
+                <option value="{{ employee.full_name }}">
+                  {{ employee.full_name }}
+                </option>
+                {% endfor %}
+              </select>
+            
+              <div class="invalid-feedback">
+                Please select a valid employee name.
               </div>
+            </div>
               
               <div class="mb-3">
                   <label for="date" class="form-label">Date</label>
@@ -165,8 +175,11 @@
               
               <div class="mb-3">
                   <label for="employee_name" class="form-label">Employee Name</label>
+                  {for employee in employees %}
                   <select class="form-control editable-field" id="employee_name" name="employee_name">
-                     
+                     {% for employee in employees %}
+                      <option value="{{ employee.id}}">{{ employee.full_name }}</option>
+                      {% endfor %}
                   </select>
                   <div class="invalid-feedback">Please select a valid employee name.</div>
               </div>
@@ -244,7 +257,7 @@
     <table
       id="table"
       class="table"
-      data-search="false"
+      data-search="true"
       data-show-refresh="true"
       data-show-toggle="true"   
       data-show-fullscreen="true"
@@ -260,7 +273,7 @@
       data-id-field="page_size"
       data-page-list="[100, 250, 500, 1000, all]"
       data-show-footer="true"
-      data-side-pagination="server"
+      data-side-pagination="client"
       data-url="{% url 'milkrecord-list' %}"
       data-response-handler="responseHandler">
     </table>
@@ -303,7 +316,7 @@ const csrftoken = getCookie('csrftoken');
       }
 
       function detailFormatter(index, row) {
-    var html = '<table class="table">';
+    var html = '<table class="table table-striped">';
     var columns = $('#table').bootstrapTable('getOptions').columns[0]; 
     
     // Create table rows
@@ -344,39 +357,7 @@ const csrftoken = getCookie('csrftoken');
     });
 }
 
-$(document).ready(function() {
-  // Example API endpoints (replace with actual endpoints)
-  const lactatingCowUrl = '/lactating-cows/';
-  const employeeUrl = '/employees-list/';
 
-  // Fetch animal types
-  fetch(lactatingCowUrl)
-    .then(response => response.json())
-    .then(data => {
-      console.log(data)
-      const cow = data.results;
-      const lactatingCowSelect = $('#cow_name');
-      cow.forEach(lactatingCow => {
-        console.log(lactatingCow.cow_name)
-        lactatingCowSelect.append($('<option></option>').val(lactatingCow.cow_name).text(lactatingCow.cow_name));
-        
-      });
-    })
-    .catch(error => console.error('Error lactating cow:', error));
-
-  // Fetch breeds
-  fetch(employeeUrl)
-    .then(response => response.json())
-    .then(data => {
-      const person = data.results;
-      const employeeSelect = $('#employee_name');
-      person.forEach(employee => {
-        console.log(employee.id,employee.employee_name)
-        employeeSelect.append($('<option></option>').val(employee.employee_name).text(employee.employee_name));
-      });
-    })
-    .catch(error => console.error('Error fetching breeds:', error));
-});
 
 
        
@@ -430,42 +411,6 @@ $('#milkrecordAddForm').submit(function(e) {
       }
 
      
-      $(document).ready(function() {
-       
-    const lactatingCowUrl = '/lactating-cows/';
-    const employeeUrl = '/employees-list/';
-
-    // Function to fetch and populate lactating cows and employees data
-    const fetchData = async () => {
-        try {
-            // Fetch animal types
-            const cowResponse = await fetch(lactatingCowUrl);
-            const cowData = await cowResponse.json();
-            const cows = cowData.results;
-            const lactatingCowSelect = $('#cow_name');
-            lactatingCowSelect.empty(); // Clear previous options
-            cows.forEach(lactatingCow => {
-                lactatingCowSelect.append($('<option></option>').val(lactatingCow.cow_name).text(lactatingCow.cow_name));
-            });
-
-            // Fetch employee names and positions
-            const employeeResponse = await fetch(employeeUrl);
-            const employeeData = await employeeResponse.json();
-            const employees = employeeData.results;
-            const employeeSelect = $('#employee_name');
-            employeeSelect.empty(); // Clear previous options
-            employees.forEach(employee => {
-                employeeSelect.append($('<option></option>').val(employee.id).text(employee.employee_name));
-            });
-            
-            console.log('Data fetched and dropdowns populated');
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        }
-    };
-
-    
-    fetchData();
 
     window.operateEvents = {
         'click .edit': function(e, value, row, index) {
@@ -559,7 +504,7 @@ $('#milkrecordAddForm').submit(function(e) {
             });
         }
     };
-});
+
         
     
       function totalTextFormatter(data) {
@@ -610,7 +555,7 @@ $('#milkrecordAddForm').submit(function(e) {
         align: 'center'
     },
     {
-        field: 'employee_names',
+        field: 'employee_full_name',
         title: 'Employee Name',
         sortable: true,
         align: 'center'

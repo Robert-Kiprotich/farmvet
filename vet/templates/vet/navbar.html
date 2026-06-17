@@ -35,6 +35,7 @@
               <li><a href="{% url 'farmer-login' %}">Farmer Login</a></li>
               <li><a href="{% url 'cooperative-login' %}">Dairy Cooperative Login</a></li>
               <li><a href="{% url 'official-login' %}">County Vet Login</a></li>
+              <li><a href="{% url 'agrovet-login' %}">Agrovet Login</a></li>
              
             </ul>
           </li>
@@ -46,9 +47,11 @@
               {% elif user.is_farmer %}
                 <li><a href="{% url 'farmer-portal' %}">My Dashboard</a></li>
               {% elif user.is_official %}
-                <li><a href="{% url 'official-portal' %}">My Dashboard</a></li
+                <li><a href="{% url 'official-portal' %}">My Dashboard</a></li>
                  {% elif user.is_official %}
-                <li><a href="{% url 'cooperative-portal' %}">Cooperative</a></li>
+                <li><a href="{% url 'cooperative-portal' %}">My Dashboard</a></li>
+                {% elif user.is_agrovet %}
+                <li><a href="{% url 'agrovet-portal' %}">My Dashboard</a></li>
               {% elif user.is_superuser %}
                 <li><a href="/admin">Admin Dashboard</a></li>
               {% endif %}

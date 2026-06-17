@@ -71,7 +71,39 @@
   <script src="{% static 'vet/assets/vendor/counterup/counterup.min.js' %}"></script>
   <script src="{% static 'vet/assets/vendor/isotope-layout/isotope.pkgd.min.js' %}"></script>
   <script src="{% static 'vet/assets/vendor/venobox/venobox.min.js' %}"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const passwordInput = document.querySelector('input[type="password"]');
 
+      if (!passwordInput) return;
+
+      // create wrapper
+      const wrapper = document.createElement("div");
+      wrapper.classList.add("input-group");
+
+      // create toggle button
+      const toggleBtn = document.createElement("button");
+      toggleBtn.type = "button";
+      toggleBtn.className = "btn btn-outline-secondary";
+      toggleBtn.innerHTML = "👁️";
+
+      // wrap input
+      passwordInput.parentNode.insertBefore(wrapper, passwordInput);
+      wrapper.appendChild(passwordInput);
+      wrapper.appendChild(toggleBtn);
+
+      // toggle logic
+      toggleBtn.addEventListener("click", function () {
+        if (passwordInput.type === "password") {
+          passwordInput.type = "text";
+          toggleBtn.innerHTML = "🙈";
+        } else {
+          passwordInput.type = "password";
+          toggleBtn.innerHTML = "👁️";
+        }
+      });
+    });
+  </script>
   <!-- Template Main JS File -->
   <script src="{% static 'vet/assets/js/main.js' %}"></script>
 

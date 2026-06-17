@@ -137,11 +137,14 @@
             <div class="mb-3">
                 <label for="condemnation_done" class="form-label">Condemnation Done</label>
                 <select id="condemnation_done" name="condemnation_done" class="form-control" required>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
+                    <option value=yes>Yes</option>
+                    <option value="no">No</option>
                 </select>
             </div>
-            
+              <div class="mb-3">
+            <label for="price_per_heaad">Price Per Head</label>
+            <input type="number" id="price_per_head" name="price_per_head" class="form-control"></div>
+   
             <div class="mb-3">
                 <label for="condemnation_status" class="form-label">Condemnation Status</label>
                 <select id="condemnation_status" name="condemnation_status" class="form-control">
@@ -251,7 +254,10 @@
                 <option value="false">No</option>
             </select>
         </div>
-        
+         <div class="mb-3">
+            <label for="price_per_heaad">Price Per Head</label>
+            <input type="number" id="price_per_head" class="form-control" required>
+        </div>
         <div class="mb-3">
             <label for="condemnation_status" class="form-label">Condemnation Status</label>
             <select id="condemnation_status" name="condemnation_status" class="form-control">
@@ -338,13 +344,7 @@
     <div id="toolbar">
       <h5 class="text-danger">Click the plus sign To view More</h5>
     </div>
-    <style>
-      table, th, td {
-        border: 1px solid black;
-        border-collapse: collapse;
-        font-size: medium;
-      }
-      </style>
+     
       <div class="select" hidden>
         <select class="form-control" id="locale">
           <option value="en-" selected>en-US</option>
@@ -354,7 +354,7 @@
     <table
       id="table"
       class="table"
-      data-search="false"
+      data-search="true"
       data-show-refresh="true"
       data-show-toggle="true"   
       data-show-fullscreen="true"
@@ -370,7 +370,7 @@
       data-id-field="id"
       data-page-list="[10, 25, 50, 100, all]"
       data-show-footer="true"
-      data-side-pagination="server"
+      data-side-pagination="client"
       data-url="{% url 'daily-kills-list' %}"
       data-response-handler="responseHandler">
     </table>
@@ -695,6 +695,12 @@ function operateFormatter(value, row, index) {
               return value ? 'Yes' : 'No';
             }
           },
+          {
+            field: 'price_per_head',
+            title: 'Price Per Head',
+            sortable: true,
+            align: 'center'
+          }, 
           {
             field: 'condemnation_status',
             title: 'Condemnation Status',

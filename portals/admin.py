@@ -310,6 +310,8 @@ class TutorialAdmin(admin.ModelAdmin):
         "lesson",
         "user",
         "unit_price",
+        "start",
+        "stop",
         "points",
         "created_at",
     )

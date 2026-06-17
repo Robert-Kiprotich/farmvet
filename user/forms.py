@@ -284,3 +284,74 @@ class CooperativeSignUpForm(UserCreationForm):
 		model = User
 		fields = ('username','first_name','last_name','phone_number','county','sub_county','cooperative_name','reg_no','designation','email','password1', 'password2',)
 
+
+class AgrovetSignUpForm(UserCreationForm):
+	first_name = forms.CharField(
+		max_length=50,
+		min_length=4,
+		required=True,
+		widget=forms.TextInput(
+				attrs={
+					'placeholder': 'First Name',
+					'class': 'form-control'
+				}
+			)
+		)
+	last_name = forms.CharField(
+		max_length=30,
+		required=True,
+		widget=forms.TextInput(
+				attrs={
+					'placeholder': 'Last Name',
+					'class': 'form-control'
+				}
+			)
+		)
+		
+	
+	agrovet_name=forms.CharField(label='Agrovet Name')
+	vmd_number=forms.CharField(label='VMD Number')
+	qualification=forms.ChoiceField(choices=[('surgeon', 'Surgeon'), ('paraprofessional', 'ParaProfessional')])
+	county=forms.CharField()
+	subcounty=forms.CharField()
+	town=forms.CharField()
+	phone_number = forms.RegexField(regex='^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$', max_length=13)
+	
+	email = forms.EmailField(
+		max_length=254,
+		widget=forms.EmailInput(
+			attrs={
+				'placeholder': 'Email',
+				'class': 'form-control'
+			}
+		)
+	)
+	password1 = forms.CharField(
+		label='Password',
+		max_length=30,
+		min_length=8,
+		required=True,
+		widget=forms.PasswordInput(
+			attrs={
+				'placeholder': 'Password',
+				'class': 'form-control'
+			}
+		)
+	)
+	password2 = forms.CharField(
+		label='Confirm Password',
+		max_length=30,
+		min_length=8,
+		required=True,
+		widget=forms.PasswordInput(
+			attrs={
+				'placeholder': 'Confirm Password',
+				'class': 'form-control'
+			}
+		)
+	)
+	
+	
+	class Meta(UserCreationForm.Meta):
+		model = User
+		fields = ('username','first_name','last_name','agrovet_name','vmd_number','qualification','county','subcounty','town','phone_number','email','password1', 'password2',)

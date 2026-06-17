@@ -3,11 +3,8 @@
 {% load static %}
 
 {% block content %}
-{% if role == "vet" %}
-    {% include 'portals/sidebarVet.html' %}
-{% elif role == "official" %}
+
     {% include 'portals/sidebarOfficial.html' %}
-{% endif %}
 <main class="page-content">
 <div class="container-fluid">
       <!-- Navbar -->
@@ -297,13 +294,7 @@
     <div id="toolbar">
       <h5 class="text-danger">Click the plus sign To view More</h5>
     </div>
-    <style>
-      table, th, td {
-        border: 1px solid black;
-        border-collapse: collapse;
-        font-size: medium;
-      }
-      </style>
+     
       <div class="select" hidden>
         <select class="form-control" id="locale">
           <option value="en-" selected>en-US</option>
@@ -313,7 +304,7 @@
     <table
       id="table"
       class="table"
-      data-search="false"
+      data-search="true"
       data-show-refresh="true"
       data-show-toggle="true"   
       data-show-fullscreen="true"
@@ -329,7 +320,7 @@
       data-id-field="id"
       data-page-list="[10, 25, 50, 100, all]"
       data-show-footer="true"
-      data-side-pagination="server"
+      data-side-pagination="client"
       data-url="{% url 'slaughterhouse_list' %}"
       data-response-handler="responseHandler">
     </table>

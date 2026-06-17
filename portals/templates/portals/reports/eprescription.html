@@ -2,8 +2,8 @@
 {% extends 'portals/base.html' %}
 {% load static %}
 
-{% block content %}
-{% include 'portals/sidebarVet.html' %}
+  {% block content %}
+  {% include 'portals/sidebarAgrovet.html' %}
 <main class="page-content">
 <div class="container-fluid">
       <!-- Navbar -->
@@ -513,7 +513,7 @@
     <table
       id="table"
       class="table"
-      data-search="false"
+      data-search="true"
       data-show-refresh="true"
       data-show-toggle="true"   
       data-show-fullscreen="true"
@@ -529,7 +529,7 @@
       data-id-field="id"
       data-page-list="[10, 25, 50, 100, all]"
       data-show-footer="true"
-      data-side-pagination="server"
+      data-side-pagination="client"
       data-url="{% url 'eprescription_list' %}"
       data-response-handler="responseHandler">
     </table>

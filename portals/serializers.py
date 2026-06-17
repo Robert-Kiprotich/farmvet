@@ -257,18 +257,25 @@ class LactatingCowSerializer(serializers.ModelSerializer):
 
 
 class MilkRecordSerializer(serializers.ModelSerializer):
-    cow_name = serializers.SlugRelatedField(queryset=LactatingCow.objects.all(), slug_field='cow_name')
-    employee_name = serializers.SlugRelatedField(queryset=Employees.objects.all(), slug_field='id')
+    employee_full_name = serializers.SerializerMethodField()
+
     class Meta:
         model = MilkRecord
-        fields = ['id','user', 'cow_name', 'employee_name', 'date', 'time_of_milking', 'quantity']
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        # Concatenate id and employee_name
-        employee_instance = Employees.objects.get(id=data['employee_name'])  # Retrieve employee instance using employee_name field
-        data['employee_names'] = employee_instance.employee_name 
-        #print(data)
-        return data
+        fields = [
+            'id',
+            'user',
+            'cow_name',
+            'employee_name',
+            'employee_full_name',
+            'date',
+            'time_of_milking',
+            'quantity'
+        ]
+
+    def get_employee_full_name(self, obj):
+        if obj.employee_name:
+            return getattr(obj.employee_name, 'employee_name', str(obj.employee_name))
+        return None                        
 class WeeklyMilkRecordSerializer(serializers.ModelSerializer):
     cow_name = serializers.SlugRelatedField(queryset=LactatingCow.objects.all(), slug_field='cow_name')
     
@@ -658,6 +665,7 @@ class VaccinationRecordSerializer(serializers.ModelSerializer):
             'contact',
             'signature',
             'location',
+            'certificate_file',
             
         ]
         read_only_fields = ['assigned_by']
@@ -932,6 +940,8 @@ class TutorialSerializer(serializers.ModelSerializer):
             'lesson',
             'cpd_number',
             'unit_price',
+            'start',
+            'stop',
             'points',
             'presented_by',
             'contact_hours',
@@ -1088,6 +1098,7 @@ class DailyKillSerializer(serializers.ModelSerializer):
             #'number_of_males_killed',
             'total_kills_per_day',
             'condemnation_done',
+            'price_per_head',
             'condemnation_status',
             'comment_by_inspector',
             'inspector_name',
@@ -1529,6 +1540,7 @@ class LivestockRegistrationSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "user",
+            "assigned_to",
             "livestock_type",
             "date_of_registration",
             "breed",
@@ -2077,4 +2089,781 @@ class ExtensionServicesSerializer(serializers.ModelSerializer):
             'number_of_extensions_done',
             'provider',
             'remarks',
+        ]
+
+
+
+# =========================
+# CASH SALES SERIALIZER
+# =========================
+class CashSalesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CashSales
+        fields = [
+            'id',
+            'user',
+            'sale_date',
+            'payment_account_number',
+            'cash_in_mpesa',
+            'cash_at_hand',
+            'total_sales',
+            'remarks',
+            'created_at',
+            'updated_at',
+        ]
+
+
+# =========================
+# INVOICE SALES SERIALIZER
+# =========================
+class InvoiceSalesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = InvoiceSales
+        fields = [
+            'id',
+            'user',
+            'invoice_date',
+            'customer_name',
+            'account_customer_number',
+            'invoice_number',
+            'amount_to_be_paid',
+            'status',
+            'total_invoice_sales',
+            'remarks',
+            'created_at',
+            'updated_at',
+        ]
+
+
+# =========================
+# CREDIT SALES SERIALIZER
+# =========================
+class CreditSalesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CreditSales
+        fields = [
+            'id',
+            'user',
+            'credit_date',
+            'client_name',
+            'mobile_number',
+            'item_taken',
+            'amount_to_pay',
+            'status',
+            'total_credit_sales',
+            'remarks',
+            'created_at',
+            'updated_at',
+        ]
+
+
+# =========================
+# INVOICE PAYMENTS SERIALIZER
+# =========================
+class InvoicePaymentsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = InvoicePayments
+        fields = [
+            'id',
+            'user',
+            'payment_date',
+            'customer_name',
+            'invoice_number',
+            'previous_balance',
+            'amount_paid',
+            'balance_remaining',
+            'remarks',
+            'total_payment_received',
+            'created_at',
+            'updated_at',
+        ]
+
+
+# =========================
+# PETTY CASH EXPENSES SERIALIZER
+# =========================
+class PettyCashExpensesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PettyCashExpenses
+        fields = [
+            'id',
+            'user',
+            'expense_date',
+            'purpose',
+            'specify_other',
+            'amount',
+            'remarks',
+            'total_petty_cash',
+            'created_at',
+            'updated_at',
+        ]
+
+
+
+# ==========================================
+# 1. LAYER FLOCK IDENTIFICATION SERIALIZER
+# ==========================================
+class LayerFlockIdentificationSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = LayerFlockIdentification
+        fields = [
+            'id',
+            'user',
+            'date_of_arrival',
+            'flock_name_batch_number',
+            'age_at_arrival',
+            'source_of_chicks_or_pullets',
+            'breed',
+            'number_of_birds_received',
+            'number_of_dead_on_arrival',
+            'vaccination_history_at_arrival',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['user']
+
+
+# ==========================================
+# 2. LAYER DAILY EGG PRODUCTION SERIALIZER
+# ==========================================
+class LayerDailyEggProductionSerializer(serializers.ModelSerializer):
+    flock_name = serializers.CharField(source='flock.flock_name_batch_number', read_only=True)
+    class Meta:
+        model = LayerDailyEggProduction
+        fields = [
+            'id',
+            'user',
+            'flock',
+            'flock_name',
+            'date_of_collection',
+            'number_of_eggs_collected',
+            'number_of_broken_eggs',
+            'number_of_dirty_eggs',
+            'total_saleable_eggs',
+            'eggs_collected_by',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['user', 'total_saleable_eggs']
+
+
+# ==========================================
+# 3. LAYER FEED RECORD SERIALIZER
+# ==========================================
+class LayerFeedRecordSerializer(serializers.ModelSerializer):
+    flock_name = serializers.CharField(source='flock.flock_name_batch_number', read_only=True)
+    class Meta:
+        model = LayerFeedRecord
+        fields = [
+            'id',
+            'user',
+            'flock',
+            'flock_name',
+            'date_of_feed_delivery',
+            'total_birds_on_feeding',
+            'type_of_feed',
+            'quantity_received_kg_bags',
+            'quantity_fed_daily_per_flock',
+            'feed_conversion_ratio',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['user']
+
+# ==========================================
+# 4. LAYER MORTALITY RECORD SERIALIZER
+# ==========================================
+class LayerMortalityRecordSerializer(serializers.ModelSerializer):
+    flock_name = serializers.CharField(source='flock.flock_name_batch_number', read_only=True)
+    class Meta:
+        model = LayerMortalityRecord
+        fields = [
+            'id',
+            'user',
+            'flock',
+            'flock_name',
+            'date',
+            'number_of_dead_birds',
+            'cause_of_death',
+            'number_of_live_birds',
+            'remarks',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['user']
+
+
+# ==========================================
+# 5. LAYER CULLING RECORDS SERIALIZER
+# ==========================================
+class LayerCullingRecordSerializer(serializers.ModelSerializer):
+    flock_name = serializers.CharField(source='flock.flock_name_batch_number', read_only=True)
+    class Meta:
+        model = LayerCullingRecord
+        fields = [
+            'id',
+            'user',
+            'flock',
+            'flock_name',
+            'date_of_culling',
+            'number_culled',
+            'reasons_for_culling',
+            'remarks',
+            'created_at',
+            'updated_at',
+        ]
+
+
+# ==========================================
+# 6. LAYER VACCINATION RECORD SERIALIZER
+# ==========================================
+class LayerVaccinationRecordSerializer(serializers.ModelSerializer):
+    flock_name = serializers.CharField(source='flock.flock_name_batch_number', read_only=True)
+    class Meta:
+        model = LayerVaccinationRecord
+        fields = [
+            'id',
+            'user',
+            'flock',
+            'flock_name',
+            'date_of_vaccination',
+            'vaccine_administered',
+            'total_number_of_birds_vaccinated',
+            'age_at_vaccination',
+            'next_vaccination_date',
+            'withdrawal_period',
+            'remarks',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['user']
+
+
+# ==========================================
+# 7. LAYER TREATMENT RECORD SERIALIZER
+# ==========================================
+class LayerTreatmentRecordSerializer(serializers.ModelSerializer):
+    flock_name = serializers.CharField(source='flock.flock_name_batch_number', read_only=True)
+    class Meta:
+        model = LayerTreatmentRecord
+        fields = [
+            'id',
+            'user',
+            'flock',
+            'flock_name',
+            'date_of_treatment',
+            'number_of_birds',
+            'drugs_used',
+            'purpose',
+            'clinical_signs_of_disease',
+            'mode_of_application',
+            'duration_of_treatment',
+            'withdrawal_period',
+            'comments',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['user']
+
+
+# ==========================================
+# 8. LAYER SALES RECORDS SERIALIZER
+# ==========================================
+class LayerSalesRecordSerializer(serializers.ModelSerializer):
+    flock_name = serializers.CharField(source='flock.flock_name_batch_number', read_only=True)
+    class Meta:
+        model = LayerSalesRecord
+        fields = [
+            'id',
+            'user',
+            'flock',
+            'flock_name',
+            'date_of_sales',
+            'number_of_eggs_sold',
+            'price_per_egg',
+            'total_amount_received',
+            'mode_of_payment',
+            'name_of_the_buyer',
+            'contact',
+            'remarks',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['user', 'total_amount_received']
+
+
+# ==========================================
+# 9. LAYER INCOME RECORD SERIALIZER
+# ==========================================
+class LayerIncomeRecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LayerIncomeRecord
+        fields = [
+            'id',
+            'user',
+            'date',
+            'egg_sales',
+            'manure_sales',
+            'sales_of_culled_birds',
+            'other_income_sources',
+            'total_aggregate_income',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['user', 'total_aggregate_income']
+
+
+# ==========================================
+# 10. LAYER BIOSECURITY AND VISITORS LOG SERIALIZER
+# ==========================================
+class LayerBiosecurityAndVisitorsLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LayerBiosecurityAndVisitorsLog
+        fields = [
+            'id',
+            'user',
+            'date_of_visit',
+            'visitor_name',
+            'purpose_of_visit',
+            'biosecurity_measures_taken',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['user']
+
+
+
+
+
+
+
+# ==========================================
+# 1. BROILER FLOCK IDENTIFICATION SERIALIZER
+# ==========================================
+class BroilerFlockIdentificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BroilerFlockIdentification
+        fields = [
+            'id',
+            'user',
+            'flock_number_batch_id',
+            'source_of_chicks',
+            'price_per_chick',
+            'date_of_arrival',
+            'breed',
+            'number_of_chicks_ordered',
+            'number_of_chicks_received',
+            'number_of_weak_chicks',
+            'number_of_dead_on_arrival',
+            'remarks',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['user']
+
+
+# ==========================================
+# 2. DAILY MORTALITY SERIALIZER
+# ==========================================
+class BroilerDailyMortalitySerializer(serializers.ModelSerializer):
+    # READABLE field for display
+    flock_name = serializers.CharField(source='flock.flock_number_batch_id', read_only=True)
+
+    class Meta:
+        model = BroilerDailyMortality
+
+        fields = [
+            'id',
+            'user',
+            'flock',       
+            'flock_name',  
+            'date',
+            'number_of_deaths',
+            'possible_cause_of_death',
+            'intervention',
+            'total_deaths',
+            'remarks',
+        ]
+
+        read_only_fields = ['user', 'total_deaths']
+
+    def to_representation(self, instance):
+        """
+        Keep API clean and avoid breaking frontend editing logic
+        """
+        representation = super().to_representation(instance)
+
+        # fallback safety
+        representation['flock_name'] = (
+            instance.flock.flock_number_batch_id
+            if instance.flock else "-"
+        )
+
+        return representation
+# ==========================================
+# 3. FEED CONSUMPTION SERIALIZER
+# ==========================================
+class BroilerFeedConsumptionSerializer(serializers.ModelSerializer):
+    flock_name = serializers.CharField(source='flock.flock_number_batch_id', read_only=True)
+    class Meta:
+        model = BroilerFeedConsumption
+        fields = [
+            'id',
+            'user',
+            'flock',
+            'flock_name',
+            'date',
+            'type_of_feed',
+            'quantity_of_feed_given_per_day',
+            'feed_company',
+            'remarks_on_feed',
+            'total_feed_consumed',
+        ]
+        read_only_fields = ['user', 'total_feed_consumed']
+
+
+# ==========================================
+# 4. TREATMENT RECORD SERIALIZER
+# ==========================================
+class BroilerTreatmentRecordSerializer(serializers.ModelSerializer):
+    flock_name = serializers.CharField(source='flock.flock_number_batch_id', read_only=True)
+    class Meta:
+        model = BroilerTreatmentRecord
+        fields = [
+            'id',
+            'user',
+            'flock',
+            'flock_name',
+            'date',
+            'type_of_drug',
+            'purpose',
+            'dosage',
+            'administration_method',
+            'withdrawal_period',
+            'remarks',
+        ]
+        read_only_fields = ['user']
+
+
+# ==========================================
+# 5. VACCINATION RECORD SERIALIZER
+# ==========================================
+class BroilerVaccinationRecordSerializer(serializers.ModelSerializer):
+    flock_name = serializers.CharField(source='flock.flock_number_batch_id', read_only=True)
+    class Meta:
+        model = BroilerVaccinationRecord
+        fields = [
+            'id',
+            'user',
+            'flock',
+            'flock_name',
+            'date_of_vaccination',
+            'type_of_vaccines_used',
+            'dosage',
+            'administrative_method',
+            'withdrawal_period',
+            'next_vaccination_date',
+            'type_of_vaccination_to_be_done',
+            'remarks',
+        ]
+        read_only_fields = ['user']
+
+
+# ==========================================
+# 6. GROWTH PERFORMANCE SERIALIZER
+# ==========================================
+class BroilerGrowthPerformanceSerializer(serializers.ModelSerializer):
+    flock_name = serializers.CharField(source='flock.flock_number_batch_id', read_only=True)
+    # JSONField maps automatically to DRF JSONField handling arrays gracefully
+    
+    class Meta:
+        model = BroilerGrowthPerformance
+        fields = [
+            'id',
+            'user',
+            'flock',
+            'flock_name',
+            'date_of_record',
+            'body_weight_samples',
+            'average_daily_gain',
+            'feed_conversion_ratio',
+            'remarks',
+        ]
+        read_only_fields = ['user']
+
+
+# ==========================================
+# 7. ENVIRONMENTAL RECORDS SERIALIZER
+# ==========================================
+class BroilerEnvironmentalRecordSerializer(serializers.ModelSerializer):
+    flock_name = serializers.CharField(source='flock.flock_number_batch_id', read_only=True)
+    class Meta:
+        model = BroilerEnvironmentalRecord
+        fields = [
+            'id',
+            'user',
+            'flock',
+            'flock_name',
+            'date',
+            'temperature',
+            'humidity',
+            'ventilation_status',
+            'litter_condition',
+            'remarks',
+        ]
+        read_only_fields = ['user']
+
+
+# ==========================================
+# 8. WATER CONSUMPTION SERIALIZER
+# ==========================================
+class BroilerWaterConsumptionSerializer(serializers.ModelSerializer):
+    flock_name = serializers.CharField(source='flock.flock_number_batch_id', read_only=True)
+    class Meta:
+        model = BroilerWaterConsumption
+        fields = [
+            'id',
+            'user',
+            'flock',
+            'flock_name',
+            'date_of_record',
+            'water_usage_per_litres',
+            'abnormal_change_in_water_intake',
+            'remarks',
+        ]
+        read_only_fields = ['user']
+
+
+# ==========================================
+# 9. SALES RECORD SERIALIZER
+# ==========================================
+class BroilerSalesRecordSerializer(serializers.ModelSerializer):
+    flock_name = serializers.CharField(source='flock.flock_number_batch_id', read_only=True)
+    class Meta:
+        model = BroilerSalesRecord
+        fields = [
+            'id',
+            'user',
+            'flock',
+            'flock_name',
+            'date_of_sales',
+            'total_birds_sold',
+            'price_per_bird',
+            'average_kg_body_weight',
+            'total_sales',
+            'name_of_the_buyer',
+            'mobile_number',
+            'remarks',
+        ]
+        read_only_fields = ['user', 'total_sales']
+
+class EmployeeRecordSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = EmployeeRecord
+        fields = [
+            'id',
+            'user',
+            'date_of_employment',
+            'full_name',
+            'id_number',
+            'mobile_number',
+            'next_of_kin_name',
+            'next_of_kin_contact',
+            'home_county',
+            'sub_county',
+            'location',
+            'area_chief_name',
+            'chief_contact',
+            'assigned_department',
+            'job_position',
+            'mode_of_employment',
+            'agreed_salary',
+            'payment_period',
+            'means_of_payment',
+            'bank_details',
+            'created_at'
+        ]
+class SalaryRecordSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SalaryRecord
+        fields = [
+            'id',
+            'user',
+            'employee',
+            'date_of_payment',
+            'salary_status',
+            'deductions',
+            'amount_paid',
+            'balance_to_pay',
+            'processed_by',
+            'remarks',
+            'created_at'
+        ]
+
+    read_only_fields = ['user', 'created_at']
+
+class FarmVisitSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FarmVisit
+        fields = [
+            'id',
+            'user',
+            'date_of_visit',
+            'visitor_category',
+            'number_of_visitors',
+            'county_of_origin',
+            'objective_of_visits',
+            'trainings_covered',
+            'areas_visited',
+            'training_payment_received',
+            'reporting_time',
+            'departure_time',
+            'remarks',
+        ]
+
+
+class DrugInventorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DrugInventory
+        fields = [
+            'id',
+            'user',
+            'date_of_purchased',
+            'drug_category',
+            'drug_name',
+            'batch_no',
+            'expiry_date',
+            'drug_volume',
+            'quantity_purchased',
+            'quantity_used',
+            'balance',
+            'unit_cost',
+            'total_cost',
+            'date_of_record_update',
+            'remarks',
+        ]
+
+
+class FeedInventorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FeedInventory
+        fields = [
+            'id',
+            'user',
+            'date_of_purchased',
+            'feed_category',
+            'company',
+            'expiry_date',
+            'quantity_purchased',
+            'packed_volume',
+            'quantity_used',
+            'balance',
+            'unit_cost',
+            'total_cost',
+            'date_of_records_update',
+            'remarks',
+        ]
+
+
+class LivestockInventorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LivestockInventory
+        fields = [
+            'id',
+            'user',
+            'animal_species',
+            'breed',
+            'sex',
+            'age',
+            'total_number',
+            'previous_number',
+            'source',
+            'date_of_record',
+            'remarks',
+        ]
+
+
+class AssetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Asset
+        fields = [
+            'id',
+            'user',
+            'date_of_record',
+            'asset_category',
+            'asset_name',
+            'date_acquired',
+            'model_number',
+            'quantity',
+            'purchase_cost',
+            'current_value',
+            'condition',
+            'remarks',
+        ]
+
+
+class FishSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Fish
+        fields = [
+            'id', 
+            'user', 
+            'registration_no', 
+            'date_of_stocking', 
+            'source', 
+            'stock_type', 
+            'fish_species', 
+            'quantity_purchased', 
+            'price_per_fish', 
+            'total_cost', 
+            'dead_on_arrival', 
+            'seller_name', 
+            'mobile_number', 
+            'remarks'
+        ]
+
+class FeedingRecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FeedingRecord
+        fields = [
+            'id', 
+            'user', 
+            'date', 
+            'feed_type', 
+            'quantity', 
+            'remarks'
+        ]
+
+class MortalityRecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MortalityRecord
+        fields = [
+            'id', 
+            'user', 
+            'date', 
+            'fish_category', 
+            'number_of_dead', 
+            'possible_cause', 
+            'intervention_given', 
+            'remarks'
+        ]
+
+class GrowthMonitoringSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GrowthMonitoring
+        fields = [
+            'id', 
+            'user', 
+            'date_of_sampling', 
+            'avg_weight_gain', 
+            'avg_length_growth', 
+            'remarks'
         ]

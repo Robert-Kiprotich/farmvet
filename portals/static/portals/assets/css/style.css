@@ -478,3 +478,70 @@ body {
 .chiller-theme .sidebar-footer>a:last-child {
     border-right: none;
 }
+/* Card Wrapper Container mimicking the design layout */
+.custom-table-card {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  border: 1px solid #f0f2f5;
+}
+
+/* Base structural table updates */
+.custom-styled-table {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  border: none !important;
+}
+
+/* Header Text styling matching the picture */
+.custom-styled-table thead th {
+  background-color: #ffffff !important;
+  color: #8a94a6 !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+  text-transform: none !important;
+  border-bottom: 2px solid #f4f5f7 !important;
+  border-top: none !important;
+  padding: 16px 20px !important;
+  letter-spacing: 0.3px;
+}
+
+/* Global Row styling rules */
+.custom-styled-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+/* Precise alternate striping mimicking the gray bars in the picture */
+.custom-styled-table tbody tr:nth-of-type(even) {
+  background-color: #f8f9fa !important;
+}
+
+.custom-styled-table tbody tr:nth-of-type(odd) {
+  background-color: #ffffff !important;
+}
+
+/* Hover effects for cleaner modern tables */
+.custom-styled-table tbody tr:hover {
+  background-color: #f1f3f5 !important;
+}
+
+/* Individual Data Cell styling dimensions */
+.custom-styled-table tbody td {
+  padding: 20px 20px !important;
+  color: #1e293b !important;
+  font-size: 0.92rem !important;
+  vertical-align: middle !important;
+  border: none !important;
+  /* Removes harsh standard table gridlines */
+}
+
+/* Optional: Smooth round corners for the first and last columns */
+.custom-styled-table tbody tr td:first-child {
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+}
+
+.custom-styled-table tbody tr td:last-child {
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+}

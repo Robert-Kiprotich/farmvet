@@ -491,7 +491,7 @@
           <h2 class="text-center text-uppercase">{{ request.user.business_name }}</h2>
           <h4 class="text-center text-uppercase">Name:{{ request.user.first_name }}</h4>
           <h4 class="text-center text-uppercase">Contact:{{ request.user.phone_number }}</h4>
-          <h4 class="text-center text-uppercase">KVB No:{{ request.user.kvb_number }}</h4>
+          <h4 class="text-center text-uppercase">KVB No:{{ request.user.registration_number }}</h4>
           
           <h3 class="text-center">Vaccination Records </h3> 
           <div class="modal-body" id="modalBody">
@@ -508,31 +508,13 @@
 
 
     
-    <style>
-      /* .select,
-      #locale {
-        width: 100%;
-      }
-      .like {
-        margin-right: 10px;
-      }
-      .mytable th{
-        font-size: 6px;
-
-      } */
-    </style>
+    
      <!-- Placeholder for the modal -->
 
     <div id="toolbar">
       <h5 class="text-danger">Click the plus sign To view More</h5>
     </div>
-    <style>
-      table, th, td {
-        border: 1px solid black;
-        border-collapse: collapse;
-        font-size: medium;
-      }
-      </style>
+     
       <div class="select" hidden>
         <select class="form-control" id="locale">
           <option value="en-" selected>en-US</option>
@@ -541,8 +523,8 @@
       
     <table
       id="table"
-      class="table"
-      data-search="false"
+      class="table table-striped"
+      data-search="true"
       data-show-refresh="true"
       data-show-toggle="true"   
       data-show-fullscreen="true"
@@ -558,7 +540,7 @@
       data-id-field="id"
       data-page-list="[10, 25, 50, 100, all]"
       data-show-footer="true"
-      data-side-pagination="server"
+      data-side-pagination="client"
       data-url="{% url 'vaccination-record-list' %}"
       data-response-handler="responseHandler">
     </table>
@@ -600,46 +582,64 @@ const csrftoken = getCookie('csrftoken');
             };
       }
       function detailFormatter(index, row) {
-    var html = '<table class="table">';
-    var columns = $('#table').bootstrapTable('getOptions').columns[0]; 
+        var html = '<table class="table table-striped">';
+        var columns = $('#table').bootstrapTable('getOptions').columns[0]; 
     
-    // Create table rows
-    $.each(columns, function (index, column) {
-        if (column.field !== 'state' && column.field !== 'operate') {
-            html += '<tr>';
-            html += '<td><b>' + column.title + '</b></td>'; 
-            var key = column.field;
-            var value = row[key];
-            
-            // Check if the value is a valid date and format it
-            if (moment(value, moment.ISO_8601, true).isValid()) {
-                value = moment(value).format('DD-MM-YYYY');
+        $.each(columns, function (index, column) {
+            if (column.field !== 'state' && column.field !== 'operate') {
+                html += '<tr>';
+                html += '<td><b>' + column.title + '</b></td>'; 
+                var key = column.field;
+                var value = row[key];
+    
+                // Format dates
+                if (moment(value, moment.ISO_8601, true).isValid()) {
+                    value = moment(value).format('DD-MM-YYYY');
+                }
+    
+                // Handle files (photo, uploaded_report, etc.)
+                if (value && (column.field === 'certificate_file' || column.field === 'certificate_file')) {
+                    let fileExt = value.split('.').pop().toLowerCase();
+    
+                    if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
+                        // Image preview
+                        value = `<img src="${value}" alt="${column.title}" width="100" height="100" class="img-thumbnail">`;
+                    } 
+                    else if (fileExt === 'pdf') {
+                        // PDF button
+                        value = `<a href="${value}" target="_blank" class="btn btn-sm btn-primary">
+                                    📄 certificate
+                                 </a>`;
+                    } 
+                    else if (['doc', 'docx'].includes(fileExt)) {
+                        // Word file button
+                        value = `<a href="${value}" target="_blank" class="btn btn-sm btn-success">
+                                    📝 Open Word
+                                 </a>`;
+                    } 
+                    else {
+                        // Generic file button
+                        value = `<a href="${value}" target="_blank" class="btn btn-sm btn-secondary">
+                                    ⬇ Download
+                                 </a>`;
+                    }
+                }
+    
+                html += '<td>' + (value || '') + '</td>'; 
+                html += '</tr>';
             }
-
-            html += '<td>' + value + '</td>'; 
-            html += '</tr>';
-        }
-    });
-
-    html += '</table>';
+        });
     
-
+        html += '</table>';
+        $('#modalBody').html(html);
     
+        $('#dsModal').modal('show');
     
-   
-    $('#modalBody').html(html);
+        $('#closeModalBtn, #closeModalBtn1').on('click', function() {
+            $('#dsModal').modal('hide');
+        });
+    }
     
-    
-    $('#dsModal').modal('show');
-
-    
-    $('#closeModalBtn').on('click', function() {
-        $('#dsModal').modal('hide');
-    });
-    $('#closeModalBtn1').on('click', function() {
-        $('#dsModal').modal('hide');
-    });
-}
 $('#vaccinationAddForm').submit(function(e) {
     e.preventDefault(); // stop default submit
 
@@ -1035,6 +1035,25 @@ function operateFormatter(value, row, index) {
     sortable: true,
     align: 'center'
   },
+  {
+    field: 'certificate_file',
+    title: 'Certificate',
+    align: 'center',
+    formatter: function(value, row, index) {
+        if (!value) {
+            return 'No Certificate';
+        }
+
+        return `
+            <a href="${value}" target="_blank" class="btn btn-sm btn-primary">
+                View
+            </a>
+            <a href="${value}" download class="btn btn-sm btn-success ms-1">
+                Download
+            </a>
+        `;
+    }
+},
   
           {
             field: 'operate',

@@ -54,15 +54,18 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 
 MIDDLEWARE = [
+   'django.middleware.security.SecurityMiddleware',
+
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.middleware.security.SecurityMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+
     'allauth.account.middleware.AccountMiddleware',
 ]
 
@@ -105,6 +108,8 @@ if DEBUG:
         'DEFAULT_PERMISSION_CLASSES': [
             'portals.permissions.Is_Vet',
             'portals.permissions.Is_Farmer',
+            'portals.permissions.Is_Official',
+            'portals.permissions.IsVetOrOfficial',
             'rest_framework.permissions.IsAuthenticated',
         ],
         'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',

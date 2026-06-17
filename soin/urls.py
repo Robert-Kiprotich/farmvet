@@ -23,11 +23,13 @@ urlpatterns = [
     path('user/signup/cooperative/', user_views.cooperative_signup_view, name='cooperative-register'),
     path('user/signup/farmer/',user_views.farmer_signup_view,name='farmer-register'),
     path('user/signup/official/',user_views.Official_signup_view,name='official-register'),
+    path('user/signup/agrovet/',user_views.Agrovet_signup_view,name='agrovet-register'),
     #users login 
     path('vet/login/',user_views.vet_login,name='vet-login'),
     path('farmer/login/',user_views.farmer_login,name='farmer-login'),
     path('official/login/',user_views.official_login,name='official-login'),
      path('cooperative/login/',user_views.cooperative_login,name='cooperative-login'),
+     path('agrovet/login/',user_views.agrovet_login,name='agrovet-login'),
     path('logout/', user_views.user_logout, name='logout'),
     #password reset
     path("password-reset", auth_views.PasswordResetView.as_view(template_name="user/password_reset.html"), name="password_reset"),
@@ -42,6 +44,7 @@ urlpatterns = [
     path('farmer_portal/', portal_views.portal_farmer, name='farmer-portal'),
     path('official_portal/', portal_views.portal_official, name='official-portal'),
     path('cooperative_portal/', portal_views.cooperative, name='cooperative-portal'),
+     path('agrovet_portal/', portal_views.agrovet, name='agrovet-portal'),
 
 #################################FARMER  Urls######################################## 
     ##calf
@@ -783,8 +786,8 @@ urlpatterns = [
     path('api/practitioners/delete/<int:pk>/', PractitionersDelete.as_view(), name='practitioner-delete'),
 
     # Slaughter Houses
-    path('slaughterhouses/',slaughterhouse_view, name='slaughterhouses-page'),
-    path('slaughterhouses-gov/',slaughterhouse_view_gov, name='slaughterhouses-page-gov'),
+    path('slaughterhouses/',slaughterhouses_view, name='slaughterhouses-page'),
+    path('slaughterhouses-gov/',slaughterhouses_view_gov, name='slaughterhouses-page-gov'),
     path('api/slaughterhouses/create/', SlaughterHousesCreate.as_view(), name='slaughterhouse-create'),
     path('api/slaughterhouses/', SlaughterHousesList.as_view(), name='slaughterhouses-list'),
     path('api/slaughterhouses/update/<int:pk>/',SlaughterHousesUpdate.as_view(), name='slaughterhouse-update'),
@@ -835,6 +838,282 @@ urlpatterns = [
     path('api/vaccinations/create/', VaccinationsCreate.as_view(), name='vaccinations_create'),
     path('api/vaccinations/update/<int:pk>/', VaccinationsUpdate.as_view(), name='vaccinations_update'),
     path('api/vaccinations/delete/<int:pk>/', VaccinationsDelete.as_view(), name='vaccinations_delete'),
+
+
+    # =========================================================================
+    # 1. CASH SALES URLS
+    # =========================================================================
+    path('cash-sales/', cash_sales, name='cash_sales_view'),
+    path('api/cash-sales/list/', CashSalesList.as_view(), name='api_cash_sales_list'),
+    path('api/cash-sales/create/', CashSalesCreate.as_view(), name='api_cash_sales_create'),
+    path('api/cash-sales/update/<int:pk>/', CashSalesUpdate.as_view(), name='api_cash_sales_update'),
+    path('api/cash-sales/delete/<int:pk>/', CashSalesDelete.as_view(), name='api_cash_sales_delete'),
+
+    # =========================================================================
+    # 2. INVOICE SALES URLS
+    # =========================================================================
+    path('invoice-sales/', invoice_sales, name='invoice_sales_view'),
+    path('api/invoice-sales/list/', InvoiceSalesList.as_view(), name='api_invoice_sales_list'),
+    path('api/invoice-sales/create/', InvoiceSalesCreate.as_view(), name='api_invoice_sales_create'),
+    path('api/invoice-sales/update/<int:pk>/', InvoiceSalesUpdate.as_view(), name='api_invoice_sales_update'),
+    path('api/invoice-sales/delete/<int:pk>/', InvoiceSalesDelete.as_view(), name='api_invoice_sales_delete'),
+
+    # =========================================================================
+    # 3. CREDIT SALES URLS
+    # =========================================================================
+    path('credit-sales/', credit_sales, name='credit_sales_view'),
+    path('api/credit-sales/list/', CreditSalesList.as_view(), name='api_credit_sales_list'),
+    path('api/credit-sales/create/', CreditSalesCreate.as_view(), name='api_credit_sales_create'),
+    path('api/credit-sales/update/<int:pk>/', CreditSalesUpdate.as_view(), name='api_credit_sales_update'),
+    path('api/credit-sales/delete/<int:pk>/', CreditSalesDelete.as_view(), name='api_credit_sales_delete'),
+
+    # =========================================================================
+    # 4. INVOICE PAYMENTS URLS
+    # =========================================================================
+    path('invoice-payments/', invoice_payments, name='invoice_payments_view'),
+    path('api/invoice-payments/list/', InvoicePaymentsList.as_view(), name='api_invoice_payments_list'),
+    path('api/invoice-payments/create/', InvoicePaymentsCreate.as_view(), name='api_invoice_payments_create'),
+    path('api/invoice-payments/update/<int:pk>/', InvoicePaymentsUpdate.as_view(), name='api_invoice_payments_update'),
+    path('api/invoice-payments/delete/<int:pk>/', InvoicePaymentsDelete.as_view(), name='api_invoice_payments_delete'),
+
+    # =========================================================================
+    # 5. PETTY CASH EXPENSES URLS
+    # =========================================================================
+    path('petty-cash-expenses/', petty_cash_expenses, name='petty_cash_expenses_view'),
+    path('api/petty-cash-expenses/list/', PettyCashExpensesList.as_view(), name='api_petty_cash_expenses_list'),
+    path('api/petty-cash-expenses/create/', PettyCashExpensesCreate.as_view(), name='api_petty_cash_expenses_create'),
+    path('api/petty-cash-expenses/update/<int:pk>/', PettyCashExpensesUpdate.as_view(), name='api_petty_cash_expenses_update'),
+    path('api/petty-cash-expenses/delete/<int:pk>/', PettyCashExpensesDelete.as_view(), name='api_petty_cash_expenses_delete'),
+
+
+    # 1. Layer Flock Identification
+    path('layers/flock-identification/', layer_flock_identification, name='layer_flock_identification_view'),
+    path('api/layers/flock-identification/create/', LayerFlockIdentificationCreate.as_view(), name='api_layer_flock_create'),
+    path('api/layers/flock-identification/list/', LayerFlockIdentificationList.as_view(), name='api_layer_flock_list'),
+    path('api/layers/flock-identification/update/<int:pk>/', LayerFlockIdentificationUpdate.as_view(), name='api_layer_flock_update'),
+    path('api/layers/flock-identification/delete/<int:pk>/', LayerFlockIdentificationDelete.as_view(), name='api_layer_flock_delete'),
+
+    # 2. Layer Daily Egg Production
+    path('layers/daily-egg-production/', layer_daily_egg_production, name='layer_daily_egg_production_view'),
+    path('api/layers/daily-egg-production/create/', LayerDailyEggProductionCreate.as_view(), name='api_layer_egg_create'),
+    path('api/layers/daily-egg-production/list/', LayerDailyEggProductionList.as_view(), name='api_layer_egg_list'),
+    path('api/layers/daily-egg-production/update/<int:pk>/', LayerDailyEggProductionUpdate.as_view(), name='api_layer_egg_update'),
+    path('api/layers/daily-egg-production/delete/<int:pk>/', LayerDailyEggProductionDelete.as_view(), name='api_layer_egg_delete'),
+
+    # 3. Layer Feed Record
+    path('layers/feed-record/', layer_feed_record, name='layer_feed_record_view'),
+    path('api/layers/feed-record/create/', LayerFeedRecordCreate.as_view(), name='api_layer_feed_create'),
+    path('api/layers/feed-record/list/', LayerFeedRecordList.as_view(), name='api_layer_feed_list'),
+    path('api/layers/feed-record/update/<int:pk>/', LayerFeedRecordUpdate.as_view(), name='api_layer_feed_update'),
+    path('api/layers/feed-record/delete/<int:pk>/', LayerFeedRecordDelete.as_view(), name='api_layer_feed_delete'),
+
+    # 4. Layer Mortality Record
+    path('layers/mortality-record/', layer_mortality_record, name='layer_mortality_record_view'),
+    path('api/layers/mortality-record/create/', LayerMortalityRecordCreate.as_view(), name='api_layer_mortality_create'),
+    path('api/layers/mortality-record/list/', LayerMortalityRecordList.as_view(), name='api_layer_mortality_list'),
+    path('api/layers/mortality-record/update/<int:pk>/', LayerMortalityRecordUpdate.as_view(), name='api_layer_mortality_update'),
+    path('api/layers/mortality-record/delete/<int:pk>/', LayerMortalityRecordDelete.as_view(), name='api_layer_mortality_delete'),
+
+    # 5. Layer Culling Record
+    path('layers/culling-record/', layer_culling_record, name='layer_culling_record_view'),
+    path('api/layers/culling-record/create/', LayerCullingRecordCreate.as_view(), name='api_layer_culling_create'),
+    path('api/layers/culling-record/list/', LayerCullingRecordList.as_view(), name='api_layer_culling_list'),
+    path('api/layers/culling-record/update/<int:pk>/', LayerCullingRecordUpdate.as_view(), name='api_layer_culling_update'),
+    path('api/layers/culling-record/delete/<int:pk>/', LayerCullingRecordDelete.as_view(), name='api_layer_culling_delete'),
+
+    # 6. Layer Vaccination Record
+    path('layers/vaccination-record/', layer_vaccination_record, name='layer_vaccination_record_view'),
+    path('api/layers/vaccination-record/create/', LayerVaccinationRecordCreate.as_view(), name='api_layer_vaccination_create'),
+    path('api/layers/vaccination-record/list/', LayerVaccinationRecordList.as_view(), name='api_layer_vaccination_list'),
+    path('api/layers/vaccination-record/update/<int:pk>/', LayerVaccinationRecordUpdate.as_view(), name='api_layer_vaccination_update'),
+    path('api/layers/vaccination-record/delete/<int:pk>/', LayerVaccinationRecordDelete.as_view(), name='api_layer_vaccination_delete'),
+
+    # 7. Layer Treatment Record
+    path('layers/treatment-record/', layer_treatment_record, name='layer_treatment_record_view'),
+    path('api/layers/treatment-record/create/', LayerTreatmentRecordCreate.as_view(), name='api_layer_treatment_create'),
+    path('api/layers/treatment-record/list/', LayerTreatmentRecordList.as_view(), name='api_layer_treatment_list'),
+    path('api/layers/treatment-record/update/<int:pk>/', LayerTreatmentRecordUpdate.as_view(), name='api_layer_treatment_update'),
+    path('api/layers/treatment-record/delete/<int:pk>/', LayerTreatmentRecordDelete.as_view(), name='api_layer_treatment_delete'),
+
+    # 8. Layer Sales Record
+    path('layers/sales-record/', layer_sales_record, name='layer_sales_record_view'),
+    path('api/layers/sales-record/create/', LayerSalesRecordCreate.as_view(), name='api_layer_sales_create'),
+    path('api/layers/sales-record/list/', LayerSalesRecordList.as_view(), name='api_layer_sales_list'),
+    path('api/layers/sales-record/update/<int:pk>/', LayerSalesRecordUpdate.as_view(), name='api_layer_sales_update'),
+    path('api/layers/sales-record/delete/<int:pk>/', LayerSalesRecordDelete.as_view(), name='api_layer_sales_delete'),
+
+    # 9. Layer Income Record
+    path('layers/income-record/', layer_income_record, name='layer_income_record_view'),
+    path('api/layers/income-record/create/', LayerIncomeRecordCreate.as_view(), name='api_layer_income_create'),
+    path('api/layers/income-record/list/', LayerIncomeRecordList.as_view(), name='api_layer_income_list'),
+    path('api/layers/income-record/update/<int:pk>/', LayerIncomeRecordUpdate.as_view(), name='api_layer_income_update'),
+    path('api/layers/income-record/delete/<int:pk>/', LayerIncomeRecordDelete.as_view(), name='api_layer_income_delete'),
+
+    # 10. Layer Biosecurity Log
+    path('layers/biosecurity-log/', layer_biosecurity_log, name='layer_biosecurity_log_view'),
+    path('api/layers/biosecurity-log/create/', LayerBiosecurityAndVisitorsLogCreate.as_view(), name='api_layer_biosecurity_create'),
+    path('api/layers/biosecurity-log/list/', LayerBiosecurityAndVisitorsLogList.as_view(), name='api_layer_biosecurity_list'),
+    path('api/layers/biosecurity-log/update/<int:pk>/', LayerBiosecurityAndVisitorsLogUpdate.as_view(), name='api_layer_biosecurity_update'),
+    path('api/layers/biosecurity-log/delete/<int:pk>/', LayerBiosecurityAndVisitorsLogDelete.as_view(), name='api_layer_biosecurity_delete'),
+
+
+    # =========================================================================
+    # PART 2: BROILER PORTAL URLS (9 Modules)
+    # =========================================================================
+    
+    # 1. Broiler Flock Identification
+    path('broilers/flock-identification/', broiler_flock_identification, name='broiler_flock_identification_view'),
+    path('api/broilers/flock-identification/create/', BroilerFlockIdentificationCreate.as_view(), name='api_broiler_flock_create'),
+    path('api/broilers/flock-identification/list/', BroilerFlockIdentificationList.as_view(), name='api_broiler_flock_list'),
+    path('api/broilers/flock-identification/update/<int:pk>/', BroilerFlockIdentificationUpdate.as_view(), name='api_broiler_flock_update'),
+    path('api/broilers/flock-identification/delete/<int:pk>/', BroilerFlockIdentificationDelete.as_view(), name='api_broiler_flock_delete'),
+
+    # 2. Broiler Daily Mortality
+    path('broilers/daily-mortality/', broiler_daily_mortality, name='broiler_daily_mortality_view'),
+    path('api/broilers/daily-mortality/create/', BroilerDailyMortalityCreate.as_view(), name='api_broiler_mortality_create'),
+    path('api/broilers/daily-mortality/list/', BroilerDailyMortalityList.as_view(), name='api_broiler_mortality_list'),
+    path('api/broilers/daily-mortality/update/<int:pk>/', BroilerDailyMortalityUpdate.as_view(), name='api_broiler_mortality_update'),
+    path('api/broilers/daily-mortality/delete/<int:pk>/', BroilerDailyMortalityDelete.as_view(), name='api_broiler_mortality_delete'),
+
+    # 3. Broiler Feed Consumption
+    path('broilers/feed-consumption/', broiler_feed_consumption, name='broiler_feed_consumption_view'),
+    path('api/broilers/feed-consumption/create/', BroilerFeedConsumptionCreate.as_view(), name='api_broiler_feed_create'),
+    path('api/broilers/feed-consumption/list/', BroilerFeedConsumptionList.as_view(), name='api_broiler_feed_list'),
+    path('api/broilers/feed-consumption/update/<int:pk>/', BroilerFeedConsumptionUpdate.as_view(), name='api_broiler_feed_update'),
+    path('api/broilers/feed-consumption/delete/<int:pk>/', BroilerFeedConsumptionDelete.as_view(), name='api_broiler_feed_delete'),
+
+    # 4. Broiler Treatment Record
+    path('broilers/treatment-record/', broiler_treatment_record, name='broiler_treatment_record_view'),
+    path('api/broilers/treatment-record/create/', BroilerTreatmentRecordCreate.as_view(), name='api_broiler_treatment_create'),
+    path('api/broilers/treatment-record/list/', BroilerTreatmentRecordList.as_view(), name='api_broiler_treatment_list'),
+    path('api/broilers/treatment-record/update/<int:pk>/', BroilerTreatmentRecordUpdate.as_view(), name='api_broiler_treatment_update'),
+    path('api/broilers/treatment-record/delete/<int:pk>/', BroilerTreatmentRecordDelete.as_view(), name='api_broiler_treatment_delete'),
+
+    # 5. Broiler Vaccination Record
+    path('broilers/vaccination-record/', broiler_vaccination_record, name='broiler_vaccination_record_view'),
+    path('api/broilers/vaccination-record/create/', BroilerVaccinationRecordCreate.as_view(), name='api_broiler_vaccination_create'),
+    path('api/broilers/vaccination-record/list/', BroilerVaccinationRecordList.as_view(), name='api_broiler_vaccination_list'),
+    path('api/broilers/vaccination-record/update/<int:pk>/', BroilerVaccinationRecordUpdate.as_view(), name='api_broiler_vaccination_update'),
+    path('api/broilers/vaccination-record/delete/<int:pk>/', BroilerVaccinationRecordDelete.as_view(), name='api_broiler_vaccination_delete'),
+
+    # 6. Broiler Growth Performance
+    path('broilers/growth-performance/', broiler_growth_performance, name='broiler_growth_performance_view'),
+    path('api/broilers/growth-performance/create/', BroilerGrowthPerformanceCreate.as_view(), name='api_broiler_growth_create'),
+    path('api/broilers/growth-performance/list/', BroilerGrowthPerformanceList.as_view(), name='api_broiler_growth_list'),
+    path('api/broilers/growth-performance/update/<int:pk>/', BroilerGrowthPerformanceUpdate.as_view(), name='api_broiler_growth_update'),
+    path('api/broilers/growth-performance/delete/<int:pk>/', BroilerGrowthPerformanceDelete.as_view(), name='api_broiler_growth_delete'),
+
+    # 7. Broiler Environmental Record
+    path('broilers/environmental-record/', broiler_environmental_record, name='broiler_environmental_record_view'),
+    path('api/broilers/environmental-record/create/', BroilerEnvironmentalRecordCreate.as_view(), name='api_broiler_environmental_create'),
+    path('api/broilers/environmental-record/list/', BroilerEnvironmentalRecordList.as_view(), name='api_broiler_environmental_list'),
+    path('api/broilers/environmental-record/update/<int:pk>/', BroilerEnvironmentalRecordUpdate.as_view(), name='api_broiler_environmental_update'),
+    path('api/broilers/environmental-record/delete/<int:pk>/', BroilerEnvironmentalRecordDelete.as_view(), name='api_broiler_environmental_delete'),
+
+    # 8. Broiler Water Consumption
+    path('broilers/water-consumption/', broiler_water_consumption, name='broiler_water_consumption_view'),
+    path('api/broilers/water-consumption/create/', BroilerWaterConsumptionCreate.as_view(), name='api_broiler_water_create'),
+    path('api/broilers/water-consumption/list/', BroilerWaterConsumptionList.as_view(), name='api_broiler_water_list'),
+    path('api/broilers/water-consumption/update/<int:pk>/', BroilerWaterConsumptionUpdate.as_view(), name='api_broiler_water_update'),
+    path('api/broilers/water-consumption/delete/<int:pk>/', BroilerWaterConsumptionDelete.as_view(), name='api_broiler_water_delete'),
+
+    # 9. Broiler Sales Record
+    path('broilers/sales-record/', broiler_sales_record, name='broiler_sales_record_view'),
+    path('api/broilers/sales-record/create/', BroilerSalesRecordCreate.as_view(), name='api_broiler_sales_create'),
+    path('api/broilers/sales-record/list/', BroilerSalesRecordList.as_view(), name='api_broiler_sales_list'),
+    path('api/broilers/sales-record/update/<int:pk>/', BroilerSalesRecordUpdate.as_view(), name='api_broiler_sales_update'),
+    path('api/broilers/sales-record/delete/<int:pk>/', BroilerSalesRecordDelete.as_view(), name='api_broiler_sales_delete'),
+
+    path('employee-record/', employee_record, name='employee-record'),
+    path('employee-record/create/', EmployeeRecordCreate.as_view(), name='employee-create'),
+    path('employee-record/list/', EmployeeRecordList.as_view(), name='employee-list'),
+    path('employee-record/update/<int:pk>/', EmployeeRecordUpdate.as_view(), name='employee-update'),
+    path('employee-record/delete/<int:pk>/', EmployeeRecordDelete.as_view(), name='employee-delete'),
+
+    path('salary-record/', salary_record, name='salary-record'),
+
+    path('salary-record/create/', SalaryRecordCreate.as_view(), name='salary-create'),
+    path('salary-record/list/', SalaryRecordList.as_view(), name='salary-list'),
+    path('salary-record/update/<int:pk>/', SalaryRecordUpdate.as_view(), name='salary-update'),
+    path('salary-record/delete/<int:pk>/', SalaryRecordDelete.as_view(), name='salary-delete'),
+
+    # =====================================================================
+    path('farm-visits/', farm_visit_record, name='farm_visit_record'),
+    path('api/farm-visits/create/', FarmVisitCreate.as_view(), name='farm_visit_create'),
+    path('api/farm-visits/list/', FarmVisitList.as_view(), name='farm_visit_list'),
+    path('api/farm-visits/update/<int:pk>/', FarmVisitUpdate.as_view(), name='farm_visit_update'),
+    path('api/farm-visits/delete/<int:pk>/', FarmVisitDelete.as_view(), name='farm_visit_delete'),
+
+    # =====================================================================
+    # DRUG INVENTORY URLS
+    # =====================================================================
+    path('drug-inventory/', drug_inventory_record, name='drug_inventory_record'),
+    path('api/drug-inventory/create/', DrugInventoryCreate.as_view(), name='drug_inventory_create'),
+    path('api/drug-inventory/list/', DrugInventoryList.as_view(), name='drug_inventory_list'),
+    path('api/drug-inventory/update/<int:pk>/', DrugInventoryUpdate.as_view(), name='drug_inventory_update'),
+    path('api/drug-inventory/delete/<int:pk>/', DrugInventoryDelete.as_view(), name='drug_inventory_delete'),
+
+    # =====================================================================
+    # FEED INVENTORY URLS
+    # =====================================================================
+    path('feed-inventory/', feed_inventory_record, name='feed_inventory_record'),
+    path('api/feed-inventory/create/', FeedInventoryCreate.as_view(), name='feed_inventory_create'),
+    path('api/feed-inventory/list/', FeedInventoryList.as_view(), name='feed_inventory_list'),
+    path('api/feed-inventory/update/<int:pk>/', FeedInventoryUpdate.as_view(), name='feed_inventory_update'),
+    path('api/feed-inventory/delete/<int:pk>/', FeedInventoryDelete.as_view(), name='feed_inventory_delete'),
+
+    # =====================================================================
+    # LIVESTOCK URLS
+    # =====================================================================
+    path('livestock-inventory/', livestock_record, name='livestock_record'),
+    path('api/livestock-inventory/create/', LivestockInventoryCreate.as_view(), name='livestock_create'),
+    path('api/livestock-inventory/list/', LivestockInventoryList.as_view(), name='livestock_list'),
+    path('api/livestock-inventory/update/<int:pk>/', LivestockInventoryUpdate.as_view(), name='livestock_update'),
+    path('api/livestock-inventory/delete/<int:pk>/', LivestockInventoryDelete.as_view(), name='livestock_delete'),
+
+    # =====================================================================
+    # ASSET URLS
+    # =====================================================================
+    path('asset/', asset_record, name='asset_record'),
+    path('api/asset/create/', AssetCreate.as_view(), name='asset_create'),
+    path('api/asset/list/', AssetList.as_view(), name='asset_list'),
+    path('api/asset/update/<int:pk>/', AssetUpdate.as_view(), name='asset_update'),
+    path('api/asset/delete/<int:pk>/', AssetDelete.as_view(), name='asset_delete'),
+  
+
+
+  path('fish-record/', fish_record, name='fish_record'),
+    path('api/fish-record/create/', FishCreate.as_view(), name='fish_create'),
+    path('api/fish-record/list/', FishList.as_view(), name='fish_list'),
+    path('api/fish-record/update/<int:pk>/', FishUpdate.as_view(), name='fish_update'),
+    path('api/fish-record/delete/<int:pk>/', FishDelete.as_view(), name='fish_delete'),
+
+    # ==========================================
+    # Feeding Records URLs
+    # ==========================================
+    path('feeding-record/', feeding_record, name='feeding_record'),
+    path('api/feeding-record/create/', FeedingRecordCreate.as_view(), name='feeding_create'),
+    path('api/feeding-record/list/', FeedingRecordList.as_view(), name='feeding_list'),
+    path('api/feeding-record/update/<int:pk>/', FeedingRecordUpdate.as_view(), name='feeding_update'),
+    path('api/feeding-record/delete/<int:pk>/', FeedingRecordDelete.as_view(), name='feeding_delete'),
+
+    # ==========================================
+    # Mortality Records URLs
+    # ==========================================
+    path('mortality-records/', mortality_record, name='mortality_record'),
+    path('api/mortality-records/create/', MortalityRecordCreate.as_view(), name='mortality_create'),
+    path('api/mortality-records/list/', MortalityRecordList.as_view(), name='mortality_list'),
+    path('api/mortality-records/update/<int:pk>/', MortalityRecordUpdate.as_view(), name='mortality_update'),
+    path('api/mortality-records/delete/<int:pk>/', MortalityRecordDelete.as_view(), name='mortality_delete'),
+
+    # ==========================================
+    # Growth Monitoring URLs
+    # ==========================================
+    path('growth-monitoring/', growth_monitoring_record, name='growth_monitoring_record'),
+    path('api/growth-monitoring/create/', GrowthMonitoringCreate.as_view(), name='growth_create'),
+    path('api/growth-monitoring/list/', GrowthMonitoringList.as_view(), name='growth_list'),
+    path('api/growth-monitoring/update/<int:pk>/', GrowthMonitoringUpdate.as_view(), name='growth_update'),
+    path('api/growth-monitoring/delete/<int:pk>/', GrowthMonitoringDelete.as_view(), name='growth_delete'),
 
 ]
 

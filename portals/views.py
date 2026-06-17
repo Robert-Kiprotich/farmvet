@@ -28,7 +28,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from django.views import View
 import json
-
+from asgiref.sync import sync_to_async
 import base64
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
@@ -61,6 +61,9 @@ from django.db.models import Exists, OuterRef
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
+import re
+from urllib.parse import unquote
+
 
 
 logger = logging.getLogger(__name__)
@@ -70,6 +73,10 @@ def vet_check(user):
     if not user.is_authenticated:
         return False  
     return getattr(user, 'is_vet_officer', False)
+def agrovet_check(user):
+    if not user.is_authenticated:
+        return False  
+    return getattr(user, 'is_agrovet', False)
 
 def farmer_check(user):
     if not user.is_authenticated:
@@ -147,6 +154,15 @@ def portal_farmer(request):
     }
     print(context)
     return render(request, 'portals/dashboardFarmer.html', context)
+@user_passes_test(agrovet_check, login_url='agrovet-login')
+def agrovet(request):
+    agrovets = Agrovet.objects.all()
+    context = {
+        'all_vets': agrovets,
+        'role': 'agrovet'
+    }
+    print(context)
+    return render(request, 'portals/dashboardAgrovet.html', context)
 
 
 
@@ -349,7 +365,7 @@ class ArtificialInseminationCreate(generics.CreateAPIView):
 
 class ArtificialInseminationList(generics.ListAPIView):
     serializer_class = ArtificialInseminationSerializer
-    permission_classes = [Is_Vet | Is_Official | Is_Farmer | Is_Coop]
+    permission_classes = [IsVetOrOfficial | Is_Farmer | Is_Coop]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -1258,7 +1274,9 @@ class LactatingCowDelete(generics.DestroyAPIView):
             instance.delete()
 @user_passes_test(farmer_check, login_url='farmer-login')
 def milk_record(request):
-    return render(request, 'portals/farmer/milk_records.html', {})
+    employees = EmployeeRecord.objects.all()
+    cows = LactatingCow.objects.all()
+    return render(request, 'portals/farmer/milk_records.html', {'employees': employees, 'cows': cows})
 
 class FilteredMilkRecordsView(View):
     def get(self, request):
@@ -1799,40 +1817,36 @@ def vaccination_record_filter(request):
 CERT_DIR = "vaccination_certificates"   # sub-folder inside MEDIA_ROOT
  
  
+#
+# Constants
+CERT_DIR = "vaccination_certificates"
+GOLD = colors.HexColor("#CFB53B")
+DARK_GOLD = colors.HexColor("#8B6914")
+NAVY = colors.HexColor("#1a237e")
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  Helper functions (modified to be async-friendly)
+# ──────────────────────────────────────────────────────────────────────────────
+
 def save_certificate_to_media(record, pdf_bytes: bytes) -> str:
-    """
-    Write *pdf_bytes* to:
-        MEDIA_ROOT/vaccination_certificates/<pk>_certificate.pdf
- 
-    Works with any DEFAULT_FILE_STORAGE backend (local disk, S3, GCS …).
-    Deletes any stale copy first so orphan files don't accumulate.
- 
-    Returns the relative media path, e.g.:
-        "vaccination_certificates/42_certificate.pdf"
-    """
-    path = f"{CERT_DIR}/{record.pk}_certificate.pdf"
- 
-    if default_storage.exists(path):
-        default_storage.delete(path)
- 
+    timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
+
+    path = (
+        f"{CERT_DIR}/{record.pk}_certificate_{timestamp}.pdf"
+    )
+
     saved_path = default_storage.save(path, ContentFile(pdf_bytes))
     return saved_path
- 
- 
+
+
 def certificate_url(saved_path: str) -> str:
-    """Return the absolute public URL for *saved_path*."""
     return default_storage.url(saved_path)
- 
- 
+
 # ──────────────────────────────────────────────────────────────────────────────
-#  Drawing primitives
+#  Drawing primitives (unchanged)
 # ──────────────────────────────────────────────────────────────────────────────
- 
-GOLD      = colors.HexColor("#CFB53B")
-DARK_GOLD = colors.HexColor("#8B6914")
-NAVY      = colors.HexColor("#1a237e")
- 
- 
+
 def _decorative_border(c, x, y, w, h):
     c.setStrokeColor(colors.black); c.setLineWidth(6)
     c.rect(x, y, w, h, fill=0, stroke=1)
@@ -1842,16 +1856,16 @@ def _decorative_border(c, x, y, w, h):
     c.rect(x + 10, y + 10, w - 20, h - 20, fill=0, stroke=1)
     for (cx, cy) in [(x, y + h), (x + w, y + h), (x, y), (x + w, y)]:
         c.setFillColor(GOLD); c.circle(cx, cy, 4, fill=1, stroke=0)
- 
- 
+
+
 def _logo_circle(c, cx, cy, r=20):
     c.setFillColor(colors.white); c.setStrokeColor(DARK_GOLD); c.setLineWidth(1.5)
     c.circle(cx, cy, r, fill=1, stroke=1)
     c.setFillColor(DARK_GOLD); c.setFont("Helvetica-Bold", 7)
     c.drawCentredString(cx, cy + 4, "VET")
     c.drawCentredString(cx, cy - 4, "PROF")
- 
- 
+
+
 def _gold_seal(c, cx, cy, r=26):
     c.setStrokeColor(GOLD); c.setLineWidth(1)
     for i in range(16):
@@ -1864,8 +1878,8 @@ def _gold_seal(c, cx, cy, r=26):
     c.setFillColor(colors.white); c.setFont("Helvetica-Bold", 5)
     c.drawCentredString(cx, cy + 4, "VET PRO")
     c.drawCentredString(cx, cy - 2, "SERVICES")
- 
- 
+
+
 def _table_row(c, x, y, col_w, values, row_h=14, header=False):
     n = len(values)
     tw = col_w * n
@@ -1879,12 +1893,12 @@ def _table_row(c, x, y, col_w, values, row_h=14, header=False):
     c.setFillColor(colors.white if header else colors.black)
     for i, val in enumerate(values):
         c.drawString(x + i * col_w + 3, y - row_h + 5, str(val or "")[:20])
- 
- 
+
+
 # ──────────────────────────────────────────────────────────────────────────────
-#  Main PDF builder
+#  Main PDF builder (unchanged)
 # ──────────────────────────────────────────────────────────────────────────────
- 
+
 def generate_vaccination_certificate(record) -> bytes:
     """
     Build a Veterinary Professional Services Vaccination Certificate PDF
@@ -2049,56 +2063,148 @@ def generate_vaccination_certificate(record) -> bytes:
     c.save()
     buf.seek(0)
     return buf.read()
- 
- 
+
+
 # ──────────────────────────────────────────────────────────────────────────────
-#  API View
+#  ASYNC API View - Modified for background certificate generation
 # ──────────────────────────────────────────────────────────────────────────────
- 
+
 class VaccinationRecordCreate(generics.CreateAPIView):
     """
     POST  /api/vaccination-records/
  
     1. Saves the VaccinationRecord to the DB.
-    2. Generates the PDF certificate (ReportLab).
-    3. Stores it at  MEDIA_ROOT/vaccination_certificates/<pk>_certificate.pdf
-       via Django's default_storage.
-    4. Writes the relative path back to record.certificate_file.
-    5. Returns JSON with the public URL.
+    2. QUEUES PDF certificate generation (async).
+    3. Returns IMMEDIATE response with task status.
+    4. Certificate generation happens in background.
     """
     queryset           = VaccinationRecord.objects.all()
     serializer_class   = VaccinationRecordSerializer
     permission_classes = [Is_Vet]
  
+    async def generate_certificate_background(self, record_id):
+        """
+        Background async task to generate and save certificate
+        This runs independently without blocking the response
+        """
+        try:
+            logger.info(f"Starting async certificate generation for record {record_id}")
+            
+            # Mark that generation is in progress (optional - add this field to model)
+            await sync_to_async(VaccinationRecord.objects.filter(pk=record_id).update)(
+                # certificate_generating=True  # Add this field if you want status tracking
+            )
+            
+            # Get the record (async DB operation)
+            record = await sync_to_async(VaccinationRecord.objects.get)(pk=record_id)
+            
+            # Generate PDF (CPU intensive - run in thread pool)
+            # asyncio.to_thread prevents blocking the event loop
+            pdf_bytes = await asyncio.to_thread(generate_vaccination_certificate, record)
+            
+            # Save to media (I/O operation - run in thread pool)
+            saved_path = await asyncio.to_thread(save_certificate_to_media, record, pdf_bytes)
+            
+            # Update record with certificate path (async DB operation)
+            await sync_to_async(VaccinationRecord.objects.filter(pk=record_id).update)(
+                certificate_file=saved_path
+                # certificate_generating=False
+            )
+            
+            logger.info(f"Certificate generated successfully for record {record_id}")
+            
+        except Exception as e:
+            logger.error(f"Failed to generate certificate for record {record_id}: {str(e)}", exc_info=True)
+            # Update record with error status
+            await sync_to_async(VaccinationRecord.objects.filter(pk=record_id).update)(
+                # certificate_error=str(e),  # Add this field if you want error tracking
+                # certificate_generating=False
+            )
+        finally:
+            # Clean up database connection to prevent leakage
+            close_old_connections()
+    
     def create(self, request, *args, **kwargs):
+        """
+        Synchronous entry point - creates record and starts async background task
+        """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
  
-        # 1. Persist record
+        # 1. Persist record (synchronous - fast)
         record = serializer.save(user=request.user)
- 
-        # 2. Generate PDF
-        pdf_bytes = generate_vaccination_certificate(record)
- 
-        # 3. Save to  MEDIA_ROOT/vaccination_certificates/<pk>_certificate.pdf
-        saved_path = save_certificate_to_media(record, pdf_bytes)
- 
-        # 4. Write the relative path back onto the record
-        #    (uses update() to avoid a full model save + avoid re-triggering signals)
-        VaccinationRecord.objects.filter(pk=record.pk).update(
-            certificate_file=saved_path
-        )
- 
-        # 5. Return JSON
+        
+        # 2. Start async certificate generation in background
+        try:
+            # Get or create an event loop
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_closed():
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+            
+            # Start background task WITHOUT awaiting it
+            asyncio.create_task(self.generate_certificate_background(record.pk))
+            logger.info(f"Queued async certificate generation for record {record.pk}")
+            
+        except Exception as e:
+            logger.error(f"Failed to queue certificate generation: {e}")
+            # Fallback: generate synchronously
+            logger.info(f"Falling back to synchronous generation for record {record.pk}")
+            pdf_bytes = generate_vaccination_certificate(record)
+            saved_path = save_certificate_to_media(record, pdf_bytes)
+            VaccinationRecord.objects.filter(pk=record.pk).update(
+                certificate_file=saved_path
+            )
+        
+        # 3. Return IMMEDIATE response (doesn't wait for PDF generation)
         return Response(
             {
-                "detail":           "Vaccination record created and certificate saved.",
-                "record_id":        record.pk,
-                "certificate_path": saved_path,              # relative to MEDIA_ROOT
-                "certificate_url":  certificate_url(saved_path),  # full public URL
+                "detail": "Vaccination record created. Certificate generation in progress.",
+                "record_id": record.pk,
+                "certificate_status": "generating",
+                "status_check_endpoint": f"/api/vaccination-records/{record.pk}/status/",
+                "message": "The certificate will be available shortly. Poll the status endpoint.",
             },
             status=status.HTTP_201_CREATED,
         )
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  Optional: Status Check Endpoint
+# ──────────────────────────────────────────────────────────────────────────────
+
+class CertificateStatusView(generics.RetrieveAPIView):
+    """
+    GET /api/vaccination-records/{id}/status/
+    Check if certificate has been generated
+    """
+    queryset = VaccinationRecord.objects.all()
+    permission_classes = [Is_Vet]
+    
+    def retrieve(self, request, *args, **kwargs):
+        record = self.get_object()
+        
+        if record.certificate_file:
+            # Certificate is ready
+            return Response({
+                "status": "completed",
+                "record_id": record.pk,
+                "certificate_url": certificate_url(record.certificate_file),
+                "certificate_path": record.certificate_file,
+                "ready": True,
+            })
+        else:
+            # Certificate still generating
+            return Response({
+                "status": "generating",
+                "record_id": record.pk,
+                "ready": False,
+                "message": "Certificate is being generated. Please check back soon.",
+            })
  
 class VaccinationRecordList(generics.ListAPIView):
     serializer_class = VaccinationRecordSerializer
@@ -2285,7 +2391,7 @@ class DiseaseReportCreate(generics.CreateAPIView):
 
 class DiseaseReportList(generics.ListAPIView):
     serializer_class = DiseaseReportSerializer
-    permission_classes = [Is_Vet | Is_Official]
+    permission_classes = [IsVetOrOfficial]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -2823,11 +2929,22 @@ def result(request):
     return render(request,'portals/reports/myresults.html',{})
 
 
+def clean_text(text):
+    if not text:
+        return ""
 
+    text = unquote(str(text))      # converts %20 → space
+    text = re.sub(r'\s+', ' ', text)
+    return text.strip()
 
 def generate_certificate(request, first_name, last_name):
+
+    first_name = clean_text(first_name)
+    last_name = clean_text(last_name)
+
     template_path = os.path.join(settings.STATIC_ROOT, "portals", "assets", "img", "certificate_1.png")
     template = cv2.imread(template_path)
+
     if template is None:
         return HttpResponse("Certificate template not found", status=500)
 
@@ -2835,18 +2952,15 @@ def generate_certificate(request, first_name, last_name):
     date = now()
     date_string = date.strftime('%d/%m/%Y')
 
-    
     font = cv2.FONT_HERSHEY_COMPLEX
     font_scale = 2
     font_color = (0, 0, 255)
     thickness = 3
 
-    
     canvas_width = template.shape[1]
     y_coordinate = 680
-    spacing = 50  
+    spacing = 50
 
-   
     first_name_size = cv2.getTextSize(first_name, font, font_scale, thickness)[0]
     last_name_size = cv2.getTextSize(last_name, font, font_scale, thickness)[0]
     total_name_width = first_name_size[0] + spacing + last_name_size[0]
@@ -2855,40 +2969,36 @@ def generate_certificate(request, first_name, last_name):
         first_name_coords = ((canvas_width - total_name_width) // 2, y_coordinate)
         last_name_coords = (first_name_coords[0] + first_name_size[0] + spacing, y_coordinate)
     else:
-        
         first_name_coords = (100, y_coordinate)
         last_name_coords = (first_name_coords[0] + first_name_size[0] + spacing, y_coordinate)
 
-    
     date_coords = (800, 930)
     signature_coords = (1200, 950)
     kvb_no_coords = (993, 760)
 
-    
     cv2.putText(template, first_name, first_name_coords, font, font_scale, font_color, thickness, cv2.LINE_AA)
     cv2.putText(template, last_name, last_name_coords, font, font_scale, font_color, thickness, cv2.LINE_AA)
 
-    
     cv2.putText(template, date_string, date_coords, font, 1, (0, 0, 0), 2, cv2.LINE_AA)
 
-    
-    #cv2.putText(template, "Authorized Signature", signature_coords, font, 1, (0, 0, 0), 2, cv2.LINE_AA)
     cv2.putText(template, registration_number, kvb_no_coords, font, 1, (0, 0, 0), 2, cv2.LINE_AA)
 
-    
     success, buffer = cv2.imencode(".jpg", template)
     if not success:
         return HttpResponse("Error generating certificate", status=500)
 
-    
     response = HttpResponse(buffer.tobytes(), content_type="image/jpeg")
     response["Content-Disposition"] = f'attachment; filename="{first_name}_certificate.jpg"'
 
     return response
-
 def get_certificate(request, first_name, last_name):
+
+    first_name = clean_text(first_name)
+    last_name = clean_text(last_name)
+
     template_path = os.path.join(settings.STATIC_ROOT, "portals", "assets", "img", "certificate_1.png")
     template = cv2.imread(template_path)
+
     if template is None:
         return HttpResponse("Certificate template not found", status=500)
 
@@ -2896,18 +3006,15 @@ def get_certificate(request, first_name, last_name):
     date = now()
     date_string = date.strftime('%d/%m/%Y')
 
-    
     font = cv2.FONT_HERSHEY_COMPLEX
     font_scale = 2
     font_color = (0, 0, 255)
     thickness = 3
 
-    
     canvas_width = template.shape[1]
     y_coordinate = 680
-    spacing = 50  
+    spacing = 50
 
-   
     first_name_size = cv2.getTextSize(first_name, font, font_scale, thickness)[0]
     last_name_size = cv2.getTextSize(last_name, font, font_scale, thickness)[0]
     total_name_width = first_name_size[0] + spacing + last_name_size[0]
@@ -2916,37 +3023,28 @@ def get_certificate(request, first_name, last_name):
         first_name_coords = ((canvas_width - total_name_width) // 2, y_coordinate)
         last_name_coords = (first_name_coords[0] + first_name_size[0] + spacing, y_coordinate)
     else:
-        
         first_name_coords = (100, y_coordinate)
         last_name_coords = (first_name_coords[0] + first_name_size[0] + spacing, y_coordinate)
 
-    
     date_coords = (400, 950)
     signature_coords = (1200, 950)
     kvb_no_coords = (910, 760)
 
-    
     cv2.putText(template, first_name, first_name_coords, font, font_scale, font_color, thickness, cv2.LINE_AA)
     cv2.putText(template, last_name, last_name_coords, font, font_scale, font_color, thickness, cv2.LINE_AA)
 
-    
     cv2.putText(template, date_string, date_coords, font, 1, (0, 0, 0), 2, cv2.LINE_AA)
 
-    
-    #cv2.putText(template, "Authorized Signature", signature_coords, font, 1, (0, 0, 0), 2, cv2.LINE_AA)
     cv2.putText(template, registration_number, kvb_no_coords, font, 1, (0, 0, 0), 2, cv2.LINE_AA)
 
-    
     success, buffer = cv2.imencode(".jpg", template)
     if not success:
         return HttpResponse("Error generating certificate", status=500)
 
-    
     response = HttpResponse(buffer.tobytes(), content_type="image/jpeg")
     response["Content-Disposition"] = f'attachment; filename="{first_name}_certificate.jpg"'
 
     return response
-
 
 
 class QuizResultList(generics.ListAPIView):
@@ -2954,7 +3052,8 @@ class QuizResultList(generics.ListAPIView):
     permission_classes = [Is_Vet]
     
     def get_queryset(self):
-        return QuizResult.objects.all()
+        user=self.request.user
+        return QuizResult.objects.filter(user=user).order_by('-id')
     
 def livestock_examination(request):
     return render(request, 'portals/reports/examination.html', {})
@@ -3140,7 +3239,7 @@ class DailyKillCreate(generics.CreateAPIView):
 
 class DailyKillList(generics.ListAPIView):
     serializer_class = DailyKillSerializer
-    permission_classes = [Is_Vet | Is_Official]
+    permission_classes = [IsVetOrOfficial]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -3191,7 +3290,7 @@ class MovementPermitCreate(generics.CreateAPIView):
 
 class MovementPermitList(generics.ListAPIView):
     serializer_class = MovementPermitSerializer
-    permission_classes = [Is_Vet | Is_Official]
+    permission_classes = [IsVetOrOfficial]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -3337,7 +3436,7 @@ def quarterly_report_view(request):
 class QuarterlyReportCreate(generics.CreateAPIView):
     queryset = QuarterlyReport.objects.all()
     serializer_class = QuarterlyReportSerializer
-    permission_classes = [Is_Vet | Is_Official]
+    permission_classes = [IsVetOrOfficial]
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -3345,7 +3444,7 @@ class QuarterlyReportCreate(generics.CreateAPIView):
 
 class QuarterlyReportList(generics.ListAPIView):
     serializer_class = QuarterlyReportSerializer
-    permission_classes = [Is_Vet | Is_Official]
+    permission_classes = [IsVetOrOfficial]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -3360,12 +3459,12 @@ class QuarterlyReportList(generics.ListAPIView):
 class QuarterlyReportUpdate(generics.UpdateAPIView):
     queryset = QuarterlyReport.objects.all()
     serializer_class = QuarterlyReportSerializer
-    permission_classes = [Is_Vet | Is_Official]
+    permission_classes = [IsVetOrOfficial]
 
 class QuarterlyReportDelete(generics.DestroyAPIView):
     queryset = QuarterlyReport.objects.all()
     serializer_class = QuarterlyReportSerializer
-    permission_classes = [Is_Vet | Is_Official]
+    permission_classes = [IsVetOrOfficial]
 
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
@@ -3382,7 +3481,7 @@ def yearly_report_view(request):
 class YearlyReportCreate(generics.CreateAPIView):
     queryset = YearlyReport.objects.all()
     serializer_class = YearlyReportSerializer
-    permission_classes = [Is_Vet | Is_Official]
+    permission_classes = [IsVetOrOfficial]
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -3390,7 +3489,7 @@ class YearlyReportCreate(generics.CreateAPIView):
 
 class YearlyReportList(generics.ListAPIView):
     serializer_class = YearlyReportSerializer
-    permission_classes = [Is_Vet | Is_Official]
+    permission_classes = [IsVetOrOfficial]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -3405,12 +3504,12 @@ class YearlyReportList(generics.ListAPIView):
 class YearlyReportUpdate(generics.UpdateAPIView):
     queryset = YearlyReport.objects.all()
     serializer_class = YearlyReportSerializer
-    permission_classes = [Is_Vet | Is_Official]
+    permission_classes = [IsVetOrOfficial]
 
 class YearlyReportDelete(generics.DestroyAPIView):
     queryset = YearlyReport.objects.all()
     serializer_class = YearlyReportSerializer
-    permission_classes = [Is_Vet | Is_Official]
+    permission_classes = [IsVetOrOfficial]
 
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
@@ -3472,7 +3571,7 @@ class PractitionerCreate(generics.CreateAPIView):
 
 class PractitionerList(generics.ListAPIView):
     serializer_class = PractitionerSerializer
-    permission_classes = [Is_Vet | Is_Official]
+    permission_classes = [IsVetOrOfficial]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -3602,7 +3701,7 @@ def price_list_view(request):
 class PriceListCreate(generics.CreateAPIView):
     queryset = PriceList.objects.all()
     serializer_class = PriceListSerializer
-    permission_classes = [Is_Farmer | Is_Vet]
+    permission_classes = [Is_Agrovet | Is_Vet]
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -3610,7 +3709,7 @@ class PriceListCreate(generics.CreateAPIView):
 
 class PriceListList(generics.ListAPIView):
     serializer_class = PriceListSerializer
-    permission_classes = [Is_Farmer | Is_Vet]
+    permission_classes = [Is_Agrovet | Is_Vet]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -3620,12 +3719,12 @@ class PriceListList(generics.ListAPIView):
 class PriceListUpdate(generics.UpdateAPIView):
     queryset = PriceList.objects.all()
     serializer_class = PriceListSerializer
-    permission_classes = [Is_Farmer | Is_Vet]
+    permission_classes = [Is_Agrovet | Is_Vet]
 
 class PriceListDelete(generics.DestroyAPIView):
     queryset = PriceList.objects.all()
     serializer_class = PriceListSerializer
-    permission_classes = [Is_Farmer | Is_Vet]
+    permission_classes = [Is_Agrovet | Is_Vet]
 
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
@@ -3724,7 +3823,7 @@ def creditor_view(request):
 class CreditorCreate(generics.CreateAPIView):
     queryset = Creditor.objects.all()
     serializer_class = CreditorSerializer
-    permission_classes = [Is_Farmer | Is_Vet]
+    permission_classes = [Is_Farmer | Is_Vet|Is_Agrovet]
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -3732,7 +3831,7 @@ class CreditorCreate(generics.CreateAPIView):
 
 class CreditorList(generics.ListAPIView):
     serializer_class = CreditorSerializer
-    permission_classes = [Is_Farmer | Is_Vet]
+    permission_classes = [Is_Farmer | Is_Vet | Is_Agrovet]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -3742,12 +3841,12 @@ class CreditorList(generics.ListAPIView):
 class CreditorUpdate(generics.UpdateAPIView):
     queryset = Creditor.objects.all()
     serializer_class = CreditorSerializer
-    permission_classes = [Is_Farmer | Is_Vet]
+    permission_classes = [Is_Farmer | Is_Vet|Is_Agrovet]
 
 class CreditorDelete(generics.DestroyAPIView):
     queryset = Creditor.objects.all()
     serializer_class = CreditorSerializer
-    permission_classes = [Is_Farmer | Is_Vet]
+    permission_classes = [Is_Farmer | Is_Vet | Is_Agrovet]
 
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
@@ -3763,7 +3862,7 @@ def debtor_view(request):
 class DebtorCreate(generics.CreateAPIView):
     queryset = Debtor.objects.all()
     serializer_class = DebtorSerializer
-    permission_classes = [Is_Farmer | Is_Vet]
+    permission_classes = [Is_Farmer | Is_Vet | Is_Agrovet]
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -3771,7 +3870,7 @@ class DebtorCreate(generics.CreateAPIView):
 
 class DebtorList(generics.ListAPIView):
     serializer_class = DebtorSerializer
-    permission_classes = [Is_Farmer | Is_Vet]
+    permission_classes = [Is_Farmer | Is_Vet | Is_Agrovet]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -3781,12 +3880,12 @@ class DebtorList(generics.ListAPIView):
 class DebtorUpdate(generics.UpdateAPIView):
     queryset = Debtor.objects.all()
     serializer_class = DebtorSerializer
-    permission_classes = [Is_Farmer | Is_Vet]
+    permission_classes = [Is_Farmer | Is_Vet|Is_Agrovet]
 
 class DebtorDelete(generics.DestroyAPIView):
     queryset = Debtor.objects.all()
     serializer_class = DebtorSerializer
-    permission_classes = [Is_Farmer | Is_Vet]
+    permission_classes = [Is_Farmer | Is_Vet | Is_Agrovet]
 
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
@@ -4490,7 +4589,7 @@ class ApprovedDairyFarmCreate(generics.CreateAPIView):
 # List View
 class ApprovedDairyFarmList(generics.ListAPIView):
     serializer_class = ApprovedDairyFarmSerializer
-    permission_classes = [Is_Farmer | Is_Vet | Is_Official]
+    permission_classes = [Is_Farmer | IsVetOrOfficial]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -4648,7 +4747,7 @@ def eprescription(request):
 class VeterinaryEPrescriptionCreate(generics.CreateAPIView):
     queryset = VeterinaryEPrescription.objects.all()
     serializer_class = VeterinaryEPrescriptionSerializer
-    permission_classes = [Is_Vet]
+    permission_classes = [Is_Vet | Is_Agrovet]
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -4657,7 +4756,7 @@ class VeterinaryEPrescriptionCreate(generics.CreateAPIView):
 
 class VeterinaryEPrescriptionList(generics.ListAPIView):
     serializer_class = VeterinaryEPrescriptionSerializer
-    permission_classes = [Is_Vet]
+    permission_classes = [Is_Vet | Is_Agrovet]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -4667,13 +4766,13 @@ class VeterinaryEPrescriptionList(generics.ListAPIView):
 class VeterinaryEPrescriptionUpdate(generics.UpdateAPIView):
     queryset = VeterinaryEPrescription.objects.all()
     serializer_class = VeterinaryEPrescriptionSerializer
-    permission_classes = [Is_Vet]
+    permission_classes = [Is_Vet | Is_Agrovet ]
 
 
 class VeterinaryEPrescriptionDelete(generics.DestroyAPIView):
     queryset = VeterinaryEPrescription.objects.all()
     serializer_class = VeterinaryEPrescriptionSerializer
-    permission_classes = [Is_Vet]
+    permission_classes = [Is_Vet | Is_Agrovet]
 
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
@@ -4770,7 +4869,7 @@ class ExtensionServiceCreate(generics.CreateAPIView):
 
 class ExtensionServiceList(generics.ListAPIView):
     serializer_class = ExtensionServiceSerializer
-    permission_classes = [Is_Vet | Is_Official]
+    permission_classes = [IsVetOrOfficial]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -5458,7 +5557,7 @@ class DailyRevenueCollectionCreate(generics.CreateAPIView):
 
 class DailyRevenueCollectionList(generics.ListAPIView):
     serializer_class = DailyRevenueCollectionSerializer
-    permission_classes =[Is_Vet | Is_Official]
+    permission_classes =[IsVetOrOfficial]
 
     def get_queryset(self):
         user = self.request.user
@@ -5501,7 +5600,7 @@ class LeaveRequestCreate(generics.CreateAPIView):
 
 class LeaveRequestList(generics.ListAPIView):
     serializer_class = LeaveRequestSerializer
-    permission_classes = [Is_Vet | Is_Official]
+    permission_classes = [IsVetOrOfficial]
 
     def get_queryset(self):
         user = self.request.user
@@ -5565,9 +5664,9 @@ class LeaveRequestDelete(generics.DestroyAPIView):
         
 
 
-def slaughterhouse_view(request):
+def slaughterhouses_view(request):
     return render(request, 'portals/svco/slaughter.html', {})
-def slaughterhouse_view_gov(request):
+def slaughterhouses_view_gov(request):
     return render(request, 'portals/svco/slaughter_gov.html', {})
 
 
@@ -5582,7 +5681,7 @@ class SlaughterHousesCreate(generics.CreateAPIView):
 
 class SlaughterHousesList(generics.ListAPIView):
     serializer_class = SlaughterHousesSerializer
-    permission_classes = [Is_Vet | Is_Official]
+    permission_classes = [IsVetOrOfficial]
 
     def get_queryset(self):
         user = self.request.user
@@ -5692,7 +5791,7 @@ class MovementPermitsUpdate(generics.UpdateAPIView):
 class MovementPermitsDelete(generics.DestroyAPIView):
     queryset = MovementPermits.objects.all()
     serializer_class = MovementPermitsSerializer
-    permission_classes = [Is_Vet | Is_Official]
+    permission_classes = [IsVetOrOfficial]
     def perform_destroy(self, instance):
         instance.delete()
         
@@ -5714,7 +5813,7 @@ class NoObjectionsCreate(generics.CreateAPIView):
 
 class NoObjectionsList(generics.ListAPIView):
     serializer_class = NoObjectionsSerializer
-    permission_classes =[Is_Vet | Is_Official]
+    permission_classes =[IsVetOrOfficial]
 
     def get_queryset(self):
         user = self.request.user
@@ -5757,7 +5856,7 @@ class ArtificialInseminationsCreate(generics.CreateAPIView):
 
 class ArtificialInseminationsList(generics.ListAPIView):
     serializer_class = ArtificialInseminationsSerializer
-    permission_classes = [Is_Vet | Is_Official]
+    permission_classes = [IsVetOrOfficial]
 
     def get_queryset(self):
         user = self.request.user
@@ -5804,7 +5903,7 @@ class VaccinationsCreate(generics.CreateAPIView):
 
 class VaccinationsList(generics.ListAPIView):
     serializer_class = VaccinationsSerializer
-    permission_classes = [Is_Vet | Is_Official]
+    permission_classes = [IsVetOrOfficial]
 
     def get_queryset(self):
         user = self.request.user
@@ -5887,7 +5986,7 @@ class DiseaseReportMovsCreate(generics.CreateAPIView):
 
 class DiseaseReportMovsList(generics.ListAPIView):
     serializer_class = DiseaseReportMovsSerializer
-    permission_classes = [Is_Vet | Is_Official]
+    permission_classes = [IsVetOrOfficial]
 
     def get_queryset(self):
         user = self.request.user
@@ -5937,7 +6036,7 @@ def extension_serve_gov(request):
     return render(request,'portals/svco/extension_gov.html',{})
 class ExtensionServicesList(generics.ListAPIView):
     serializer_class = ExtensionServicesSerializer
-    permission_classes = [Is_Vet | Is_Official]
+    permission_classes = [IsVetOrOfficial]
 
     def get_queryset(self):
         user = self.request.user
@@ -5985,7 +6084,7 @@ class PractitionersCreate(generics.CreateAPIView):
         serializer.save(user=self.request.user)
 class PractitionersList(generics.ListAPIView):
     serializer_class = PractitionersSerializer
-    permission_classes = [Is_Vet | Is_Official]
+    permission_classes = [IsVetOrOfficial]
 
     def get_queryset(self):
         user = self.request.user
@@ -6015,13 +6114,13 @@ def clerk_view(request):
 class MilkCollectionClerkCreate(generics.CreateAPIView):
     queryset = MilkCollectionClerk.objects.all()
     serializer_class = MilkCollectionClerkSerializer
-    permission_classes = [Is_Vet | Is_Official | Is_Coop]
+    permission_classes = [IsVetOrOfficial | Is_Coop]
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 class MilkCollectionClerkList(generics.ListAPIView):
     serializer_class = MilkCollectionClerkSerializer
-    permission_classes = [Is_Vet | Is_Official | Is_Coop]
+    permission_classes = [IsVetOrOfficial | Is_Coop]
 
     def get_queryset(self):
         user = self.request.user
@@ -6035,13 +6134,1403 @@ class MilkCollectionClerkList(generics.ListAPIView):
 
 class MilkCollectionClerkUpdate(generics.UpdateAPIView):
     serializer_class = MilkCollectionClerkSerializer
-    permission_classes = [Is_Vet | Is_Official]
+    permission_classes = [IsVetOrOfficial]
 
     def get_queryset(self):
         return MilkCollectionClerk.objects.filter(user=self.request.user)
 class MilkCollectionClerkDelete(generics.DestroyAPIView):
     serializer_class = MilkCollectionClerkSerializer
-    permission_classes =[Is_Vet | Is_Official]
+    permission_classes =[IsVetOrOfficial]
 
     def get_queryset(self):
         return MilkCollectionClerk.objects.filter(user=self.request.user)
+
+
+#Sales
+
+def cash_sales(request):
+    return render(request,'portals/agrovet/cash_sales.html',{})
+class CashSalesCreate(generics.CreateAPIView):
+    queryset = CashSales.objects.all()
+    serializer_class = CashSalesSerializer
+    permission_classes = [Is_Vet|Is_Agrovet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class CashSalesList(generics.ListAPIView):
+    serializer_class = CashSalesSerializer
+    permission_classes = [Is_Vet|Is_Agrovet]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_agrovet:
+            return CashSales.objects.filter(user=user)
+        if user.is_vet_officer:
+            return CashSales.objects.all()
+        return CashSales.objects.filter(user=user)  # Fallback protection
+
+
+class CashSalesUpdate(generics.UpdateAPIView):
+    serializer_class = CashSalesSerializer
+    permission_classes = [Is_Vet | Is_Agrovet]
+
+    def get_queryset(self):
+        return CashSales.objects.filter(user=self.request.user)
+
+
+class CashSalesDelete(generics.DestroyAPIView):
+    serializer_class = CashSalesSerializer
+    permission_classes = [Is_Vet | Is_Agrovet]
+
+    def get_queryset(self):
+        return CashSales.objects.filter(user=self.request.user)
+
+
+# =========================================================================
+# 2. INVOICE SALES API VIEWS
+# =========================================================================
+def invoice_sales(request):
+    return render(request,'portals/agrovet/invoice_sales.html',{})
+class InvoiceSalesCreate(generics.CreateAPIView):
+    queryset = InvoiceSales.objects.all()
+    serializer_class = InvoiceSalesSerializer
+    permission_classes = [Is_Vet | Is_Agrovet ]
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class InvoiceSalesList(generics.ListAPIView):
+    serializer_class = InvoiceSalesSerializer
+    permission_classes = [Is_Vet | Is_Agrovet]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_agrovet:
+            return InvoiceSales.objects.filter(user=user)
+        if user.is_vet_officer:
+            return InvoiceSales.objects.all()
+        return InvoiceSales.objects.filter(user=user)
+
+
+class InvoiceSalesUpdate(generics.UpdateAPIView):
+    serializer_class = InvoiceSalesSerializer
+    permission_classes = [Is_Vet | Is_Agrovet]
+
+    def get_queryset(self):
+        return InvoiceSales.objects.filter(user=self.request.user)
+
+
+class InvoiceSalesDelete(generics.DestroyAPIView):
+    serializer_class = InvoiceSalesSerializer
+    permission_classes = [Is_Vet | Is_Agrovet]
+
+    def get_queryset(self):
+        return InvoiceSales.objects.filter(user=self.request.user)
+
+
+# =========================================================================
+# 3. CREDIT SALES API VIEWS
+# =========================================================================
+
+def credit_sales(request):
+    return render(request,'portals/agrovet/credit_sales.html',{})
+class CreditSalesCreate(generics.CreateAPIView):
+    queryset = CreditSales.objects.all()
+    serializer_class = CreditSalesSerializer
+    permission_classes = [Is_Vet | Is_Agrovet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class CreditSalesList(generics.ListAPIView):
+    serializer_class = CreditSalesSerializer
+    permission_classes = [Is_Vet | Is_Agrovet]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_agrovet:
+            return CreditSales.objects.filter(user=user)
+        if user.is_vet_officer:
+            return CreditSales.objects.all()
+        return CreditSales.objects.filter(user=user)
+
+
+class CreditSalesUpdate(generics.UpdateAPIView):
+    serializer_class = CreditSalesSerializer
+    permission_classes = [Is_Vet | Is_Agrovet]
+
+    def get_queryset(self):
+        return CreditSales.objects.filter(user=self.request.user)
+
+
+class CreditSalesDelete(generics.DestroyAPIView):
+    serializer_class = CreditSalesSerializer
+    permission_classes = [Is_Vet | Is_Agrovet ]
+
+    def get_queryset(self):
+        return CreditSales.objects.filter(user=self.request.user)
+
+
+# =========================================================================
+# 4. INVOICE PAYMENTS API VIEWS
+# =========================================================================
+def invoice_payments(request):
+    return render(request,'portals/agrovet/invoice_payments.html',{})
+class InvoicePaymentsCreate(generics.CreateAPIView):
+    queryset = InvoicePayments.objects.all()
+    serializer_class = InvoicePaymentsSerializer
+    permission_classes = [Is_Vet | Is_Agrovet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class InvoicePaymentsList(generics.ListAPIView):
+    serializer_class = InvoicePaymentsSerializer
+    permission_classes = [Is_Vet | Is_Agrovet]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_agrovet:
+            return InvoicePayments.objects.filter(user=user)
+        if user.is_vet_officer:
+            return InvoicePayments.objects.all()
+        return InvoicePayments.objects.filter(user=user)
+
+
+class InvoicePaymentsUpdate(generics.UpdateAPIView):
+    serializer_class = InvoicePaymentsSerializer
+    permission_classes = [Is_Vet | Is_Agrovet]
+
+    def get_queryset(self):
+        return InvoicePayments.objects.filter(user=self.request.user)
+
+
+class InvoicePaymentsDelete(generics.DestroyAPIView):
+    serializer_class = InvoicePaymentsSerializer
+    permission_classes = [Is_Vet | Is_Agrovet]
+
+    def get_queryset(self):
+        return InvoicePayments.objects.filter(user=self.request.user)
+
+
+# =========================================================================
+# 5. PETTY CASH EXPENSES API VIEWS
+# =========================================================================
+def petty_cash_expenses(request):
+    return render(request,'portals/agrovet/petty_cash_expenses.html',{})
+class PettyCashExpensesCreate(generics.CreateAPIView):
+    queryset = PettyCashExpenses.objects.all()
+    serializer_class = PettyCashExpensesSerializer
+    permission_classes = [Is_Vet | Is_Agrovet]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class PettyCashExpensesList(generics.ListAPIView):
+    serializer_class = PettyCashExpensesSerializer
+    permission_classes = [Is_Vet | Is_Agrovet]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_agrovet:
+            return PettyCashExpenses.objects.filter(user=user)
+        if user.is_vet_officer:
+            return PettyCashExpenses.objects.all()
+        return PettyCashExpenses.objects.filter(user=user)
+
+
+class PettyCashExpensesUpdate(generics.UpdateAPIView):
+    serializer_class = PettyCashExpensesSerializer
+    permission_classes = [Is_Vet | Is_Agrovet]
+
+    def get_queryset(self):
+        return PettyCashExpenses.objects.filter(user=self.request.user)
+
+
+class PettyCashExpensesDelete(generics.DestroyAPIView):
+    serializer_class = PettyCashExpensesSerializer
+    permission_classes = [Is_Vet | Is_Agrovet]
+
+    def get_queryset(self):
+        return PettyCashExpenses.objects.filter(user=self.request.user)
+    
+# =========================================================================
+# 1. LAYER FLOCK IDENTIFICATION
+# =========================================================================
+def layer_flock_identification(request):
+    #flocks = LayerFlockIdentification.objects.filter(user=request.user)
+    return render(request, 'portals/poultry/layer_flock_identification.html',{})
+
+class LayerFlockIdentificationCreate(generics.CreateAPIView):
+    queryset = LayerFlockIdentification.objects.all()
+    serializer_class = LayerFlockIdentificationSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class LayerFlockIdentificationList(generics.ListAPIView):
+    serializer_class = LayerFlockIdentificationSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerFlockIdentification.objects.filter(user=self.request.user)
+
+class LayerFlockIdentificationUpdate(generics.UpdateAPIView):
+    serializer_class = LayerFlockIdentificationSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerFlockIdentification.objects.filter(user=self.request.user)
+
+class LayerFlockIdentificationDelete(generics.DestroyAPIView):
+    serializer_class = LayerFlockIdentificationSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerFlockIdentification.objects.filter(user=self.request.user)
+
+
+# =========================================================================
+# 2. LAYER DAILY EGG PRODUCTION
+# =========================================================================
+def layer_daily_egg_production(request):
+    flocks = LayerFlockIdentification.objects.filter(user=request.user)
+    return render(request, 'portals/poultry/layer_daily_egg_production.html', {'flocks': flocks})
+
+class LayerDailyEggProductionCreate(generics.CreateAPIView):
+    queryset = LayerDailyEggProduction.objects.all()
+    serializer_class = LayerDailyEggProductionSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class LayerDailyEggProductionList(generics.ListAPIView):
+    serializer_class = LayerDailyEggProductionSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerDailyEggProduction.objects.filter(flock__user=self.request.user)
+
+class LayerDailyEggProductionUpdate(generics.UpdateAPIView):
+    serializer_class = LayerDailyEggProductionSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerDailyEggProduction.objects.filter(flock__user=self.request.user)
+
+class LayerDailyEggProductionDelete(generics.DestroyAPIView):
+    serializer_class = LayerDailyEggProductionSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerDailyEggProduction.objects.filter(flock__user=self.request.user)
+
+
+# =========================================================================
+# 3. LAYER FEED RECORD
+# =========================================================================
+def layer_feed_record(request):
+    flocks = LayerFlockIdentification.objects.filter(user=request.user)
+    return render(request, 'portals/poultry/layer_feed_record.html', {'flocks': flocks})
+
+class LayerFeedRecordCreate(generics.CreateAPIView):
+    queryset = LayerFeedRecord.objects.all()
+    serializer_class = LayerFeedRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+class LayerFeedRecordList(generics.ListAPIView):
+    serializer_class = LayerFeedRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerFeedRecord.objects.filter(flock__user=self.request.user)
+
+class LayerFeedRecordUpdate(generics.UpdateAPIView):
+    serializer_class = LayerFeedRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerFeedRecord.objects.filter(flock__user=self.request.user)
+
+class LayerFeedRecordDelete(generics.DestroyAPIView):
+    serializer_class = LayerFeedRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerFeedRecord.objects.filter(flock__user=self.request.user)
+
+
+# =========================================================================
+# 4. LAYER MORTALITY RECORD
+# =========================================================================
+def layer_mortality_record(request):
+    flocks = LayerFlockIdentification.objects.filter(user=request.user)
+    return render(request, 'portals/poultry/layer_mortality_record.html', {'flocks': flocks})
+
+class LayerMortalityRecordCreate(generics.CreateAPIView):
+    queryset = LayerMortalityRecord.objects.all()
+    serializer_class = LayerMortalityRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class LayerMortalityRecordList(generics.ListAPIView):
+    serializer_class = LayerMortalityRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerMortalityRecord.objects.filter(user=self.request.user)
+
+class LayerMortalityRecordUpdate(generics.UpdateAPIView):
+    serializer_class = LayerMortalityRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerMortalityRecord.objects.filter(user=self.request.user)
+
+class LayerMortalityRecordDelete(generics.DestroyAPIView):
+    serializer_class = LayerMortalityRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerMortalityRecord.objects.filter(user=self.request.user)
+
+
+# =========================================================================
+# 5. LAYER CULLING RECORD
+# =========================================================================
+def layer_culling_record(request):
+    flocks = LayerFlockIdentification.objects.filter(user=request.user)
+    return render(request, 'portals/poultry/layer_culling_record.html', {'flocks': flocks})
+
+class LayerCullingRecordCreate(generics.CreateAPIView):
+    queryset = LayerCullingRecord.objects.all()
+    serializer_class = LayerCullingRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class LayerCullingRecordList(generics.ListAPIView):
+    serializer_class = LayerCullingRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerCullingRecord.objects.filter(flock__user=self.request.user)
+
+class LayerCullingRecordUpdate(generics.UpdateAPIView):
+    serializer_class = LayerCullingRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerCullingRecord.objects.filter(flock__user=self.request.user)
+
+class LayerCullingRecordDelete(generics.DestroyAPIView):
+    serializer_class = LayerCullingRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerCullingRecord.objects.filter(flock__user=self.request.user)
+
+
+# =========================================================================
+# 6. LAYER VACCINATION RECORD
+# =========================================================================
+def layer_vaccination_record(request):
+    flocks = LayerFlockIdentification.objects.filter(user=request.user)
+    return render(request, 'portals/poultry/layer_vaccination_record.html', {'flocks': flocks})
+
+class LayerVaccinationRecordCreate(generics.CreateAPIView):
+    queryset = LayerVaccinationRecord.objects.all()
+    serializer_class = LayerVaccinationRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class LayerVaccinationRecordList(generics.ListAPIView):
+    serializer_class = LayerVaccinationRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerVaccinationRecord.objects.filter(user=self.request.user)
+
+class LayerVaccinationRecordUpdate(generics.UpdateAPIView):
+    serializer_class = LayerVaccinationRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerVaccinationRecord.objects.filter(user=self.request.user)
+
+class LayerVaccinationRecordDelete(generics.DestroyAPIView):
+    serializer_class = LayerVaccinationRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerVaccinationRecord.objects.filter(user=self.request.user)
+
+
+# =========================================================================
+# 7. LAYER TREATMENT RECORD
+# =========================================================================
+def layer_treatment_record(request):
+    flocks = LayerFlockIdentification.objects.filter(user=request.user)
+    return render(request, 'portals/poultry/layer_treatment_record.html', {'flocks': flocks})
+
+class LayerTreatmentRecordCreate(generics.CreateAPIView):
+    queryset = LayerTreatmentRecord.objects.all()
+    serializer_class = LayerTreatmentRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class LayerTreatmentRecordList(generics.ListAPIView):
+    serializer_class = LayerTreatmentRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerTreatmentRecord.objects.filter(user=self.request.user)
+
+class LayerTreatmentRecordUpdate(generics.UpdateAPIView):
+    serializer_class = LayerTreatmentRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerTreatmentRecord.objects.filter(user=self.request.user)
+
+class LayerTreatmentRecordDelete(generics.DestroyAPIView):
+    serializer_class = LayerTreatmentRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerTreatmentRecord.objects.filter(user=self.request.user)
+
+
+# =========================================================================
+# 8. LAYER SALES RECORD
+# =========================================================================
+def layer_sales_record(request):
+    flocks = LayerFlockIdentification.objects.filter(user=request.user)
+    return render(request, 'portals/poultry/layer_sales_record.html', {'flocks': flocks})
+
+class LayerSalesRecordCreate(generics.CreateAPIView):
+    queryset = LayerSalesRecord.objects.all()
+    serializer_class = LayerSalesRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class LayerSalesRecordList(generics.ListAPIView):
+    serializer_class = LayerSalesRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerSalesRecord.objects.filter(user=self.request.user)
+
+class LayerSalesRecordUpdate(generics.UpdateAPIView):
+    serializer_class = LayerSalesRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerSalesRecord.objects.filter(user=self.request.user)
+
+class LayerSalesRecordDelete(generics.DestroyAPIView):
+    serializer_class = LayerSalesRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerSalesRecord.objects.filter(user=self.request.user)
+
+
+# =========================================================================
+# 9. LAYER INCOME RECORD
+# =========================================================================
+def layer_income_record(request):
+    flocks = LayerFlockIdentification.objects.filter(user=request.user)
+    return render(request, 'portals/poultry/layer_income_record.html', {'flocks': flocks})
+
+class LayerIncomeRecordCreate(generics.CreateAPIView):
+    queryset = LayerIncomeRecord.objects.all()
+    serializer_class = LayerIncomeRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class LayerIncomeRecordList(generics.ListAPIView):
+    serializer_class = LayerIncomeRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerIncomeRecord.objects.filter(user=self.request.user)
+
+class LayerIncomeRecordUpdate(generics.UpdateAPIView):
+    serializer_class = LayerIncomeRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerIncomeRecord.objects.filter(user=self.request.user)
+
+class LayerIncomeRecordDelete(generics.DestroyAPIView):
+    serializer_class = LayerIncomeRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerIncomeRecord.objects.filter(user=self.request.user)
+
+
+# =========================================================================
+# 10. LAYER BIOSECURITY AND VISITORS LOG
+# =========================================================================
+def layer_biosecurity_log(request):
+    return render(request, 'portals/poultry/layer_biosecurity_log.html', {})
+
+class LayerBiosecurityAndVisitorsLogCreate(generics.CreateAPIView):
+    queryset = LayerBiosecurityAndVisitorsLog.objects.all()
+    serializer_class = LayerBiosecurityAndVisitorsLogSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class LayerBiosecurityAndVisitorsLogList(generics.ListAPIView):
+    serializer_class = LayerBiosecurityAndVisitorsLogSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerBiosecurityAndVisitorsLog.objects.filter(user=self.request.user)
+
+class LayerBiosecurityAndVisitorsLogUpdate(generics.UpdateAPIView):
+    serializer_class = LayerBiosecurityAndVisitorsLogSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerBiosecurityAndVisitorsLog.objects.filter(user=self.request.user)
+
+class LayerBiosecurityAndVisitorsLogDelete(generics.DestroyAPIView):
+    serializer_class = LayerBiosecurityAndVisitorsLogSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LayerBiosecurityAndVisitorsLog.objects.filter(user=self.request.user)
+
+# =========================================================================
+# 1. BROILER FLOCK IDENTIFICATION
+# =========================================================================
+def broiler_flock_identification(request):
+    user=request.user
+    return render(request, 'portals/poultry/broiler_flock_identification.html', {user: user})
+
+class BroilerFlockIdentificationCreate(generics.CreateAPIView):
+    queryset = BroilerFlockIdentification.objects.all()
+    serializer_class = BroilerFlockIdentificationSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class BroilerFlockIdentificationList(generics.ListAPIView):
+    serializer_class = BroilerFlockIdentificationSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerFlockIdentification.objects.filter(user=self.request.user)
+
+class BroilerFlockIdentificationUpdate(generics.UpdateAPIView):
+    serializer_class = BroilerFlockIdentificationSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerFlockIdentification.objects.filter(user=self.request.user)
+
+class BroilerFlockIdentificationDelete(generics.DestroyAPIView):
+    serializer_class = BroilerFlockIdentificationSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerFlockIdentification.objects.filter(user=self.request.user)
+
+
+# =========================================================================
+# 2. BROILER DAILY MORTALITY
+# =========================================================================
+def broiler_daily_mortality(request):
+    flocks = BroilerFlockIdentification.objects.filter(user=request.user)
+    morts = BroilerDailyMortality.objects.filter(user=request.user)
+    return render(request, 'portals/poultry/broiler_daily_mortality.html', {"flocks": flocks, "morts": morts})
+
+class BroilerDailyMortalityCreate(generics.CreateAPIView):
+    queryset = BroilerDailyMortality.objects.all()
+    serializer_class = BroilerDailyMortalitySerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class BroilerDailyMortalityList(generics.ListAPIView):
+    serializer_class = BroilerDailyMortalitySerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerDailyMortality.objects.filter(user=self.request.user)
+
+class BroilerDailyMortalityUpdate(generics.UpdateAPIView):
+    serializer_class = BroilerDailyMortalitySerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerDailyMortality.objects.filter(user=self.request.user)
+
+class BroilerDailyMortalityDelete(generics.DestroyAPIView):
+    serializer_class = BroilerDailyMortalitySerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerDailyMortality.objects.filter(user=self.request.user)
+
+
+# =========================================================================
+# 3. BROILER FEED CONSUMPTION
+# =========================================================================
+def broiler_feed_consumption(request):
+    flocks = BroilerFlockIdentification.objects.filter(user=request.user)
+    return render(request, 'portals/poultry/broiler_feed_consumption.html', {"flocks": flocks})
+
+class BroilerFeedConsumptionCreate(generics.CreateAPIView):
+    queryset = BroilerFeedConsumption.objects.all()
+    serializer_class = BroilerFeedConsumptionSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class BroilerFeedConsumptionList(generics.ListAPIView):
+    serializer_class = BroilerFeedConsumptionSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerFeedConsumption.objects.filter(user=self.request.user)
+
+class BroilerFeedConsumptionUpdate(generics.UpdateAPIView):
+    serializer_class = BroilerFeedConsumptionSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerFeedConsumption.objects.filter(user=self.request.user)
+
+class BroilerFeedConsumptionDelete(generics.DestroyAPIView):
+    serializer_class = BroilerFeedConsumptionSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerFeedConsumption.objects.filter(user=self.request.user)
+
+
+# =========================================================================
+# 4. BROILER TREATMENT RECORD
+# =========================================================================
+def broiler_treatment_record(request):
+    flocks = BroilerFlockIdentification.objects.filter(user=request.user)
+    return render(request, 'portals/poultry/broiler_treatment_record.html', {"flocks": flocks})
+
+class BroilerTreatmentRecordCreate(generics.CreateAPIView):
+    queryset = BroilerTreatmentRecord.objects.all()
+    serializer_class = BroilerTreatmentRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class BroilerTreatmentRecordList(generics.ListAPIView):
+    serializer_class = BroilerTreatmentRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerTreatmentRecord.objects.filter(user=self.request.user)
+
+class BroilerTreatmentRecordUpdate(generics.UpdateAPIView):
+    serializer_class = BroilerTreatmentRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerTreatmentRecord.objects.filter(user=self.request.user)
+
+class BroilerTreatmentRecordDelete(generics.DestroyAPIView):
+    serializer_class = BroilerTreatmentRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerTreatmentRecord.objects.filter(user=self.request.user)
+
+
+# =========================================================================
+# 5. BROILER VACCINATION RECORD
+# =========================================================================
+def broiler_vaccination_record(request):
+    flocks = BroilerFlockIdentification.objects.filter(user=request.user)
+    return render(request, 'portals/poultry/broiler_vaccination_record.html', {"flocks": flocks})
+
+class BroilerVaccinationRecordCreate(generics.CreateAPIView):
+    queryset = BroilerVaccinationRecord.objects.all()
+    serializer_class = BroilerVaccinationRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class BroilerVaccinationRecordList(generics.ListAPIView):
+    serializer_class = BroilerVaccinationRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerVaccinationRecord.objects.filter(user=self.request.user)
+
+class BroilerVaccinationRecordUpdate(generics.UpdateAPIView):
+    serializer_class = BroilerVaccinationRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerVaccinationRecord.objects.filter(user=self.request.user)
+
+class BroilerVaccinationRecordDelete(generics.DestroyAPIView):
+    serializer_class = BroilerVaccinationRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerVaccinationRecord.objects.filter(user=self.request.user)
+
+
+# =========================================================================
+# 6. BROILER GROWTH PERFORMANCE
+# =========================================================================
+def broiler_growth_performance(request):
+    flocks = BroilerFlockIdentification.objects.filter(user=request.user)
+    return render(request, 'portals/poultry/broiler_growth_performance.html', {"flocks": flocks})
+
+class BroilerGrowthPerformanceCreate(generics.CreateAPIView):
+    queryset = BroilerGrowthPerformance.objects.all()
+    serializer_class = BroilerGrowthPerformanceSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class BroilerGrowthPerformanceList(generics.ListAPIView):
+    serializer_class = BroilerGrowthPerformanceSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerGrowthPerformance.objects.filter(user=self.request.user)
+
+class BroilerGrowthPerformanceUpdate(generics.UpdateAPIView):
+    serializer_class = BroilerGrowthPerformanceSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerGrowthPerformance.objects.filter(user=self.request.user)
+
+class BroilerGrowthPerformanceDelete(generics.DestroyAPIView):
+    serializer_class = BroilerGrowthPerformanceSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerGrowthPerformance.objects.filter(user=self.request.user)
+
+
+# =========================================================================
+# 7. BROILER ENVIRONMENTAL RECORD
+# =========================================================================
+def broiler_environmental_record(request):
+    flocks = BroilerFlockIdentification.objects.filter(user=request.user)
+    return render(request, 'portals/poultry/broiler_environmental_record.html', {"flocks": flocks})
+
+class BroilerEnvironmentalRecordCreate(generics.CreateAPIView):
+    queryset = BroilerEnvironmentalRecord.objects.all()
+    serializer_class = BroilerEnvironmentalRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class BroilerEnvironmentalRecordList(generics.ListAPIView):
+    serializer_class = BroilerEnvironmentalRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerEnvironmentalRecord.objects.filter(user=self.request.user)
+
+class BroilerEnvironmentalRecordUpdate(generics.UpdateAPIView):
+    serializer_class = BroilerEnvironmentalRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerEnvironmentalRecord.objects.filter(user=self.request.user)
+
+class BroilerEnvironmentalRecordDelete(generics.DestroyAPIView):
+    serializer_class = BroilerEnvironmentalRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerEnvironmentalRecord.objects.filter(user=self.request.user)
+
+
+# =========================================================================
+# 8. BROILER WATER CONSUMPTION
+# =========================================================================
+def broiler_water_consumption(request):
+    flocks = BroilerFlockIdentification.objects.filter(user=request.user)
+    return render(request, 'portals/poultry/broiler_water_consumption.html', {'flocks': flocks})
+
+class BroilerWaterConsumptionCreate(generics.CreateAPIView):
+    queryset = BroilerWaterConsumption.objects.all()
+    serializer_class = BroilerWaterConsumptionSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class BroilerWaterConsumptionList(generics.ListAPIView):
+    serializer_class = BroilerWaterConsumptionSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerWaterConsumption.objects.filter(user=self.request.user)
+
+class BroilerWaterConsumptionUpdate(generics.UpdateAPIView):
+    serializer_class = BroilerWaterConsumptionSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerWaterConsumption.objects.filter(user=self.request.user)
+
+class BroilerWaterConsumptionDelete(generics.DestroyAPIView):
+    serializer_class = BroilerWaterConsumptionSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerWaterConsumption.objects.filter(user=self.request.user)
+
+
+# =========================================================================
+# 9. BROILER SALES RECORD
+# =========================================================================
+def broiler_sales_record(request):
+    flocks = BroilerFlockIdentification.objects.filter(user=request.user)
+    return render(request, 'portals/poultry/broiler_sales_record.html', {'flocks': flocks})
+
+class BroilerSalesRecordCreate(generics.CreateAPIView):
+    queryset = BroilerSalesRecord.objects.all()
+    serializer_class = BroilerSalesRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class BroilerSalesRecordList(generics.ListAPIView):
+    serializer_class = BroilerSalesRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerSalesRecord.objects.filter(user=self.request.user)
+
+class BroilerSalesRecordUpdate(generics.UpdateAPIView):
+    serializer_class = BroilerSalesRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerSalesRecord.objects.filter(user=self.request.user)
+
+class BroilerSalesRecordDelete(generics.DestroyAPIView):
+    serializer_class = BroilerSalesRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return BroilerSalesRecord.objects.filter(user=self.request.user)
+
+
+
+def employee_record(request):
+    return render(request, 'portals/farmer/employee_record.html')
+
+
+class EmployeeRecordCreate(generics.CreateAPIView):
+    queryset = EmployeeRecord.objects.all()
+    serializer_class = EmployeeRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class EmployeeRecordList(generics.ListAPIView):
+    serializer_class = EmployeeRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return EmployeeRecord.objects.filter(user=self.request.user)
+
+
+class EmployeeRecordUpdate(generics.UpdateAPIView):
+    serializer_class = EmployeeRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return EmployeeRecord.objects.filter(user=self.request.user)
+
+
+class EmployeeRecordDelete(generics.DestroyAPIView):
+    serializer_class = EmployeeRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return EmployeeRecord.objects.filter(user=self.request.user)
+    
+
+def salary_record(request):
+    employees = Employee.objects.filter(user=request.user)
+    return render(
+        request,
+        'portals/farmer/salary_record.html',
+        {'employees': employees}
+    )
+
+
+class SalaryRecordCreate(generics.CreateAPIView):
+    queryset = SalaryRecord.objects.all()
+    serializer_class = SalaryRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(
+            user=self.request.user,
+            processed_by=self.request.user
+        )
+
+
+class SalaryRecordList(generics.ListAPIView):
+    serializer_class = SalaryRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return SalaryRecord.objects.filter(user=self.request.user)
+
+
+class SalaryRecordUpdate(generics.UpdateAPIView):
+    serializer_class = SalaryRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return SalaryRecord.objects.filter(user=self.request.user)
+
+
+class SalaryRecordDelete(generics.DestroyAPIView):
+    serializer_class = SalaryRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return SalaryRecord.objects.filter(user=self.request.user)
+
+def farm_visit_record(request):
+    farm_visits = FarmVisit.objects.filter(user=request.user)
+    return render(
+        request,
+        'portals/farmer/farm_visit_record.html',
+        {'farm_visits': farm_visits}
+    )
+
+# API Views
+class FarmVisitCreate(generics.CreateAPIView):
+    queryset = FarmVisit.objects.all()
+    serializer_class = FarmVisitSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class FarmVisitList(generics.ListAPIView):
+    serializer_class = FarmVisitSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return FarmVisit.objects.filter(user=self.request.user)
+
+
+class FarmVisitUpdate(generics.UpdateAPIView):
+    serializer_class = FarmVisitSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return FarmVisit.objects.filter(user=self.request.user)
+
+
+class FarmVisitDelete(generics.DestroyAPIView):
+    serializer_class = FarmVisitSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return FarmVisit.objects.filter(user=self.request.user)
+    
+# Template View
+def drug_inventory_record(request):
+    drugs = DrugInventory.objects.filter(user=request.user)
+    return render(
+        request,
+        'portals/farmer/drug_inventory_record.html',
+        {'drugs': drugs}
+    )
+
+# API Views
+class DrugInventoryCreate(generics.CreateAPIView):
+    queryset = DrugInventory.objects.all()
+    serializer_class = DrugInventorySerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class DrugInventoryList(generics.ListAPIView):
+    serializer_class = DrugInventorySerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return DrugInventory.objects.filter(user=self.request.user)
+
+
+class DrugInventoryUpdate(generics.UpdateAPIView):
+    serializer_class = DrugInventorySerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return DrugInventory.objects.filter(user=self.request.user)
+
+
+class DrugInventoryDelete(generics.DestroyAPIView):
+    serializer_class = DrugInventorySerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return DrugInventory.objects.filter(user=self.request.user)
+
+# Template View
+def feed_inventory_record(request):
+    feeds = FeedInventory.objects.filter(user=request.user)
+    return render(
+        request,
+        'portals/farmer/feed_inventory_record.html',
+        {'feeds': feeds}
+    )
+
+# API Views
+class FeedInventoryCreate(generics.CreateAPIView):
+    queryset = FeedInventory.objects.all()
+    serializer_class = FeedInventorySerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class FeedInventoryList(generics.ListAPIView):
+    serializer_class = FeedInventorySerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return FeedInventory.objects.filter(user=self.request.user)
+
+
+class FeedInventoryUpdate(generics.UpdateAPIView):
+    serializer_class = FeedInventorySerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return FeedInventory.objects.filter(user=self.request.user)
+
+
+class FeedInventoryDelete(generics.DestroyAPIView):
+    serializer_class = FeedInventorySerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return FeedInventory.objects.filter(user=self.request.user)
+    
+# Template View
+def livestock_record(request):
+    livestock_items = Livestock.objects.filter(user=request.user)
+    return render(
+        request,
+        'portals/farmer/livestock_inventory_record.html',
+        {'livestock_items': livestock_items}
+    )
+
+# API Views
+class LivestockInventoryCreate(generics.CreateAPIView):
+    queryset = LivestockInventory.objects.all()
+    serializer_class = LivestockInventorySerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class LivestockInventoryList(generics.ListAPIView):
+    serializer_class = LivestockInventorySerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LivestockInventory.objects.filter(user=self.request.user)
+
+
+class LivestockInventoryUpdate(generics.UpdateAPIView):
+    serializer_class = LivestockInventorySerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LivestockInventory.objects.filter(user=self.request.user)
+
+
+class LivestockInventoryDelete(generics.DestroyAPIView):
+    serializer_class = LivestockInventorySerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return LivestockInventory.objects.filter(user=self.request.user)
+
+
+# Template View
+def asset_record(request):
+    assets = Asset.objects.filter(user=request.user)
+    return render(
+        request,
+        'portals/farmer/asset_record.html',
+        {'assets': assets}
+    )
+
+# API Views
+class AssetCreate(generics.CreateAPIView):
+    queryset = Asset.objects.all()
+    serializer_class = AssetSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class AssetList(generics.ListAPIView):
+    serializer_class = AssetSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return Asset.objects.filter(user=self.request.user)
+
+
+class AssetUpdate(generics.UpdateAPIView):
+    serializer_class = AssetSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return Asset.objects.filter(user=self.request.user)
+
+
+class AssetDelete(generics.DestroyAPIView):
+    serializer_class = AssetSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return Asset.objects.filter(user=self.request.user)
+
+def fish_record(request):
+    fish_list = Fish.objects.filter(user=request.user)
+    return render(
+        request,
+        'portals/fish/fish_record.html',
+        {'fish_list': fish_list}
+    )
+
+def feeding_record(request):
+    feeding_records = FeedingRecord.objects.filter(user=request.user)
+    return render(
+        request,
+        'portals/fish/feeding_record.html',
+        {'feeding_records': feeding_records}
+    )
+
+def mortality_record(request):
+    mortality_records = MortalityRecord.objects.filter(user=request.user)
+    return render(
+        request,
+        'portals/fish/mortality_record.html',
+        {'mortality_records': mortality_records}
+    )
+
+def growth_monitoring_record(request):
+    growth_records = GrowthMonitoring.objects.filter(user=request.user)
+    return render(
+        request,
+        'portals/fish/growth_monitoring_record.html',
+        {'growth_records': growth_records}
+    )
+
+
+# ==========================================
+# API Views: Fish
+# ==========================================
+
+class FishCreate(generics.CreateAPIView):
+    queryset = Fish.objects.all()
+    serializer_class = FishSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class FishList(generics.ListAPIView):
+    serializer_class = FishSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return Fish.objects.filter(user=self.request.user)
+
+
+class FishUpdate(generics.UpdateAPIView):
+    serializer_class = FishSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return Fish.objects.filter(user=self.request.user)
+
+
+class FishDelete(generics.DestroyAPIView):
+    serializer_class = FishSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return Fish.objects.filter(user=self.request.user)
+
+
+# ==========================================
+# API Views: Feeding Record
+# ==========================================
+
+class FeedingRecordCreate(generics.CreateAPIView):
+    queryset = FeedingRecord.objects.all()
+    serializer_class = FeedingRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class FeedingRecordList(generics.ListAPIView):
+    serializer_class = FeedingRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return FeedingRecord.objects.filter(user=self.request.user)
+
+
+class FeedingRecordUpdate(generics.UpdateAPIView):
+    serializer_class = FeedingRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return FeedingRecord.objects.filter(user=self.request.user)
+
+
+class FeedingRecordDelete(generics.DestroyAPIView):
+    serializer_class = FeedingRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return FeedingRecord.objects.filter(user=self.request.user)
+
+
+# ==========================================
+# API Views: Mortality Record
+# ==========================================
+
+class MortalityRecordCreate(generics.CreateAPIView):
+    queryset = MortalityRecord.objects.all()
+    serializer_class = MortalityRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class MortalityRecordList(generics.ListAPIView):
+    serializer_class = MortalityRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return MortalityRecord.objects.filter(user=self.request.user)
+
+
+class MortalityRecordUpdate(generics.UpdateAPIView):
+    serializer_class = MortalityRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return MortalityRecord.objects.filter(user=self.request.user)
+
+
+class MortalityRecordDelete(generics.DestroyAPIView):
+    serializer_class = MortalityRecordSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return MortalityRecord.objects.filter(user=self.request.user)
+
+
+# ==========================================
+# API Views: Growth Monitoring
+# ==========================================
+
+class GrowthMonitoringCreate(generics.CreateAPIView):
+    queryset = GrowthMonitoring.objects.all()
+    serializer_class = GrowthMonitoringSerializer
+    permission_classes = [Is_Farmer]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class GrowthMonitoringList(generics.ListAPIView):
+    serializer_class = GrowthMonitoringSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return GrowthMonitoring.objects.filter(user=self.request.user)
+
+
+class GrowthMonitoringUpdate(generics.UpdateAPIView):
+    serializer_class = GrowthMonitoringSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return GrowthMonitoring.objects.filter(user=self.request.user)
+
+
+class GrowthMonitoringDelete(generics.DestroyAPIView):
+    serializer_class = GrowthMonitoringSerializer
+    permission_classes = [Is_Farmer]
+
+    def get_queryset(self):
+        return GrowthMonitoring.objects.filter(user=self.request.user)

@@ -4,6 +4,8 @@ from user.models import *
 from datetime import timedelta, date
 from django.contrib import admin
 import random
+from django.db.models import Sum
+from django.core.exceptions import ValidationError
 
 BOMET_SUBCOUNTY_CHOICES = [
 ('Bomet Central', 'Bomet Central'),
@@ -1564,8 +1566,8 @@ class MilkRecord(models.Model):
 	('Evening', 'Evening'),
 	]
 	user = models.ForeignKey(User, on_delete=models.CASCADE,default=1)
-	cow_name = models.ForeignKey(LactatingCow, on_delete=models.CASCADE,default=1)
-	employee_name = models.ForeignKey(Employees, on_delete=models.CASCADE,default=2)
+	cow_name = models.CharField(max_length=100)
+	employee_name = models.CharField(max_length=100)
 	date = models.DateField()
 	time_of_milking = models.CharField(max_length=10, choices=TIME_OF_MILKING_CHOICES)
 	quantity = models.FloatField(help_text="Amount of milk in liters")
@@ -2029,7 +2031,7 @@ class DailyKill(models.Model):
 		null=True,                 
 		blank=True
 	)
-	
+
 	assigned_by = models.ForeignKey(  # NEW FIELD to track who assigned the official
 		User,
 		on_delete=models.SET_NULL,
@@ -2041,13 +2043,14 @@ class DailyKill(models.Model):
 	livestock_category = models.CharField(max_length=50, choices=MEAT_CATEGORY_CHOICES)
 	total_kills_per_day = models.PositiveIntegerField()
 	condemnation_done = models.CharField(max_length=30)
+	price_per_head = models.PositiveIntegerField()
 	condemnation_status = models.CharField(max_length=50, choices=CONDEMNATION_STATUS_CHOICES, blank=True, null=True)
 	comment_by_inspector = models.TextField(blank=True, null=True)
 	inspector_name = models.CharField(max_length=100)
 	inspector_reg_number = models.CharField(max_length=50)
 	inspector_status = models.CharField(max_length=50, choices=INSPECTOR_STATUS_CHOICES)
 
-	
+
 
 	def __str__(self):
 		return f"Daily Kill Record for {self.date} - {self.livestock_category}"
@@ -2274,6 +2277,8 @@ class Tutorial(models.Model):
     lesson = models.CharField(max_length=255)
     cpd_number = models.CharField(max_length=30)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    start=models.DateTimeField()
+    stop=models.DateTimeField()
     points = models.IntegerField()
     presented_by = models.CharField(max_length=100)
     contact_hours = models.CharField(max_length=50, default="0")
@@ -3242,6 +3247,12 @@ class LivestockRegistration(models.Model):
 		('market', 'Market'),
 	]
 	user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+	assigned_to = models.ForeignKey(
+		User, 
+		on_delete=models.CASCADE, 
+		related_name='livestock_reg', 
+		limit_choices_to={'is_vet_officer': True}
+	)
 	livestock_type = models.CharField(max_length=20, choices=LIVESTOCK_TYPES)
 	date_of_registration = models.DateField()
 	breed = models.CharField(max_length=100)
@@ -4052,3 +4063,985 @@ class ExtensionServices(models.Model):
 
 	def __str__(self):
 		return f"Extension Service - {self.sub_county} ({self.date_of_record})" 
+
+
+# =========================
+# CASH SALES
+# =========================
+class CashSales(models.Model):
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='cash_sales',default=1,
+    )
+
+    sale_date = models.DateField()
+
+    payment_account_number = models.CharField(max_length=200, blank=True)
+
+    cash_in_mpesa = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    cash_at_hand = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    total_sales = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    remarks = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+# =========================
+# INVOICE SALES
+# =========================
+class InvoiceSales(models.Model):
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='invoice_sales',default=1,
+    )
+
+    STATUS_CHOICES = [
+        ('paid', 'Paid'),
+        ('pending', 'Pending'),
+        ('partial', 'Partial'),
+    ]
+
+    invoice_date = models.DateField()
+
+    customer_name = models.CharField(max_length=200)
+
+    account_customer_number = models.CharField(max_length=200)
+
+    invoice_number = models.CharField(max_length=200)
+
+    amount_to_be_paid = models.DecimalField(max_digits=12, decimal_places=2)
+
+    status = models.CharField(
+        max_length=50,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
+
+    total_invoice_sales = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+
+    remarks = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+# =========================
+# CREDIT SALES
+# =========================
+class CreditSales(models.Model):
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='credit_sales',default=1,
+    )
+
+    STATUS_CHOICES = [
+        ('paid', 'Paid'),
+        ('pending', 'Pending'),
+        ('partial', 'Partial'),
+    ]
+
+    credit_date = models.DateField()
+
+    client_name = models.CharField(max_length=200)
+
+    mobile_number = models.CharField(max_length=200)
+
+    item_taken = models.TextField()
+
+    amount_to_pay = models.DecimalField(max_digits=12, decimal_places=2)
+
+    status = models.CharField(
+        max_length=50,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
+
+    total_credit_sales = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+
+    remarks = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+# =========================
+# INVOICE PAYMENTS
+# =========================
+class InvoicePayments(models.Model):
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='invoice_payments',default=1,
+    )
+
+    payment_date = models.DateField()
+
+    customer_name = models.CharField(max_length=200)
+
+    invoice_number = models.CharField(max_length=200)
+
+    previous_balance = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+
+    amount_paid = models.DecimalField(
+        max_digits=12,
+        decimal_places=2
+    )
+
+    balance_remaining = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+
+    remarks = models.TextField(blank=True)
+
+    total_payment_received = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+# =========================
+# PETTY CASH EXPENSES
+# =========================
+class PettyCashExpenses(models.Model):
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='petty_cash',default=1,
+    )
+
+    PURPOSE_CHOICES = [
+        ('transport', 'Transport'),
+        ('airtime', 'Airtime'),
+        ('photocopy', 'Photocopy'),
+        ('stationery', 'Stationery'),
+        ('staff_tea', 'Staff Tea/Lunch'),
+        ('commissions', 'Commissions'),
+        ('other', 'Other'),
+    ]
+
+    expense_date = models.DateField()
+
+    purpose = models.CharField(
+        max_length=100,
+        choices=PURPOSE_CHOICES
+    )
+
+    specify_other = models.CharField(
+        max_length=200,
+        blank=True
+    )
+
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2
+    )
+
+    remarks = models.TextField(blank=True)
+
+    total_petty_cash = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+# ==========================================
+# 1. LAYER FLOCK IDENTIFICATION RECORD
+# ==========================================
+class LayerFlockIdentification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='layer_flocks')
+    date_of_arrival = models.DateField()
+    flock_name_batch_number = models.CharField(max_length=100, unique=True, verbose_name="Flock Name / Batch Number")
+    age_at_arrival = models.CharField(max_length=50, help_text="e.g., 18 weeks or Day-old")
+    source_of_chicks_or_pullets = models.CharField(max_length=255, verbose_name="Source of Chicks or Pullets")
+    breed = models.CharField(max_length=100)
+    number_of_birds_received = models.PositiveIntegerField()
+    number_of_dead_on_arrival = models.PositiveIntegerField(default=0)
+    vaccination_history_at_arrival = models.TextField(blank=True, null=True, verbose_name="Vaccination History at Arrival")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.flock_name_batch_number
+
+
+# ==========================================
+# 2. LAYER DAILY EGG PRODUCTION RECORD
+# ==========================================
+class LayerDailyEggProduction(models.Model):
+    user=models.ForeignKey(User, on_delete=models.CASCADE, related_name='egg_productions')
+    flock = models.ForeignKey(LayerFlockIdentification, on_delete=models.CASCADE, related_name='egg_productions')
+    date_of_collection = models.DateField()
+    number_of_eggs_collected = models.PositiveIntegerField()
+    number_of_broken_eggs = models.PositiveIntegerField(default=0)
+    number_of_dirty_eggs = models.PositiveIntegerField(default=0)
+    total_saleable_eggs = models.PositiveIntegerField(editable=False)
+    eggs_collected_by = models.CharField(max_length=150)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *value, **kwargs):
+        # Auto-compute saleable eggs: Collected minus broken and dirty
+        self.total_saleable_eggs = max(
+            0, 
+            self.number_of_eggs_collected - (self.number_of_broken_eggs + self.number_of_dirty_eggs)
+        )
+        super().save(*value, **kwargs)
+
+    def __str__(self):
+        return f"Eggs for {self.flock.flock_name_batch_number} on {self.date_of_collection}"
+
+
+# ==========================================
+# 3. LAYER FEED RECORD
+# ==========================================
+class LayerFeedRecord(models.Model):
+	FEED_TYPES = [
+		('Starter', 'Starter'),
+		('Grower', 'Grower'),
+		('Layer Mash', 'Layer Mash'),
+	]
+	user=models.ForeignKey(User, on_delete=models.CASCADE, default=1, related_name='feed_records')
+	flock = models.ForeignKey(LayerFlockIdentification, on_delete=models.CASCADE, related_name='feed_records')
+	date_of_feed_delivery = models.DateField()
+	total_birds_on_feeding = models.PositiveIntegerField()
+	type_of_feed = models.CharField(max_length=50, choices=FEED_TYPES)
+	quantity_received_kg_bags = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Quantity Received (Kg/Bags)")
+	quantity_fed_daily_per_flock = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Quantity Fed Daily Per Flock (Kg)")
+	feed_conversion_ratio = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, verbose_name="Feed Conversion Ratio (FCR)")
+
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	def __str__(self):
+		return f"Feed for {self.flock.flock_name_batch_number} on {self.date_of_feed_delivery}"
+
+
+# ==========================================
+# 4. LAYER MORTALITY RECORD
+# ==========================================
+class LayerMortalityRecord(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE, default=1,
+        related_name='mortality_records'
+    )
+
+    flock = models.ForeignKey(
+        'LayerFlockIdentification',
+        on_delete=models.CASCADE,
+        related_name='mortality_records'
+    )
+
+    date = models.DateField()
+
+    number_of_dead_birds = models.PositiveIntegerField()
+
+    cause_of_death = models.CharField(max_length=255, blank=True, null=True)
+
+    number_of_live_birds = models.PositiveIntegerField(
+     
+    )
+
+    remarks = models.TextField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+# ==========================================
+# 5. LAYER CULLING RECORDS
+# ==========================================
+class LayerCullingRecord(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=1, related_name='culling_records')
+    flock = models.ForeignKey(LayerFlockIdentification, on_delete=models.CASCADE, related_name='culling_records')
+    date_of_culling = models.DateField()
+    number_culled = models.PositiveIntegerField()
+    reasons_for_culling = models.CharField(
+        max_length=255, 
+        help_text="e.g., Sick; Unproductive; Injured"
+    )
+    remarks = models.TextField(blank=True, null=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Culled {self.number_culled} from {self.flock.flock_name_batch_number} on {self.date_of_culling}"
+
+
+# ==========================================
+# 6. LAYER VACCINATION RECORD
+# ==========================================
+class LayerVaccinationRecord(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='layer_vaccination_records')
+    flock = models.ForeignKey(LayerFlockIdentification, on_delete=models.CASCADE, related_name='vaccinations')
+    date_of_vaccination = models.DateField()
+    vaccine_administered = models.CharField(max_length=150, verbose_name="Vaccine Administered")
+    total_number_of_birds_vaccinated = models.PositiveIntegerField(verbose_name="Total Number of Birds Vaccinated")
+    age_at_vaccination = models.CharField(max_length=50, help_text="e.g., 20 weeks")
+    next_vaccination_date = models.DateField(blank=True, null=True, verbose_name="Next Vaccination Date")
+    withdrawal_period = models.CharField(max_length=100, blank=True, null=True, help_text="Egg/Meat withdrawal period in days/hours")
+    remarks = models.TextField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.vaccine_administered} - {self.flock.flock_name_batch_number} ({self.date_of_vaccination})"
+
+
+# ==========================================
+# 7. LAYER TREATMENT RECORD
+# ==========================================
+class LayerTreatmentRecord(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='layer_treatment_records')
+    flock = models.ForeignKey(LayerFlockIdentification, on_delete=models.CASCADE, related_name='treatments')
+    date_of_treatment = models.DateField()
+    number_of_birds = models.PositiveIntegerField(verbose_name="Number of Birds Treated")
+    drugs_used = models.CharField(max_length=255, verbose_name="Drugs Used")
+    purpose = models.CharField(max_length=255, help_text="Reason for administration")
+    clinical_signs_of_disease = models.TextField(verbose_name="Clinical Signs of Disease")
+    mode_of_application = models.CharField(max_length=150, verbose_name="Mode of Application", help_text="e.g., Water, Injection, Feed")
+    duration_of_treatment = models.CharField(max_length=100, verbose_name="Duration of Treatment", help_text="e.g., 5 days")
+    withdrawal_period = models.CharField(max_length=100, blank=True, null=True)
+    comments = models.TextField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Treatment ({self.drugs_used}) for {self.flock.flock_name_batch_number} on {self.date_of_treatment}"
+
+
+# ==========================================
+# 8. LAYER SALES RECORDS
+# ==========================================
+class LayerSalesRecord(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='layer_sales_records')
+    flock = models.ForeignKey(LayerFlockIdentification, on_delete=models.CASCADE, related_name='sales')
+    date_of_sales = models.DateField()
+    number_of_eggs_sold = models.PositiveIntegerField(default=0)
+    price_per_egg = models.DecimalField(max_digits=10, decimal_places=2)
+    total_amount_received = models.DecimalField(max_digits=12, decimal_places=2, editable=False)
+    mode_of_payment = models.CharField(max_length=100, help_text="e.g., M-Pesa, Cash, Bank Transfer")
+    name_of_the_buyer = models.CharField(max_length=255, verbose_name="Name of the Buyer", blank=True, null=True)
+    contact = models.CharField(max_length=50, verbose_name="Buyer Contact", blank=True, null=True)
+    remarks = models.TextField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        # Auto-compute total revenue from volume and unit pricing metrics
+        self.total_amount_received = self.number_of_eggs_sold * self.price_per_egg
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Sale: {self.number_of_eggs_sold} Eggs - KES {self.total_amount_received} ({self.date_of_sales})"
+
+
+# ==========================================
+# 9. LAYER INCOME RECORD
+# ==========================================
+class LayerIncomeRecord(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='layer_income_records')
+    date = models.DateField(auto_now_add=True, help_text="Aggregated ledger entry date tracker")
+    egg_sales = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, verbose_name="Egg Sales Income")
+    manure_sales = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, verbose_name="Manure Sales Income")
+    sales_of_culled_birds = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, verbose_name="Sales of Culled Birds Income")
+    other_income_sources = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, verbose_name="Other Income Sources")
+    total_aggregate_income = models.DecimalField(max_digits=14, decimal_places=2, editable=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        # Calculate overall financial value metrics automatically
+        self.total_aggregate_income = (
+            self.egg_sales + self.manure_sales + self.sales_of_culled_birds + self.other_income_sources
+        )
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Income Ledger Entry Reference #{self.id} Total: {self.total_aggregate_income}"
+
+
+# ==========================================
+# 10. LAYER BIOSECURITY AND VISITORS LOG
+# ==========================================
+class LayerBiosecurityAndVisitorsLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='layer_biosecurity_logs')
+    date_of_visit = models.DateField(verbose_name="Date of Visitor(s)")
+    visitor_name = models.CharField(max_length=255, verbose_name="Visitor Name", default="Anonymous Guest")
+    purpose_of_visit = models.TextField(verbose_name="Purpose of Visit")
+    biosecurity_measures_taken = models.TextField(
+        verbose_name="Biosecurity Measures Taken", 
+        help_text="e.g., Foot bath dip, protective gear swap, vehicle spraying"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Layer Biosecurity and Visitors Log"
+        verbose_name_plural = "Layer Biosecurity and Visitors Logs"
+
+    def __str__(self):
+        return f"Visitor Entry Log on {self.date_of_visit} - {self.purpose_of_visit[:30]}..."
+    
+# ==========================================
+# 1. BROILER FLOCK IDENTIFICATION RECORD
+# ==========================================
+class BroilerFlockIdentification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='broiler_flocks')
+    flock_number_batch_id = models.CharField(max_length=100, unique=True, verbose_name="Flock Number / Batch ID")
+    source_of_chicks = models.CharField(max_length=255, verbose_name="Source of Chicks")
+    price_per_chick = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Price Per Chick")
+    date_of_arrival = models.DateField()
+    breed = models.CharField(max_length=100)
+    number_of_chicks_ordered = models.PositiveIntegerField()
+    number_of_chicks_received = models.PositiveIntegerField()
+    number_of_weak_chicks = models.PositiveIntegerField(default=0)
+    number_of_dead_on_arrival = models.PositiveIntegerField(default=0)
+    remarks = models.TextField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.flock_number_batch_id
+
+
+# ==========================================
+# 2. DAILY MORTALITY RECORD
+# ==========================================
+class BroilerDailyMortality(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='broiler_mortalities')
+    flock = models.ForeignKey(BroilerFlockIdentification, on_delete=models.CASCADE, related_name='mortalities')
+    date = models.DateField()
+    number_of_deaths = models.PositiveIntegerField(default=0)
+    possible_cause_of_death = models.CharField(max_length=255, blank=True, null=True)
+    intervention = models.TextField(blank=True, null=True, help_text="Action taken to address mortality cause")
+    total_deaths = models.PositiveIntegerField(editable=False, help_text="Running total cumulative deaths for this flock")
+    remarks = models.TextField(blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        # Calculate previously recorded deaths
+        previous_deaths = BroilerDailyMortality.objects.filter(flock=self.flock).exclude(pk=self.pk).aggregate(
+            total=models.Sum('number_of_deaths')
+        )['total'] or 0
+        # Set running snapshot total
+        self.total_deaths = previous_deaths + self.number_of_deaths
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.flock.flock_number_batch_id} - {self.number_of_deaths} deaths ({self.date})"
+
+
+# ==========================================
+# 3. FEED CONSUMPTION RECORD
+# ==========================================
+class BroilerFeedConsumption(models.Model):
+    FEED_TYPES = [
+        ('Starter', 'Starter'),
+        ('Grower', 'Grower'),
+        ('Finisher', 'Finisher'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='broiler_feed_records')
+    flock = models.ForeignKey(BroilerFlockIdentification, on_delete=models.CASCADE, related_name='feed_consumptions')
+    date = models.DateField()
+    type_of_feed = models.CharField(max_length=50, choices=FEED_TYPES)
+    quantity_of_feed_given_per_day = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Quantity Given Daily (Kg/Bags)")
+    feed_company = models.CharField(max_length=150)
+    remarks_on_feed = models.TextField(blank=True, null=True)
+    total_feed_consumed = models.DecimalField(max_digits=12, decimal_places=2, editable=False, help_text="Cumulative weight consumed by flock")
+
+    def save(self, *args, **kwargs):
+        previous_consumption = BroilerFeedConsumption.objects.filter(flock=self.flock).exclude(pk=self.pk).aggregate(
+            total=models.Sum('quantity_of_feed_given_per_day')
+        )['total'] or 0
+        self.total_feed_consumed = previous_consumption + self.quantity_of_feed_given_per_day
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Feed for {self.flock.flock_number_batch_id} on {self.date}"
+
+
+# ==========================================
+# 4. TREATMENT RECORD
+# ==========================================
+class BroilerTreatmentRecord(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='broiler_treatments')
+    flock = models.ForeignKey(BroilerFlockIdentification, on_delete=models.CASCADE, related_name='treatments')
+    date = models.DateField()
+    type_of_drug = models.CharField(max_length=150, verbose_name="Type of Drug")
+    purpose = models.CharField(max_length=255)
+    dosage = models.CharField(max_length=100)
+    administration_method = models.CharField(max_length=150, verbose_name="Administration Method")
+    withdrawal_period = models.CharField(max_length=100)
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Treatment ({self.type_of_drug}) for {self.flock.flock_number_batch_id} on {self.date}"
+
+
+# ==========================================
+# 5. VACCINATION RECORD
+# ==========================================
+class BroilerVaccinationRecord(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='broiler_vaccinations')
+    flock = models.ForeignKey(BroilerFlockIdentification, on_delete=models.CASCADE, related_name='vaccinations')
+    date_of_vaccination = models.DateField()
+    type_of_vaccines_used = models.CharField(max_length=150, verbose_name="Type of Vaccine Used")
+    dosage = models.CharField(max_length=100)
+    administrative_method = models.CharField(max_length=150, verbose_name="Administrative Method")
+    withdrawal_period = models.CharField(max_length=100, blank=True, null=True)
+    next_vaccination_date = models.DateField(blank=True, null=True)
+    type_of_vaccination_to_be_done = models.CharField(max_length=150, blank=True, null=True, verbose_name="Next Vaccine Type To Be Done")
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Vaccine ({self.type_of_vaccines_used}) on {self.date_of_vaccination}"
+
+
+# ==========================================
+# 6. GROWTH PERFORMANCE RECORD
+# ==========================================
+class BroilerGrowthPerformance(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='broiler_growth_records')
+    flock = models.ForeignKey(BroilerFlockIdentification, on_delete=models.CASCADE, related_name='growth_records')
+    date_of_record = models.DateField()
+    body_weight_samples = models.JSONField(help_text="Store sample weights array e.g. [1.2, 1.35, 1.18]")
+    average_daily_gain = models.DecimalField(max_digits=6, decimal_places=2, help_text="Weight gain per bird in grams/day")
+    feed_conversion_ratio = models.DecimalField(max_digits=5, decimal_places=2, verbose_name="Feed Conversion Ratio (FCR)")
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Growth Record for {self.flock.flock_number_batch_id} on {self.date_of_record}"
+
+
+# ==========================================
+# 7. ENVIRONMENTAL RECORDS
+# ==========================================
+class BroilerEnvironmentalRecord(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='broiler_env_records')
+    flock = models.ForeignKey(BroilerFlockIdentification, on_delete=models.CASCADE, related_name='environmental_records')
+    date = models.DateField()
+    temperature = models.DecimalField(max_digits=5, decimal_places=2, help_text="Temperature in degrees Celsius")
+    humidity = models.DecimalField(max_digits=5, decimal_places=2, help_text="Humidity percentage %")
+    ventilation_status = models.CharField(max_length=100, help_text="e.g. Fans active, Curtains half open")
+    litter_condition = models.CharField(max_length=150, help_text="e.g. Dry, Damp, Changed today")
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Environment metrics on {self.date} for {self.flock.flock_number_batch_id}"
+
+
+# ==========================================
+# 8. WATER CONSUMPTION RECORD
+# ==========================================
+class BroilerWaterConsumption(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='broiler_water_records')
+    flock = models.ForeignKey(BroilerFlockIdentification, on_delete=models.CASCADE, related_name='water_consumptions')
+    date_of_record = models.DateField()
+    water_usage_per_litres = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Water Usage (Litres)")
+    abnormal_change_in_water_intake = models.CharField(max_length=255, blank=True, null=True, help_text="Specify drops or spikes if any")
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.water_usage_per_litres}L on {self.date_of_record} ({self.flock.flock_number_batch_id})"
+
+
+# ==========================================
+# 9. SALES RECORD
+# ==========================================
+class BroilerSalesRecord(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='broiler_sales_records')
+    flock = models.ForeignKey(BroilerFlockIdentification, on_delete=models.CASCADE, related_name='sales')
+    date_of_sales = models.DateField()
+    total_birds_sold = models.PositiveIntegerField()
+    price_per_bird = models.DecimalField(max_digits=10, decimal_places=2)
+    average_kg_body_weight = models.DecimalField(max_digits=5, decimal_places=2, verbose_name="Average Weight (Kg)")
+    total_sales = models.DecimalField(max_digits=12, decimal_places=2, editable=False)
+    name_of_the_buyer = models.CharField(max_length=255, blank=True, null=True)
+    mobile_number = models.CharField(max_length=50, blank=True, null=True)
+    remarks = models.TextField(blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        # Auto-compute total billing invoice calculation
+        self.total_sales = self.total_birds_sold * self.price_per_bird
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Sold {self.total_birds_sold} birds from batch {self.flock.flock_number_batch_id}"
+    
+
+
+
+class EmployeeRecord(models.Model):
+    EMPLOYMENT_MODE_CHOICES = (
+        ('Permanent', 'Permanent'),
+        ('Contract', 'Contract'),
+        ('Casual', 'Casual'),
+    )
+
+    DEPARTMENT_CHOICES = (
+        ('Dairy', 'Dairy'),
+        ('Beef', 'Beef'),
+        ('Goats', 'Goats'),
+        ('Poultry', 'Poultry'),
+        ('Companion Animals', 'Companion Animals'),
+    )
+
+    JOB_POSITION_CHOICES = (
+        ('Milker', 'Milker'),
+        ('Cleaner', 'Cleaner'),
+        ('Animal Caretaker', 'Animal Caretaker'),
+        ('Veterinary Officer', 'Veterinary Officer'),
+        ('Driver', 'Driver'),
+        ('Security Officer', 'Security Officer'),
+        ('Farm Manager', 'Farm Manager'),
+        ('Assistant Manager', 'Assistant Manager'),
+    )
+
+    PAYMENT_PERIOD_CHOICES = (
+        ('Weekly', 'Weekly'),
+        ('Advance', 'Advance'),
+        ('Monthly', 'Monthly'),
+    )
+
+    PAYMENT_METHOD_CHOICES = (
+        ('Cash', 'Cash'),
+        ('Mobile Transfer', 'Mobile Transfer'),
+        ('Bank Account', 'Bank Account'),
+         ('Mpesa', 'Mpesa'),
+    )
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='employeerecords',default=1,
+    )
+
+    date_of_employment = models.DateField()
+
+    full_name = models.CharField(max_length=255)
+
+    id_number = models.CharField(
+        max_length=50,
+        unique=True
+    )
+
+    mobile_number = models.CharField(max_length=20)
+
+    next_of_kin_name = models.CharField(max_length=255)
+
+    next_of_kin_contact = models.CharField(max_length=20)
+
+    home_county = models.CharField(max_length=100)
+
+    sub_county = models.CharField(max_length=100)
+
+    location = models.CharField(max_length=255)
+
+    area_chief_name = models.CharField(max_length=255)
+
+    chief_contact = models.CharField(max_length=20)
+
+    assigned_department = models.CharField(
+        max_length=50,
+        choices=DEPARTMENT_CHOICES
+    )
+
+    job_position = models.CharField(
+        max_length=100,
+        choices=JOB_POSITION_CHOICES
+    )
+
+    mode_of_employment = models.CharField(
+        max_length=20,
+        choices=EMPLOYMENT_MODE_CHOICES
+    )
+
+    agreed_salary = models.DecimalField(
+        max_digits=12,
+        decimal_places=2
+    )
+
+    payment_period = models.CharField(
+        max_length=20,
+        choices=PAYMENT_PERIOD_CHOICES
+    )
+
+    means_of_payment = models.CharField(
+        max_length=50,
+        choices=PAYMENT_METHOD_CHOICES
+    )
+
+    bank_details = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.full_name
+    
+class SalaryRecord(models.Model):
+    SALARY_STATUS_CHOICES = (
+        ('Casual', 'Casual'),
+        ('Advance Salary', 'Advance Salary'),
+        ('Monthly', 'Monthly'),
+    )
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='salary_records',default=1,
+    )
+
+    employee = models.CharField(max_length=20)
+
+    date_of_payment = models.DateField()
+
+    salary_status = models.CharField(
+        max_length=30,
+        choices=SALARY_STATUS_CHOICES
+    )
+
+    deductions = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+
+    amount_paid = models.DecimalField(
+        max_digits=12,
+        decimal_places=2
+    )
+
+    balance_to_pay = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+
+    processed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='processed_salary_records'
+    )
+
+    remarks = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.employee.full_name} - {self.date_of_payment}"
+
+# =====================================================================
+# FARM VISITS AND TRAININGS
+# =====================================================================
+class FarmVisit(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='farm_visits',default=1)
+    date_of_visit = models.DateField()
+    visitor_category = models.CharField(max_length=50)
+    number_of_visitors = models.PositiveIntegerField()
+    county_of_origin = models.CharField(max_length=100)
+    objective_of_visits = models.TextField()
+    trainings_covered = models.TextField(blank=True, null=True)
+    areas_visited = models.CharField(max_length=255, blank=True, null=True)
+    training_payment_received = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    reporting_time = models.TimeField()
+    departure_time = models.TimeField()
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.username} - Visit {self.date_of_visit}"
+
+
+# =====================================================================
+# FARM INVENTORY: DRUGS
+# =====================================================================
+class DrugInventory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='drug_inventories',default=1)
+    date_of_purchased = models.DateField()
+    drug_category = models.CharField(max_length=100)
+    drug_name = models.CharField(max_length=150)
+    batch_no = models.CharField(max_length=50)
+    expiry_date = models.DateField()
+    drug_volume = models.CharField(max_length=50)
+    quantity_purchased = models.PositiveIntegerField()
+    quantity_used = models.PositiveIntegerField(default=0)
+    balance = models.PositiveIntegerField()
+    unit_cost = models.DecimalField(max_digits=10, decimal_places=2)
+    total_cost = models.DecimalField(max_digits=12, decimal_places=2)
+    date_of_record_update = models.DateTimeField(auto_now=True)
+    remarks = models.TextField(blank=True, null=True)
+
+    class Meta:
+        verbose_name_plural = "Drug Inventories"
+
+    def __str__(self):
+        return f"{self.user.username} - {self.drug_name}"
+
+
+# =====================================================================
+# FARM INVENTORY: FEEDS
+# =====================================================================
+class FeedInventory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='feed_inventories',default=1)
+    date_of_purchased = models.DateField()
+    feed_category = models.CharField(max_length=100)
+    company = models.CharField(max_length=150)
+    expiry_date = models.DateField(blank=True, null=True)
+    quantity_purchased = models.PositiveIntegerField()
+    packed_volume = models.CharField(max_length=50)
+    quantity_used = models.PositiveIntegerField(default=0)
+    balance = models.PositiveIntegerField()
+    unit_cost = models.DecimalField(max_digits=10, decimal_places=2)
+    total_cost = models.DecimalField(max_digits=12, decimal_places=2)
+    date_of_records_update = models.DateTimeField(auto_now=True)
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.feed_category}"
+
+
+# =====================================================================
+# FARM INVENTORY: LIVESTOCK
+# =====================================================================
+class LivestockInventory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='livestock_inventory',default=1)
+    animal_species = models.CharField(max_length=100)
+    breed = models.CharField(max_length=100)
+    sex = models.CharField(max_length=50)
+    age = models.CharField(max_length=50)
+    total_number = models.PositiveIntegerField()
+    previous_number = models.PositiveIntegerField(default=0)
+    source = models.CharField(max_length=150)
+    date_of_record = models.DateField()
+    remarks = models.TextField(blank=True, null=True)
+
+    class Meta:
+        verbose_name_plural = "Livestock"
+
+    def __str__(self):
+        return f"{self.user.username} - {self.breed} {self.animal_species}"
+
+
+# =====================================================================
+# FARM INVENTORY: ASSETS
+# =====================================================================
+class Asset(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='assets',default=1)
+    date_of_record = models.DateField()
+    asset_category = models.CharField(max_length=100)
+    asset_name = models.CharField(max_length=150)
+    date_acquired = models.DateField()
+    model_number = models.CharField(max_length=100, blank=True, null=True)
+    quantity = models.PositiveIntegerField()
+    purchase_cost = models.DecimalField(max_digits=12, decimal_places=2)
+    current_value = models.DecimalField(max_digits=12, decimal_places=2)
+    condition = models.CharField(max_length=100)
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.asset_name}"
+
+class Fish(models.Model):
+    STOCK_TYPES = [('fingerling', 'Fingerling'), ('fry', 'Fry')]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fish_stocks',default=1)
+    registration_no = models.CharField(max_length=50, unique=True)
+    date_of_stocking = models.DateField()
+    source = models.CharField(max_length=200)
+    stock_type = models.CharField(max_length=20, choices=STOCK_TYPES)
+    fish_species = models.CharField(max_length=100)
+    quantity_purchased = models.PositiveIntegerField()
+    price_per_fish = models.DecimalField(max_digits=10, decimal_places=2)
+    total_cost = models.DecimalField(max_digits=12, decimal_places=2)
+    dead_on_arrival = models.PositiveIntegerField(default=0)
+    seller_name = models.CharField(max_length=100)
+    mobile_number = models.CharField(max_length=15)
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.fish_species} ({self.registration_no})"
+
+class FeedingRecord(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fish_feeding_records',default=1)
+    date = models.DateField()
+    feed_type = models.CharField(max_length=100)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2)
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Feeding on {self.date}"
+
+class MortalityRecord(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fish_mortality_records',default=1)
+    date = models.DateField()
+    fish_category = models.CharField(max_length=100)
+    number_of_dead = models.PositiveIntegerField()
+    possible_cause = models.TextField()
+    intervention_given = models.TextField(blank=True, null=True)
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Mortality on {self.date} - Count: {self.number_of_dead}"
+
+class GrowthMonitoring(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fish_growth_records',default=1)
+    date_of_sampling = models.DateField()
+    avg_weight_gain = models.DecimalField(max_digits=10, decimal_places=2)
+    avg_length_growth = models.DecimalField(max_digits=10, decimal_places=2)
+    remarks = models.TextField(blank=True, null=True)		
+
+
