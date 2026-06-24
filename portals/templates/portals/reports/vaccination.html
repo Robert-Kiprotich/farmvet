@@ -190,6 +190,10 @@
                 <label for="number_of_animals_vaccinated">Route Of Administration</label>
                 <input type="text" class="form-control" id="route_administration" name="route_administration">
             </div>
+              <div class="form-group">
+                <label for="number_of_animals_vaccinated">Manufacturer</label>
+                <input type="text" class="form-control" id="manufacturer" name="manufacturer">
+            </div>
           <div class="form-group">
             <label for="expiry_date">Expiry Date</label>
             <input type="date" class="form-control" id="expiry_date" name="expiry_date">
@@ -223,7 +227,10 @@
                 <label for="village_vaccination_done">Village Vaccination Done</label>
                 <input type="text" class="form-control" id="village_vaccination_done" name="village_vaccination_done">
             </div>
-            
+              <div class="form-group">
+                <label for="number_of_animals_vaccinated">Manufacturer</label>
+                <input type="text" class="form-control" id="manufacturer" name="manufacturer">
+            </div>
             <div class="form-group">
                 <label for="nature_of_vaccination_program">Nature of Vaccination Program</label>
                 <select class="form-control" id="nature_of_vaccination_program" name="nature_of_vaccination_program">
@@ -889,6 +896,12 @@ function operateFormatter(value, row, index) {
     sortable: true,
     align: 'center'
   },
+   {
+    field: 'name_of_animal',
+    title: 'Age of Animal',
+    sortable: true,
+    align: 'center'
+  },
   {
     field: 'sex_of_animal',
     title: 'Sex of Animal',
@@ -934,6 +947,18 @@ function operateFormatter(value, row, index) {
   {
     field: 'batch_number',
     title: 'Batch Number',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'route_administration',
+    title: 'Route of Administration',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'manufacturer',
+    title: 'Manufacturer',
     sortable: true,
     align: 'center'
   },

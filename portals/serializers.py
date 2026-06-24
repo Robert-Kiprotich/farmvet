@@ -493,10 +493,6 @@ class SurgicalRecordSerializer(serializers.ModelSerializer):
             'owner_name',
             'owner_village',
             'owner_mobile_number',
-           
-            'practitioner',
-            'vet_category',
-            'vet_mobile_number',
             'signature',
             
         ]
@@ -650,6 +646,7 @@ class VaccinationRecordSerializer(serializers.ModelSerializer):
             'batch_number',
             'dosage',
             'route_administration',
+            'manufacturer',
             'expiry_date',
             'date_of_vaccination',
             'vaccination_type',

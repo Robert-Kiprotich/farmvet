@@ -365,7 +365,7 @@ class ArtificialInseminationCreate(generics.CreateAPIView):
 
 class ArtificialInseminationList(generics.ListAPIView):
     serializer_class = ArtificialInseminationSerializer
-    permission_classes = [IsVetOrOfficial | Is_Farmer | Is_Coop]
+    permission_classes = [Is_Vet | Is_Official | Is_Farmer | Is_Coop]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -1898,79 +1898,97 @@ def _table_row(c, x, y, col_w, values, row_h=14, header=False):
 # ──────────────────────────────────────────────────────────────────────────────
 #  Main PDF builder (unchanged)
 # ──────────────────────────────────────────────────────────────────────────────
-
 def generate_vaccination_certificate(record) -> bytes:
     """
     Build a Veterinary Professional Services Vaccination Certificate PDF
     styled to match the reference design (gold/navy/black border, seal, tables).
     Returns raw PDF bytes.
     """
-    buf = io.BytesIO()
-    page_w, page_h = A4
-    c = canvas.Canvas(buf, pagesize=A4)
- 
-    MRG = 18          # outer page margin (pts)
-    IL  = MRG + 14    # inner left x
-    IR  = page_w - MRG - 14   # inner right x
-    ROW = 22          # ↑ increased row height so text breathes
-    TBL = 18          # table data row height
-    TBL_H = 16        # table header row height
-    FS  = 11          # ↑ font size for labels & values
+    MRG = 18
+    ROW = 18
+    TBL = 18
+    TBL_H = 16
+    FS  = 11
     LBL = ("Helvetica-Bold", FS)
     VAL = ("Helvetica",      FS)
- 
-    # ── Border & decorations ─────────────────────────────────────────────────
+
+    page_w = A4[0]
+
+    content_h = 0
+    content_h += 20
+    content_h += 16
+    content_h += 28
+    content_h += 38 - 28
+    content_h += 12
+    content_h += ROW
+    content_h += ROW * 3
+    content_h += ROW + 4
+    content_h += 8
+    content_h += TBL_H
+    content_h += TBL
+    content_h += 16
+    content_h += ROW + 4
+    content_h += 8
+    content_h += TBL_H
+    content_h += TBL
+    content_h += ROW
+    content_h += ROW * 4.5  # <-- INCREASED: Allocated extra canvas room so the stamp spacing doesn't clip the footer
+    content_h += ROW
+    content_h += ROW
+    content_h += ROW
+    content_h += ROW
+    content_h += 2
+    content_h += 6
+
+    page_h = content_h + 2 * MRG
+
+    IL = MRG + 14
+    IR = page_w - MRG - 14
+
+    buf = io.BytesIO()
+    c = canvas.Canvas(buf, pagesize=(page_w, page_h))
+
     _decorative_border(c, MRG, MRG, page_w - 2 * MRG, page_h - 2 * MRG)
     _logo_circle(c, MRG + 28, page_h - MRG - 28)
     _gold_seal(c,  page_w - MRG - 32, page_h - MRG - 30)
- 
-    # ── Title ────────────────────────────────────────────────────────────────
+
     ty = page_h - MRG - 20
     business_name = (record.user.business_name or "VETERINARY PROFESSIONAL SERVICES").upper()
     c.setFillColor(NAVY)
-    c.setFont("Helvetica-Bold", 15)
+    c.setFont("Helvetica-Bold", 17)
     c.drawCentredString(page_w / 2, ty,      business_name)
-    # ── Sub-header row: username | KVB No | contact  (above "VACCINATION CERTIFICATE") ──
-    sub_y = ty - 18
+    sub_y = ty - 16
     c.setFont("Helvetica", 10)
     c.setFillColor(colors.black)
-    third = (page_w) / 3
-    # Left-ish: username (1/4 from left)
-    
+
     c.drawCentredString(page_w * 0.25, sub_y, f"Name: {record.user.first_name} {record.user.last_name}")
-    # Centre: KVB No
     c.drawCentredString(page_w / 2, sub_y, f"KVB No: {record.user.registration_number or ''}")
-    # Right-ish: contact (3/4 from left)
     c.drawCentredString(page_w * 0.75, sub_y, f"Contact: {record.user.phone_number or ''}")
- 
+
     c.setFont("Helvetica-Bold", 11)
     c.setFillColor(NAVY)
-    c.drawCentredString(page_w / 2, ty - 32, "VACCINATION CERTIFICATE")
- 
-    ry = ty - 46      # rule below "VACCINATION CERTIFICATE"
+    c.drawCentredString(page_w / 2, ty - 28, "VACCINATION CERTIFICATE")
+
+    ry = ty - 38
     c.setStrokeColor(GOLD); c.setLineWidth(1)
     c.line(MRG + 10, ry, page_w - MRG - 10, ry)
- 
-    # ── Closure helpers ──────────────────────────────────────────────────────
+
     def lv(x, y, label, value, lw=90):
-        """Render  Label: ...value  with a dotted underline."""
         c.setFont(*LBL); c.setFillColor(colors.black); c.drawString(x, y, label)
         c.setFont(*VAL); c.drawString(x + lw, y, str(value or ""))
         c.setStrokeColor(colors.grey); c.setLineWidth(0.4); c.setDash(1, 2)
         c.line(x + lw, y - 3, x + lw + 150, y - 3)
         c.setDash()
- 
+
     def sh(y, text):
-        """Section heading in navy, slightly larger."""
         c.setFont("Helvetica-Bold", 11); c.setFillColor(NAVY)
         c.drawString(IL, y, text);       c.setFillColor(colors.black)
- 
-    # ── OWNER DETAILS ────────────────────────────────────────────────────────
-    y = ry - 14
+
+    y = ry - 12
     sh(y, "Owner Details:")
     y -= ROW
     half = (IR - IL) / 2
-    lv(IL,        y, "Name:",        record.name_of_owner, lw=48)
+    lv(IL,        y, "Name:",        record.name_of_animal, lw=48)
     lv(IL + half, y, "Location:",    record.location,      lw=62)
     y -= ROW
     lv(IL,        y, "Village:",     record.village,       lw=48)
@@ -1978,9 +1996,8 @@ def generate_vaccination_certificate(record) -> bytes:
     y -= ROW
     lv(IL,        y, "Sub-County:",  record.sub_county,    lw=68)
     lv(IL + half, y, "Ward:",        record.ward,          lw=42)
- 
-    # ── ANIMAL DETAILS ───────────────────────────────────────────────────────
-    y -= ROW + 6
+
+    y -= ROW + 4
     sh(y, "Animal Details:")
     y -= 8
     col_w = (IR - IL) / 7
@@ -1991,80 +2008,60 @@ def generate_vaccination_certificate(record) -> bytes:
     species = (record.other_species if record.species_targeted == "OTHER"
                and record.other_species else record.species_targeted)
     _table_row(c, IL, y, col_w, [
-        species, record.breed_of_animal, "",
+        species, record.breed_of_animal, record.reg_no,
         record.age_of_animal, record.sex_of_animal,
         record.color_of_animal, str(record.number_of_animals_vaccinated),
     ], row_h=TBL)
-    y -= TBL + 8
- 
+    y -= TBL + 16
+
     lv(IL, y, "Name:", record.name_of_rash or "", lw=48)
     c.setFont(*LBL); c.drawString(IL + 230, y, "Other Description:")
     c.setFont(*VAL); c.drawString(IL + 340, y, str(record.other_description or ""))
- 
-    # ── VACCINE DETAILS ──────────────────────────────────────────────────────
-    y -= ROW + 6
+
+    y -= ROW + 4
     sh(y, "Vaccine Details:")
     y -= 8
     vcol = (IR - IL) / 6
     _table_row(c, IL, y, vcol,
-               ["Name of Vaccine used", "Vaccinate against", "Batch No.",
+               ["Vaccine", "Vaccinate against", "Batch No.",
                 "Manufacturer", "Dosage", "Route of Admin."],
                row_h=TBL_H, header=True)
     y -= TBL_H
     disease = (record.other_disease if record.vaccination_of == "OTHER"
                and record.other_disease else record.vaccination_of)
     _table_row(c, IL, y, vcol,
-               [record.vaccines_used, disease, record.batch_number, "", record.dosage, ""],
+               [record.vaccines_used, disease, record.batch_number, record.manufacturer,
+                record.dosage, record.route_administration],
                row_h=TBL)
     y -= TBL + ROW
- 
-    # ── DATES ────────────────────────────────────────────────────────────────
+
+    # Row 1: Dates
     lv(IL,       y, "Date of Vaccination:",      str(record.date_of_vaccination),      lw=130)
     lv(IL + 255, y, "Next Date of Vaccination:", str(record.next_date_of_vaccination), lw=150)
+    
+    # Row 2: Expiry Left, Details Left
     y -= ROW
     lv(IL,       y, "Expiry Date of Vaccine:",   str(record.expiry_date),              lw=130)
+    
     y -= ROW
- 
-    # ── TYPE & NATURE ────────────────────────────────────────────────────────
-    c.setFont(*LBL); c.drawString(IL, y, "Vaccination Details:")
-    c.setFont(*VAL)
-    c.drawString(IL + 132, y,
-                 f"Single Vaccination {'☑' if record.vaccination_type == 'SINGLE' else '☐'}"
-                 f"    Mass Vaccination {'☑' if record.vaccination_type == 'MASS' else '☐'}")
+    lv(IL,       y, "Vaccination Details:",      str(record.vaccination_type),         lw=130)
+    
     y -= ROW
-    c.setFont(*LBL); c.drawString(IL, y, "Vaccination status:")
-    c.setFont(*VAL)
-    c.drawString(IL + 120, y,
-                 f"Primary {'☑' if record.nature_of_vaccination_program == 'PRIMARY' else '☐'}"
-                 f"    Booster {'☑' if record.nature_of_vaccination_program == 'BOOSTER' else '☐'}")
+    lv(IL,       y, "Vaccination Status:",       str(record.nature_of_vaccination_program), lw=130)
+
+    # Row 3: Dedicated Signature & Stamp area dropped down to provide stamp clearance block
+    y -= (ROW * 2.5) # <--- Drop down significantly to leave blank space for physical ink stamp placement
+    lv(IL + 255, y, "Signature and Stamp:",      str(record.signature),                lw=150)
+
     y -= ROW
-    lv(IL, y, "Village vaccination done:", record.village_vaccination_done or "", lw=150)
-    y -= ROW
- 
-    # ── VET DETAILS  (licence no., mobile no. and vet category removed) ──────
-    y -= 6
-    c.setStrokeColor(GOLD); c.setLineWidth(0.6)
-    c.line(IL, y, IR, y)
-    y -= ROW
-    lv(IL,       y, "Veterinary practitioner:", record.reg_no or "", lw=148)
-    lv(IL + 290, y, "KVB NO:",                  record.reg_no or "", lw=55)
-    y -= ROW + 6
- 
-    # Signature line
-    c.setFont(*LBL); c.drawString(IL, y, "Signature & Stamp:")
-    c.setStrokeColor(colors.grey); c.setLineWidth(0.5)
-    c.line(IL + 132, y - 2, IL + 340, y - 2)
- 
-    # ── Footer ───────────────────────────────────────────────────────────────
+    footer_y = y - 2
     c.setFont("Helvetica-Oblique", 8); c.setFillColor(colors.grey)
-    c.drawCentredString(page_w / 2, MRG + 6,
-                        "This certificate is issued by Veterinary Professional Services")
- 
+    c.drawCentredString(page_w / 2, footer_y,
+                        f"This certificate is issued by {business_name}")
+
     c.save()
     buf.seek(0)
     return buf.read()
-
-
 # ──────────────────────────────────────────────────────────────────────────────
 #  ASYNC API View - Modified for background certificate generation
 # ──────────────────────────────────────────────────────────────────────────────
@@ -2391,7 +2388,7 @@ class DiseaseReportCreate(generics.CreateAPIView):
 
 class DiseaseReportList(generics.ListAPIView):
     serializer_class = DiseaseReportSerializer
-    permission_classes = [IsVetOrOfficial]
+    permission_classes = [Is_Vet | Is_Official]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -2761,16 +2758,35 @@ class SectionCreate(generics.CreateAPIView):
 
 class SectionList(View):
     permission_classes = [Is_Vet]
-    pagination_class=None
+    pagination_class = None
 
     def get(self, request, lesson_id):
+        # 1. Fetch the sections
         sections = Section.objects.filter(lesson_id=lesson_id).order_by('-id')
+        
+        # Handle AJAX requests
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             serializer = SectionSerializer(sections, many=True)
             return Response(serializer.data)
+        
+        # 2. Try to find the payment/purchase date for the logged-in user
+        payment_date = None
+        if request.user.is_authenticated:
+            try:
+                purchase = LessonPurchase.objects.get(
+                    user=request.user, 
+                    lesson_id=lesson_id # Matches the unique_together constraint
+                )
+                payment_date = purchase.purchased_at
+            except LessonPurchase.DoesNotExist:
+                # If they haven't purchased it, keep payment_date as None
+                pass
+
+        # 3. Add 'payment_date' to your context
         context = {
             'sections': sections,
-            'lesson_id': lesson_id  
+            'lesson_id': lesson_id,
+            'payment_date': payment_date  # Available in your HTML template now
         }
         return render(request, 'portals/reports/lessons.html', context)
     
@@ -3239,7 +3255,7 @@ class DailyKillCreate(generics.CreateAPIView):
 
 class DailyKillList(generics.ListAPIView):
     serializer_class = DailyKillSerializer
-    permission_classes = [IsVetOrOfficial]
+    permission_classes = [Is_Vet | Is_Official]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -3290,7 +3306,7 @@ class MovementPermitCreate(generics.CreateAPIView):
 
 class MovementPermitList(generics.ListAPIView):
     serializer_class = MovementPermitSerializer
-    permission_classes = [IsVetOrOfficial]
+    permission_classes = [Is_Vet | Is_Official]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -3436,7 +3452,7 @@ def quarterly_report_view(request):
 class QuarterlyReportCreate(generics.CreateAPIView):
     queryset = QuarterlyReport.objects.all()
     serializer_class = QuarterlyReportSerializer
-    permission_classes = [IsVetOrOfficial]
+    permission_classes = [Is_Vet | Is_Official]
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -3444,7 +3460,7 @@ class QuarterlyReportCreate(generics.CreateAPIView):
 
 class QuarterlyReportList(generics.ListAPIView):
     serializer_class = QuarterlyReportSerializer
-    permission_classes = [IsVetOrOfficial]
+    permission_classes = [Is_Vet | Is_Official]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -3459,12 +3475,12 @@ class QuarterlyReportList(generics.ListAPIView):
 class QuarterlyReportUpdate(generics.UpdateAPIView):
     queryset = QuarterlyReport.objects.all()
     serializer_class = QuarterlyReportSerializer
-    permission_classes = [IsVetOrOfficial]
+    permission_classes = [Is_Vet | Is_Official]
 
 class QuarterlyReportDelete(generics.DestroyAPIView):
     queryset = QuarterlyReport.objects.all()
     serializer_class = QuarterlyReportSerializer
-    permission_classes = [IsVetOrOfficial]
+    permission_classes = [Is_Vet | Is_Official]
 
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
@@ -3481,7 +3497,7 @@ def yearly_report_view(request):
 class YearlyReportCreate(generics.CreateAPIView):
     queryset = YearlyReport.objects.all()
     serializer_class = YearlyReportSerializer
-    permission_classes = [IsVetOrOfficial]
+    permission_classes = [Is_Vet | Is_Official]
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -3489,7 +3505,7 @@ class YearlyReportCreate(generics.CreateAPIView):
 
 class YearlyReportList(generics.ListAPIView):
     serializer_class = YearlyReportSerializer
-    permission_classes = [IsVetOrOfficial]
+    permission_classes = [Is_Vet | Is_Official]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -3504,12 +3520,12 @@ class YearlyReportList(generics.ListAPIView):
 class YearlyReportUpdate(generics.UpdateAPIView):
     queryset = YearlyReport.objects.all()
     serializer_class = YearlyReportSerializer
-    permission_classes = [IsVetOrOfficial]
+    permission_classes = [Is_Vet | Is_Official]
 
 class YearlyReportDelete(generics.DestroyAPIView):
     queryset = YearlyReport.objects.all()
     serializer_class = YearlyReportSerializer
-    permission_classes = [IsVetOrOfficial]
+    permission_classes = [Is_Vet | Is_Official]
 
     def perform_destroy(self, instance):
         if self.request.user == instance.user:
@@ -3571,7 +3587,7 @@ class PractitionerCreate(generics.CreateAPIView):
 
 class PractitionerList(generics.ListAPIView):
     serializer_class = PractitionerSerializer
-    permission_classes = [IsVetOrOfficial]
+    permission_classes = [Is_Vet | Is_Official]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -4589,7 +4605,7 @@ class ApprovedDairyFarmCreate(generics.CreateAPIView):
 # List View
 class ApprovedDairyFarmList(generics.ListAPIView):
     serializer_class = ApprovedDairyFarmSerializer
-    permission_classes = [Is_Farmer | IsVetOrOfficial]
+    permission_classes = [Is_Farmer | Is_Vet | Is_Official]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -4869,7 +4885,7 @@ class ExtensionServiceCreate(generics.CreateAPIView):
 
 class ExtensionServiceList(generics.ListAPIView):
     serializer_class = ExtensionServiceSerializer
-    permission_classes = [IsVetOrOfficial]
+    permission_classes = [Is_Vet | Is_Official]
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -5557,7 +5573,7 @@ class DailyRevenueCollectionCreate(generics.CreateAPIView):
 
 class DailyRevenueCollectionList(generics.ListAPIView):
     serializer_class = DailyRevenueCollectionSerializer
-    permission_classes =[IsVetOrOfficial]
+    permission_classes =[Is_Vet | Is_Official]
 
     def get_queryset(self):
         user = self.request.user
@@ -5600,7 +5616,7 @@ class LeaveRequestCreate(generics.CreateAPIView):
 
 class LeaveRequestList(generics.ListAPIView):
     serializer_class = LeaveRequestSerializer
-    permission_classes = [IsVetOrOfficial]
+    permission_classes = [Is_Vet | Is_Official]
 
     def get_queryset(self):
         user = self.request.user
@@ -5664,9 +5680,9 @@ class LeaveRequestDelete(generics.DestroyAPIView):
         
 
 
-def slaughterhouses_view(request):
+def slaughterhouse_view(request):
     return render(request, 'portals/svco/slaughter.html', {})
-def slaughterhouses_view_gov(request):
+def slaughterhouse_view_gov(request):
     return render(request, 'portals/svco/slaughter_gov.html', {})
 
 
@@ -5681,7 +5697,7 @@ class SlaughterHousesCreate(generics.CreateAPIView):
 
 class SlaughterHousesList(generics.ListAPIView):
     serializer_class = SlaughterHousesSerializer
-    permission_classes = [IsVetOrOfficial]
+    permission_classes = [Is_Vet | Is_Official]
 
     def get_queryset(self):
         user = self.request.user
@@ -5777,10 +5793,14 @@ class MovementPermitsList(generics.ListAPIView):
     permission_classes = [Is_Vet|Is_Official]
 
     def get_queryset(self):
-        return MovementPermits.objects.filter(
-            user=self.request.user
-        ).order_by('-date_of_record')
+        user = self.request.user
 
+        if user.is_vet_officer:
+            return MovementPermits.objects.filter(user=user).order_by('-id')
+        if user.is_official:
+            return MovementPermits.objects.filter(assigned_to_official=user).order_by('-id')
+
+        return MovementPermits.objects.none()
 
 class MovementPermitsUpdate(generics.UpdateAPIView):
     queryset = MovementPermits.objects.all()
@@ -5791,7 +5811,7 @@ class MovementPermitsUpdate(generics.UpdateAPIView):
 class MovementPermitsDelete(generics.DestroyAPIView):
     queryset = MovementPermits.objects.all()
     serializer_class = MovementPermitsSerializer
-    permission_classes = [IsVetOrOfficial]
+    permission_classes = [Is_Vet | Is_Official]
     def perform_destroy(self, instance):
         instance.delete()
         
@@ -5813,7 +5833,7 @@ class NoObjectionsCreate(generics.CreateAPIView):
 
 class NoObjectionsList(generics.ListAPIView):
     serializer_class = NoObjectionsSerializer
-    permission_classes =[IsVetOrOfficial]
+    permission_classes =[Is_Vet | Is_Official]
 
     def get_queryset(self):
         user = self.request.user
@@ -5856,7 +5876,7 @@ class ArtificialInseminationsCreate(generics.CreateAPIView):
 
 class ArtificialInseminationsList(generics.ListAPIView):
     serializer_class = ArtificialInseminationsSerializer
-    permission_classes = [IsVetOrOfficial]
+    permission_classes = [Is_Vet | Is_Official]
 
     def get_queryset(self):
         user = self.request.user
@@ -5903,7 +5923,7 @@ class VaccinationsCreate(generics.CreateAPIView):
 
 class VaccinationsList(generics.ListAPIView):
     serializer_class = VaccinationsSerializer
-    permission_classes = [IsVetOrOfficial]
+    permission_classes = [Is_Vet | Is_Official]
 
     def get_queryset(self):
         user = self.request.user
@@ -5986,7 +6006,7 @@ class DiseaseReportMovsCreate(generics.CreateAPIView):
 
 class DiseaseReportMovsList(generics.ListAPIView):
     serializer_class = DiseaseReportMovsSerializer
-    permission_classes = [IsVetOrOfficial]
+    permission_classes = [Is_Vet | Is_Official]
 
     def get_queryset(self):
         user = self.request.user
@@ -6036,7 +6056,7 @@ def extension_serve_gov(request):
     return render(request,'portals/svco/extension_gov.html',{})
 class ExtensionServicesList(generics.ListAPIView):
     serializer_class = ExtensionServicesSerializer
-    permission_classes = [IsVetOrOfficial]
+    permission_classes = [Is_Vet | Is_Official]
 
     def get_queryset(self):
         user = self.request.user
@@ -6084,7 +6104,7 @@ class PractitionersCreate(generics.CreateAPIView):
         serializer.save(user=self.request.user)
 class PractitionersList(generics.ListAPIView):
     serializer_class = PractitionersSerializer
-    permission_classes = [IsVetOrOfficial]
+    permission_classes = [Is_Vet | Is_Official]
 
     def get_queryset(self):
         user = self.request.user
@@ -6114,13 +6134,13 @@ def clerk_view(request):
 class MilkCollectionClerkCreate(generics.CreateAPIView):
     queryset = MilkCollectionClerk.objects.all()
     serializer_class = MilkCollectionClerkSerializer
-    permission_classes = [IsVetOrOfficial | Is_Coop]
+    permission_classes = [Is_Vet | Is_Official | Is_Coop]
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 class MilkCollectionClerkList(generics.ListAPIView):
     serializer_class = MilkCollectionClerkSerializer
-    permission_classes = [IsVetOrOfficial | Is_Coop]
+    permission_classes = [Is_Vet | Is_Official | Is_Coop]
 
     def get_queryset(self):
         user = self.request.user
@@ -6134,13 +6154,13 @@ class MilkCollectionClerkList(generics.ListAPIView):
 
 class MilkCollectionClerkUpdate(generics.UpdateAPIView):
     serializer_class = MilkCollectionClerkSerializer
-    permission_classes = [IsVetOrOfficial]
+    permission_classes = [Is_Vet | Is_Official]
 
     def get_queryset(self):
         return MilkCollectionClerk.objects.filter(user=self.request.user)
 class MilkCollectionClerkDelete(generics.DestroyAPIView):
     serializer_class = MilkCollectionClerkSerializer
-    permission_classes =[IsVetOrOfficial]
+    permission_classes =[Is_Vet | Is_Official]
 
     def get_queryset(self):
         return MilkCollectionClerk.objects.filter(user=self.request.user)

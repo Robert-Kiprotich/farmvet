@@ -786,8 +786,8 @@ urlpatterns = [
     path('api/practitioners/delete/<int:pk>/', PractitionersDelete.as_view(), name='practitioner-delete'),
 
     # Slaughter Houses
-    path('slaughterhouses/',slaughterhouses_view, name='slaughterhouses-page'),
-    path('slaughterhouses-gov/',slaughterhouses_view_gov, name='slaughterhouses-page-gov'),
+    path('slaughterhouses/',slaughterhouse_view, name='slaughterhouses-page'),
+    path('slaughterhouses-gov/',slaughterhouse_view_gov, name='slaughterhouses-page-gov'),
     path('api/slaughterhouses/create/', SlaughterHousesCreate.as_view(), name='slaughterhouse-create'),
     path('api/slaughterhouses/', SlaughterHousesList.as_view(), name='slaughterhouses-list'),
     path('api/slaughterhouses/update/<int:pk>/',SlaughterHousesUpdate.as_view(), name='slaughterhouse-update'),

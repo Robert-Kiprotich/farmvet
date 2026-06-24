@@ -94,8 +94,8 @@ class VaccinationRecord(models.Model):
 	('none', 'None'),
 	]
 
-    # Fields
-    
+	# Fields
+
 	user=models.ForeignKey(User,on_delete=models.CASCADE,default=1)
 	assigned_to = models.ForeignKey(
 		User,
@@ -138,9 +138,11 @@ class VaccinationRecord(models.Model):
 	batch_number = models.CharField(max_length=255)
 	dosage = models.CharField(max_length=255)
 	route_administration=models.CharField(max_length=50)
+	manufacturer=models.CharField(max_length=50)
 	expiry_date = models.DateField()
 	date_of_vaccination = models.DateField()
 	vaccination_type = models.CharField(max_length=10,choices=VACCINATION_TYPE_CHOICES)
+	
 	next_date_of_vaccination = models.DateField()
 	name_of_rash = models.CharField(max_length=255, blank=True, null=True)
 	village_vaccination_done = models.CharField(max_length=255, blank=True, null=True)
@@ -155,7 +157,7 @@ class VaccinationRecord(models.Model):
 	location=models.CharField(max_length=100)
 	certificate_file = models.FileField(upload_to='vaccination_certificates/',blank=True, null=True,)
 
-    
+
 	def __str__(self):
 		return f"Vaccination Record for {self.user} - {self.species_targeted}"
 	def save(self, *args, **kwargs):
@@ -238,10 +240,6 @@ class SurgicalRecord(models.Model):
 	owner_name = models.CharField(max_length=100)
 	owner_village = models.CharField(max_length=100)
 	owner_mobile_number = models.CharField(max_length=15)
-
-	practitioner= models.CharField(max_length=100)
-	vet_category=models.CharField(max_length=20,choices=VET_CATEGORY)
-	vet_mobile_number = models.CharField(max_length=15)
 	signature = models.TextField(blank=True,null=True)
 	#stamp = models.TextField(blank=True,null=True)
 

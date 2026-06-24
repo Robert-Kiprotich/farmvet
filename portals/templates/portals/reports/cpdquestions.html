@@ -76,73 +76,181 @@
                <div class="card-body">
 <!-- quiz_form.html -->
 
-<form method="POST" action="{% url 'questions-submit' section_id=section.id %}">
-  {% csrf_token %}
-  <div>
-      <h3>Online CPD Questions</h3>
-      {% if questions %}
-          <p id="note">Note: You only have <span id="timer"><strong>20:00</strong></span> for this course</p>
-          
-          {% for question in questions %}
-              <div class="question">
-                  <p>{{ question.question_text }}</p>
-                  <ul>
-                      {% for choice in question.choices.all %}
-                          <li>
-                              <input type="radio" name="answers[{{ question.id }}]" value="{{ choice.id }}">
-                              <label for="choice">{{ choice.choice_text }}</label>
-                          </li>
-                      {% endfor %}
-                  </ul>
-              </div>
-          {% endfor %}
-      {% else %}
-          
-          <p>Since there are no questions, the timer will not be started.</p>
-          <style>
-              #timer {
-                  display: none;
-              }
-          </style>
-      {% endif %}
-  </div>
+<div class="card-body d-flex flex-column" style="min-height: 400px;">
+  <form method="POST" action="{% url 'questions-submit' section_id=section.id %}" id="quiz-form" class="d-flex flex-column flex-grow-1">
+    {% csrf_token %}
+    
+    <div class="flex-grow-1">
+        <h3>Online CPD Questions</h3>
+        {% if questions %}
+            <p id="note">Note: You only have <span id="timer"><strong>20:00</strong></span> for this course</p>
+            
+            <div class="questions-carousel">
+                {% for question in questions %}
+                    <div class="question carousel-item {% if forloop.first %}active{% endif %}">
+                        <span class="badge badge-info mb-2" style="background-color: #11cdef; color: #fff; padding: 4px 8px; border-radius: 4px;">
+                            Question {{ forloop.counter }} of {{ questions|length }}
+                        </span>
+                        <p class="font-weight-bold mt-2" style="font-size: 1.1rem;">{{ question.question_text }}</p>
+                        <ul class="choices-list">
+                            {% for choice in question.choices.all %}
+                                <li>
+                                    <input type="radio" id="choice_{{ choice.id }}" name="answers[{{ question.id }}]" value="{{ choice.id }}">
+                                    <label for="choice_{{ choice.id }}">{{ choice.choice_text }}</label>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Since there are no questions, the timer will not be started.</p>
+            <style>
+                #timer { display: none; }
+            </style>
+        {% endif %}
+    </div>
 
-  <button type="submit" 
-          {% if disable_submit %}disabled class="blurred"{% endif %}>
-        Submit
-  </button>
-</form>
+    {% if questions %}
+    <div class="carousel-controls mt-auto pt-4 border-top d-flex justify-content-between align-items-center">
+        <div>
+            <button type="button" id="prev-btn" class="btn btn-secondary m-0" style="display: none;">
+                Previous
+            </button>
+        </div>
+        
+        <div class="d-flex align-items-center" style="gap: 10px;">
+            <button type="button" id="next-btn" class="btn btn-info m-0">
+                Next
+            </button>
 
-<!-- Add your CSS for the blur effect -->
+            <button type="submit" id="submit-btn" style="display: none;"
+                    {% if disable_submit %}disabled class="btn btn-success m-0 blurred"{% else %}class="btn btn-success m-0"{% endif %}>
+                Submit Answers
+            </button>
+        </div>
+    </div>
+    {% endif %}
+  </form>
+</div>
+
 <style>
+  .carousel-item {
+      display: none;
+  }
+  
+  .carousel-item.active {
+      display: block;
+  }
+
+  .choices-list {
+      list-style-type: none;
+      padding-left: 0;
+      margin-top: 15px;
+  }
+
+  .choices-list li {
+      margin-bottom: 12px;
+      padding: 12px;
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      transition: background-color 0.2s ease;
+  }
+
+  .choices-list li:hover {
+      background: #f1f3f5;
+  }
+
+  .choices-list input[type="radio"] {
+      margin-right: 12px;
+      transform: scale(1.1);
+      cursor: pointer;
+  }
+
+  .choices-list label {
+      cursor: pointer;
+      margin-bottom: 0;
+      width: 100%;
+  }
+
   .blurred {
-      pointer-events: none; /* Prevent the button from being clickable */
-      opacity: 0.5;          /* Make it visually appear disabled */
-      filter: blur(2px);     /* Apply the blur effect */
+      pointer-events: none; 
+      opacity: 0.5;          
+      filter: blur(2px);     
   }
 </style>
 
+</div>
+</div>
+</div>
 
-           </div>
+<footer class="footer">
+  <div class="container-fluid">
+      <div class="copyright">
+        &copy; Copyright <strong><span>SoinVet</span></strong>. All Rights Reserved
+        <div class="credits"></div>
       </div>
-      </div>
-      <footer class="footer">
-        <div class=" container-fluid ">
-            <div class="copyright">
-              &copy; Copyright <strong><span>SoinVet</span></strong>. All Rights Reserved
-              <div class="credits">
-              
-            </div>
-          </div>
-        </footer><!-- End Footer -->
-  <!--   Core JS Files   -->
-  <script>
-    
-
-    
-    // Load questions when the page is ready
+  </div>
+</footer><script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
     $(document).ready(function() {
-        loadQuestions();
+        if (typeof loadQuestions === "function") { 
+            loadQuestions(); 
+        }
+
+        // --- CAROUSEL ENGINE ---
+        const $questions = $('.carousel-item');
+        const totalQuestions = $questions.length;
+        let currentIndex = 0;
+
+        const $prevBtn = $('#prev-btn');
+        const $nextBtn = $('#next-btn');
+        const $submitBtn = $('#submit-btn');
+
+        function updateCarouselControls() {
+            // 1. Toggle item visibility state
+            $questions.removeClass('active').eq(currentIndex).addClass('active');
+
+            // 2. Left side layout: Show/Hide Previous button
+            if (currentIndex === 0) {
+                $prevBtn.hide();
+            } else {
+                $prevBtn.show();
+            }
+
+            // 3. Right side layout: Disable Next and reveal Submit side-by-side on final card
+            if (currentIndex === totalQuestions - 1) {
+                $nextBtn.prop('disabled', true).css({ 'opacity': '0.5', 'cursor': 'not-allowed' });
+                $submitBtn.show();
+            } else {
+                $nextBtn.prop('disabled', false).css({ 'opacity': '1', 'cursor': 'pointer' });
+                $submitBtn.hide();
+            }
+        }
+
+        // Process Next Action Sequence
+        $nextBtn.on('click', function() {
+            if (currentIndex < totalQuestions - 1) {
+                currentIndex++;
+                updateCarouselControls();
+            }
+        });
+
+        // Process Back Action Sequence
+        $prevBtn.on('click', function() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateCarouselControls();
+            }
+        });
+
+        // Instantiate display control states on boot
+        if (totalQuestions > 0) {
+            updateCarouselControls();
+        }
     });
 </script>
 <script>
