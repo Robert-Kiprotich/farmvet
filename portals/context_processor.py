@@ -140,6 +140,14 @@ def choices(request):
         'LIVESTOCK_CHOICES':DailyKills.LIVESTOCK_CHOICES,
         'LEAVE_REASON_CHOICES':LeaveRequest.LEAVE_REASON_CHOICES,
         'LEAVE_STATUS_CHOICES':LeaveRequest.LEAVE_STATUS_CHOICES,
+        'LIVESTOCK_CATEGORY_CHOICES':DiseaseReport.LIVESTOCK_CATEGORY_CHOICES,
+        'SEX_CHOICES':DiseaseReport.SEX_CHOICES,
+        'AGE_CHOICES':DiseaseReport.AGE_CHOICES,
+	    'YES_NO_CHOICES':DiseaseReport.YES_NO_CHOICES, 
+       
+
+        
+
         
         
         

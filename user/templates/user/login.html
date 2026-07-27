@@ -1,0 +1,53 @@
+{% extends 'vet/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h4 class="card-title mb-0">
+            <i class="fas fa-sign-in-alt"></i> Login
+          </h4>
+        </div>
+        <div class="card-body">
+          <!-- Display messages -->
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+          
+          <form method="post">
+            {% csrf_token %}
+            {{ form|crispy }}
+            
+            <div class="mt-3">
+              <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-sign-in-alt"></i> Login
+              </button>
+            </div>
+          </form>
+          
+          <div class="mt-3 text-center">
+            <a href="{% url 'password_reset' %}" class="text-decoration-none">
+              <i class="fas fa-key"></i> Forgot Password?
+            </a>
+          </div>
+          
+          <hr>
+          
+          <div class="text-center text-muted small">
+            <p>Don't have an account? <a href="{% url 'register' %}" class="text-decoration-none">Register here</a></p>
+            <p>Login using your registered role credentials</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

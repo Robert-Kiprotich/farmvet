@@ -336,9 +336,7 @@
           <h2 class="text-center text-uppercase">{{ request.user.business_name }}</h2>
           <h4 class="text-center text-uppercase">Name:{{ request.user.first_name }}</h4>
           <h4 class="text-center text-uppercase">Contact:{{ request.user.phone_number }}</h4>
-          <h4 class="text-center text-uppercase">KVB No:{{ request.user.kvb_number }}</h4>
-          
-
+          <h4 class="text-center text-uppercase">KVB No:{{ request.user.registration_number }}</h4>
        <h3 class="text-center">Abortion Records </h3>
           <div class="modal-body" id="modalBody">
           </div>
@@ -805,12 +803,6 @@ $('#submitAi').on('click', function (e) {
             align: 'center'
           },
          
-          {
-            field: 'signature_and_stamp',
-            title: 'Signature & Stamp',
-            sortable: true,
-            align: 'center'
-          },
          {
             field: 'operate',
             title: 'Item Operate',

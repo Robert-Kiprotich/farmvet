@@ -233,7 +233,7 @@ const csrftoken = getCookie('csrftoken');
           // Array to hold our button HTML string components
           const html = ['<div class="btn-group" role="group" aria-label="Actions">'];
 
-          if (!hasAccess) {
+          if (hasAccess) {
             // =========================================
             // USER HAS PAID -> SHOW "OPEN LESSON"
             // =========================================

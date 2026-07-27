@@ -76,7 +76,7 @@
 
                                 <h2 class="title-1 m-b-25">Comments</h2>
                                 <div class="container mt-5">
-                                    <h7>Submit a comment {{ section_id }}</h7>
+                                    <h7>Submit a comment</h7>
                                     <form id="commentForm" method="POST" action="{% url 'comment-create' section_id=section_id %}">
                                         {% csrf_token %}
                                         <input type="hidden" name="section" value="{{ section_id }}">

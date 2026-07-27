@@ -3,7 +3,7 @@
 {% load static %}
 
   {% block content %}
-  {% include 'portals/sidebarAgrovet.html' %}
+  {% include 'portals/sidebarVet.html' %}
 <main class="page-content">
 <div class="container-fluid">
       <!-- Navbar -->
@@ -83,171 +83,166 @@
             </button>
           </div>
           <div class="modal-body">
-            <form id="AiAddForm"  enctype="multipart/form-data">
-              {% csrf_token %}
-              <input type="hidden" id="id"  name="id" >
-              <div class="mb-3">
-                <label class="form-label">Pharmacy Name</label>
-                <input type="text" class="form-control" name="pharmacy_name">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Location</label>
-                <input type="text" class="form-control" name="location">
-              </div>
-            
-            
-            
-              <div class="mb-3">
-                <label class="form-label">Sign</label>
-                <input type="text" class="form-control" name="sign">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Signed On</label>
-                <input type="date" class="form-control" name="signed_on">
-              </div>
-            
-              <!-- Prescription Info -->
-              <div class="mb-3">
-                <label class="form-label">Drug Category</label>
-                <select class="form-control" name="drug_category">
-                  <option value="">Select Category</option>
-                  <option value="I">I</option>
-                  <option value="II">II</option>
-                  <option value="III">III</option>
-                  <option value="IV">IV</option>
-                </select>
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Prescription Target</label>
-                <select class="form-control" name="prescription_target">
-                  <option value="">Select Target</option>
-                  <option value="vet practitioner">Vet Practitioner</option>
-                  <option value="farmer">Farmer</option>
-                </select>
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Date of Prescription</label>
-                <input type="date" class="form-control" name="date_of_prescription">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Livestock Type</label>
-                <select class="form-control" name="livestock_type">
-                  <option value="">Select Type</option>
-                  <option value="dairy cow">Dairy Cow</option>
-                  <option value="beef">Beef</option>
-                  <option value="sheep">Sheep</option>
-                  <option value="goat">Goat</option>
-                </select>
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Breed</label>
-                <input type="text" class="form-control" name="breed">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Age</label>
-                <input type="text" class="form-control" name="age" placeholder="e.g., 2 years, 8 months">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Drug Trade Name</label>
-                <input type="text" class="form-control" name="drug_trade_name">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Manufacturing Company</label>
-                <input type="text" class="form-control" name="manufacturing_company">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Batch Number</label>
-                <input type="text" class="form-control" name="batch_number">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Drug Dosage</label>
-                <input type="text" class="form-control" name="drug_dosage" placeholder="e.g., 10 mg/kg BID">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Route of Administration</label>
-                <input type="text" class="form-control" name="route_of_administration" placeholder="e.g., IM, IV, PO">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Drug Volume</label>
-                <input type="text" class="form-control" name="drug_volume" placeholder="e.g., 10 ml, 1 vial">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Clinical Use</label>
-                <input type="text" class="form-control" name="clinical_use">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Duration of Treatment</label>
-                <input type="text" class="form-control" name="duration_of_treatment">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Withdrawal Period</label>
-                <input type="text" class="form-control" name="withdrawal_period">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Quantity Purchased</label>
-                <input type="text" class="form-control" name="quantity_purchased">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Storage Condition</label>
-                <input type="text" class="form-control" name="storage_condition">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Side Effect</label>
-                <input type="text" class="form-control" name="side_effect">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Expiry Date</label>
-                <input type="date" class="form-control" name="expiry_date">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Vet’s Comments</label>
-                <textarea class="form-control" name="vets_comments"></textarea>
-              </div>
-            
-              <!-- Buyer Info -->
-              <div class="mb-3">
-                <label class="form-label">Buyer Name</label>
-                <input type="text" class="form-control" name="buyer_name">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Buyer Category</label>
-                <select class="form-control" name="buyer_category">
-                  <option value="">Select Category</option>
-                  <option value="vet practitioner">Vet Practitioner</option>
-                  <option value="farmer">Farmer</option>
-                </select>
-              </div>
-            
-             
-            
-            <div class="modal-footer">
-                <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="submit" id="submit" class="btn btn-primary">Save</button>
-            </div>
-          </div>
-          </form>
+         <form id="AiAddForm" enctype="multipart/form-data">
+  {% csrf_token %}
+  <input type="hidden" id="id" name="id">
+
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <label class="form-label fw-semibold text-muted small">Date of Prescription</label>
+      <input type="date" class="form-control" name="date_of_prescription" required>
+    </div>
+    <div class="col-md-4 mb-3">
+      <label class="form-label fw-semibold text-muted small">Drug Category</label>
+      <select class="form-control" name="drug_category">
+        <option value="">Select Category</option>
+        <option value="I">I</option>
+        <option value="II">II</option>
+      </select>
+    </div>
+    <div class="col-md-4 mb-3">
+      <label class="form-label fw-semibold text-muted small">Prescription Target</label>
+      <select class="form-control" name="prescription_target">
+        <option value="">Select Target</option>
+        <option value="vet_surgeon">Vet Surgeon</option>
+        <option value="para_professional">Para-Professional</option>
+      </select>
+    </div>
+  </div>
+
+  <hr class="my-3 opacity-25">
+
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <label class="form-label fw-semibold text-muted small">Animal Species</label>
+      <input type="text" class="form-control" name="animal_species" placeholder="e.g., Cattle, Goat, Sheep">
+    </div>
+    <div class="col-md-4 mb-3">
+      <label class="form-label fw-semibold text-muted small">Breed</label>
+      <input type="text" class="form-control" name="breed" placeholder="e.g., Friesian">
+    </div>
+    <div class="col-md-4 mb-3">
+      <label class="form-label fw-semibold text-muted small">Age</label>
+      <input type="text" class="form-control" name="age" placeholder="e.g., 2 years, 8 months">
+    </div>
+  </div>
+
+  <hr class="my-3 opacity-25">
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label class="form-label fw-semibold text-muted small">Drug Trade Name</label>
+      <input type="text" class="form-control" name="drug_trade_name" required>
+    </div>
+    <div class="col-md-6 mb-3">
+      <label class="form-label fw-semibold text-muted small">Manufacturer</label>
+      <input type="text" class="form-control" name="manufacturer">
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-3 mb-3">
+      <label class="form-label fw-semibold text-muted small">Batch No.</label>
+      <input type="text" class="form-control" name="batch_no">
+    </div>
+    <div class="col-md-3 mb-3">
+      <label class="form-label fw-semibold text-muted small">Drug Volume</label>
+      <select class="form-control" name="drug_volume">
+        <option value="">Select Volume</option>
+        <option value="1ml">1ml</option>
+        <option value="2ml">2ml</option>
+        <option value="10mls">10mls</option>
+        <option value="20mls">20mls</option>
+        <option value="50mls">50mls</option>
+        <option value="100mls">100mls</option>
+        <option value="500mls">500mls</option>
+        <option value="1LT">1LT</option>
+      </select>
+    </div>
+    <div class="col-md-3 mb-3">
+      <label class="form-label fw-semibold text-muted small">Quantity Purchased</label>
+      <input type="text" class="form-control" name="quantity_purchased">
+    </div>
+    <div class="col-md-3 mb-3">
+      <label class="form-label fw-semibold text-muted small">Dosage</label>
+      <input type="text" class="form-control" name="dosage" placeholder="e.g., 10 mg/kg BID">
+    </div>
+  </div>
+
+  <hr class="my-3 opacity-25">
+
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <label class="form-label fw-semibold text-muted small">Clinical Use</label>
+      <input type="text" class="form-control" name="clinical_use">
+    </div>
+    <div class="col-md-4 mb-3">
+      <label class="form-label fw-semibold text-muted small">Duration of Treatment</label>
+      <input type="text" class="form-control" name="duration_of_treatment">
+    </div>
+    <div class="col-md-4 mb-3">
+      <label class="form-label fw-semibold text-muted small">Withdrawal Period</label>
+      <input type="text" class="form-control" name="withdrawal_period">
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <label class="form-label fw-semibold text-muted small">Storage Condition</label>
+      <input type="text" class="form-control" name="storage_condition">
+    </div>
+    <div class="col-md-4 mb-3">
+      <label class="form-label fw-semibold text-muted small">Side Effect</label>
+      <input type="text" class="form-control" name="side_effect">
+    </div>
+    <div class="col-md-4 mb-3">
+      <label class="form-label fw-semibold text-muted small">Expiry Date</label>
+      <input type="date" class="form-control" name="expiry_date">
+    </div>
+  </div>
+
+  <hr class="my-3 opacity-25">
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label class="form-label fw-semibold text-muted small">Name of the Buyer</label>
+      <input type="text" class="form-control" name="name_of_the_buyer">
+    </div>
+    <div class="col-md-6 mb-3">
+      <label class="form-label fw-semibold text-muted small">Buyer Contact</label>
+      <input type="text" class="form-control" name="buyer_contact">
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label class="form-label fw-semibold text-muted small">K.V.B No.</label>
+      <input type="text" class="form-control" name="buyer_kvb_no">
+    </div>
+    <div class="col-md-6 mb-3">
+      <label class="form-label fw-semibold text-muted small">Licence No.</label>
+      <input type="text" class="form-control" name="buyer_licence_no">
+    </div>
+  </div>
+
+  <hr class="my-3 opacity-25">
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label class="form-label fw-semibold text-muted small">Vet / Pharmacist Comment</label>
+      <textarea class="form-control" name="vet_pharmacist_comment" rows="4"></textarea>
+    </div>
+    <div class="col-md-6 mb-3">
+      <label class="form-label fw-semibold text-muted small">Signature & Stamp</label>
+      <input type="text" class="form-control" name="signature_and_stamp" placeholder="Sign string or clearance tag">
+    </div>
+  </div>
+
+  <div class="modal-footer px-0 pb-0 pt-3 border-top mt-2">
+    <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+    <button type="submit" id="submit" class="btn btn-primary px-4">Save</button>
+  </div>
+</form>
         </div>
       </div>
     </div>
@@ -264,189 +259,154 @@
             </button>
           </div>
           <div class="modal-body">
-          <form id="AiEditForm" class="form-group"  enctype="multipart/form-data">
-            {% csrf_token %}
-            <input type="hidden" id="id" name="id">
-            <div class="mb-3">
-                <label class="form-label">Pharmacy Name</label>
-                <input type="text" class="form-control" name="pharmacy_name">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Location</label>
-                <input type="text" class="form-control" name="location">
-              </div>
-            
-             
-            
-              <div class="mb-3">
-                <label class="form-label">Contact</label>
-                <input type="text" class="form-control" name="contact">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Sign</label>
-                <input type="text" class="form-control" name="sign">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Signed On</label>
-                <input type="date" class="form-control" name="signed_on">
-              </div>
-            
-              <!-- Prescription Info -->
-              <div class="mb-3">
-                <label class="form-label">Drug Category</label>
-                <select class="form-control" name="drug_category">
-                  <option value="">Select Category</option>
-                  <option value="I">I</option>
-                  <option value="II">II</option>
-                  <option value="III">III</option>
-                  <option value="IV">IV</option>
-                </select>
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Prescription Target</label>
-                <select class="form-control" name="prescription_target">
-                  <option value="">Select Target</option>
-                  <option value="vet_practitioner">Vet Practitioner</option>
-                  <option value="farmer">Farmer</option>
-                </select>
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Date of Prescription</label>
-                <input type="date" class="form-control" name="date_of_prescription">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Livestock Type</label>
-                <select class="form-control" name="livestock_type">
-                  <option value="">Select Type</option>
-                  <option value="dairy cow">Dairy Cow</option>
-                  <option value="beef">Beef</option>
-                  <option value="sheep">Sheep</option>
-                  <option value="goat">Goat</option>
-                </select>
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Breed</label>
-                <input type="text" class="form-control" name="breed">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Age</label>
-                <input type="text" class="form-control" name="age" placeholder="e.g., 2 years, 8 months">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Drug Trade Name</label>
-                <input type="text" class="form-control" name="drug_trade_name">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Manufacturing Company</label>
-                <input type="text" class="form-control" name="manufacturing_company">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Batch Number</label>
-                <input type="text" class="form-control" name="batch_number">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Drug Dosage</label>
-                <input type="text" class="form-control" name="drug_dosage" placeholder="e.g., 10 mg/kg BID">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Route of Administration</label>
-                <input type="text" class="form-control" name="route_of_administration" placeholder="e.g., IM, IV, PO">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Drug Volume</label>
-                <input type="text" class="form-control" name="drug_volume" placeholder="e.g., 10 ml, 1 vial">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Clinical Use</label>
-                <input type="text" class="form-control" name="clinical_use">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Duration of Treatment</label>
-                <input type="text" class="form-control" name="duration_of_treatment">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Withdrawal Period</label>
-                <input type="text" class="form-control" name="withdrawal_period">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Quantity Purchased</label>
-                <input type="text" class="form-control" name="quantity_purchased">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Storage Condition</label>
-                <input type="text" class="form-control" name="storage_condition">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Side Effect</label>
-                <input type="text" class="form-control" name="side_effect">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Expiry Date</label>
-                <input type="date" class="form-control" name="expiry_date">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Vet’s Comments</label>
-                <textarea class="form-control" name="vets_comments"></textarea>
-              </div>
-            
-              <!-- Buyer Info -->
-              <div class="mb-3">
-                <label class="form-label">Buyer Name</label>
-                <input type="text" class="form-control" name="buyer_name">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Buyer Category</label>
-                <select class="form-control" name="buyer_category">
-                  <option value="">Select Category</option>
-                  <option value="vet practitioner">Vet Practitioner</option>
-                  <option value="farmer">Farmer</option>
-                </select>
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Buyer K.V.B No</label>
-                <input type="text" class="form-control" name="buyer_kvb_no">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Buyer Licence No</label>
-                <input type="text" class="form-control" name="buyer_licence_no">
-              </div>
-            
-              <div class="mb-3">
-                <label class="form-label">Buyer Signature</label>
-                <input type="text" class="form-control" name="buyer_signature">
-              </div>
-            
-          <div class="modal-footer">
-              <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-              <button type="" id="submitAi" class="btn btn-primary">Save</button>
-          </div>
-          
-        </form>
+         <form id="AiAddForm" enctype="multipart/form-data">
+  {% csrf_token %}
+  <input type="hidden" id="id" name="id">
+
+  <div class="mb-3">
+    <label class="form-label">Date of Prescription</label>
+    <input type="date" class="form-control" name="date_of_prescription" required>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Drug Category</label>
+    <select class="form-control" name="drug_category">
+      <option value="">Select Category</option>
+      <option value="I">I</option>
+      <option value="II">II</option>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Prescription Target</label>
+    <select class="form-control" name="prescription_target">
+      <option value="">Select Target</option>
+      <option value="vet_surgeon">Vet Surgeon</option>
+      <option value="para_professional">Para-Professional</option>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Animal Species</label>
+    <input type="text" class="form-control" name="animal_species" placeholder="e.g., Cattle, Goat, Sheep">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Breed</label>
+    <input type="text" class="form-control" name="breed">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Age</label>
+    <input type="text" class="form-control" name="age" placeholder="e.g., 2 years, 8 months">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Drug Trade Name</label>
+    <input type="text" class="form-control" name="drug_trade_name" required>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Manufacturer</label>
+    <input type="text" class="form-control" name="manufacturer">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Batch No.</label>
+    <input type="text" class="form-control" name="batch_no">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Quantity Purchased</label>
+    <input type="text" class="form-control" name="quantity_purchased">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Drug Volume</label>
+    <select class="form-control" name="drug_volume">
+      <option value="">Select Volume</option>
+      <option value="1ml">1ml</option>
+      <option value="2ml">2ml</option>
+      <option value="10mls">10mls</option>
+      <option value="20mls">20mls</option>
+      <option value="50mls">50mls</option>
+      <option value="100mls">100mls</option>
+      <option value="500mls">500mls</option>
+      <option value="1LT">1LT</option>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Dosage</label>
+    <input type="text" class="form-control" name="dosage" placeholder="e.g., 10 mg/kg BID">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Clinical Use</label>
+    <input type="text" class="form-control" name="clinical_use">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Duration of Treatment</label>
+    <input type="text" class="form-control" name="duration_of_treatment">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Withdrawal Period</label>
+    <input type="text" class="form-control" name="withdrawal_period">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Storage Condition</label>
+    <input type="text" class="form-control" name="storage_condition">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Side Effect</label>
+    <input type="text" class="form-control" name="side_effect">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Expiry Date</label>
+    <input type="date" class="form-control" name="expiry_date">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Name of the Buyer</label>
+    <input type="text" class="form-control" name="name_of_the_buyer">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">K.V.B No.</label>
+    <input type="text" class="form-control" name="buyer_kvb_no">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Licence No.</label>
+    <input type="text" class="form-control" name="buyer_licence_no">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Buyer Contact</label>
+    <input type="text" class="form-control" name="buyer_contact">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Vet / Pharmacist Comment</label>
+    <textarea class="form-control" name="vet_pharmacist_comment" rows="3"></textarea>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Signature & Stamp</label>
+    <input type="text" class="form-control" name="signature_and_stamp">
+  </div>
+
+  <div class="modal-footer">
+    <button type="button" id="cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+    <button type="submit" id="submit" class="btn btn-primary">Save</button>
+  </div>
+</form>
+</div>
         </div>
       </div>
     </div>
@@ -457,10 +417,10 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
-          <h2 class="text-center text-uppercase">{{ request.user.business_name }}</h2>
+          <h2 class="text-center text-uppercase">{{ request.user.agrovet_name }}</h2>
           <h4 class="text-center text-uppercase">Name:{{ request.user.first_name }}</h4>
           <h4 class="text-center text-uppercase">Contact:{{ request.user.phone_number }}</h4>
-          <h4 class="text-center text-uppercase">KVB No:{{ request.user.kvb_number }}</h4>
+          <h4 class="text-center text-uppercase">VMD No:{{ request.user.vmd_number }}</h4>
           
           <h3 class="text-center">E-Prescriptions Records </h3>
           <div class="modal-body" id="modalBody">
@@ -844,187 +804,150 @@ $('#submitAi').on('click', function (e) {
             align: 'center',
             valign: 'middle'
           },
-          {
-            field: 'pharmacy_name',
-            title: 'Pharmacy Name',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'location',
-            title: 'Location',
-            sortable: true,
-            align: 'center'
-          },
-         
-          {
-            field: 'contact',
-            title: 'Contact',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'sign',
-            title: 'Sign',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'signed_on',
-            title: 'Signed On',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'drug_category',
-            title: 'Drug Category',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'prescription_target',
-            title: 'Prescription Target',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'date_of_prescription',
-            title: 'Date of Prescription',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'livestock_type',
-            title: 'Livestock Type',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'breed',
-            title: 'Breed',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'age',
-            title: 'Age',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'drug_trade_name',
-            title: 'Drug Trade Name',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'manufacturing_company',
-            title: 'Manufacturing Company',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'batch_number',
-            title: 'Batch Number',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'drug_dosage',
-            title: 'Drug Dosage',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'route_of_administration',
-            title: 'Route of Administration',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'drug_volume',
-            title: 'Drug Volume',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'clinical_use',
-            title: 'Clinical Use',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'duration_of_treatment',
-            title: 'Duration of Treatment',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'withdrawal_period',
-            title: 'Withdrawal Period',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'quantity_purchased',
-            title: 'Quantity Purchased',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'storage_condition',
-            title: 'Storage Condition',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'side_effect',
-            title: 'Side Effect',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'expiry_date',
-            title: 'Expiry Date',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'vets_comments',
-            title: 'Vet\'s Comments',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'buyer_name',
-            title: 'Buyer Name',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'buyer_category',
-            title: 'Buyer Category',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'buyer_kvb_no',
-            title: 'Buyer KVB No',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'buyer_licence_no',
-            title: 'Buyer Licence No',
-            sortable: true,
-            align: 'center'
-          },
-          {
-            field: 'buyer_signature',
-            title: 'Buyer Signature',
-            sortable: true,
-            align: 'center'
-          },
+        {
+    field: 'date_of_prescription',
+    title: 'Date of Prescription',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'drug_category',
+    title: 'Drug Category',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'prescription_target',
+    title: 'Prescription Target',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'animal_species',
+    title: 'Animal Species',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'breed',
+    title: 'Breed',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'age',
+    title: 'Age',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'drug_trade_name',
+    title: 'Drug Trade Name',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'manufacturer',
+    title: 'Manufacturer',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'batch_no',
+    title: 'Batch No.',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'quantity_purchased',
+    title: 'Quantity Purchased',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'drug_volume',
+    title: 'Drug Volume',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'dosage',
+    title: 'Dosage',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'clinical_use',
+    title: 'Clinical Use',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'duration_of_treatment',
+    title: 'Duration of Treatment',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'withdrawal_period',
+    title: 'Withdrawal Period',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'storage_condition',
+    title: 'Storage Condition',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'side_effect',
+    title: 'Side Effect',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'expiry_date',
+    title: 'Expiry Date',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'name_of_the_buyer',
+    title: 'Name of the Buyer',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'buyer_kvb_no',
+    title: 'Buyer K.V.B No.',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'buyer_licence_no',
+    title: 'Buyer Licence No.',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'buyer_contact',
+    title: 'Buyer Contact',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'vet_pharmacist_comment',
+    title: 'Vet/Pharmacist Comment',
+    sortable: true,
+    align: 'center'
+  },
+  {
+    field: 'signature_and_stamp',
+    title: 'Signature & Stamp',
+    sortable: true,
+    align: 'center'
+  },
           {
             field: 'operate',
             title: 'Item Operate',

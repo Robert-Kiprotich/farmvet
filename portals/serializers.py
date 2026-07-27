@@ -407,8 +407,8 @@ class VeterinaryBillingSerializer(serializers.ModelSerializer):
     class Meta:
         model = VeterinaryBilling
         fields = ['id','user','assigned_to', 'billing_category','other_billing_category','total_amount_billed', 'total_paid', 'balance', 'mode_of_payment',
-                  'agreed_date', 'payment_plan', 'farmer_name', 'village', 'contact','vet_to_be_paid','vet_category',
-                  'reg_no', 'vet_contact', 'signature']
+                  'agreed_date', 'payment_plan', 'farmer_name', 'village', 'contact',
+                 'signature']
         read_only_fields=['balance']
 
 class DewormingSerializer(serializers.ModelSerializer):
@@ -417,7 +417,7 @@ class DewormingSerializer(serializers.ModelSerializer):
         model = Deworming
         fields = ['id','user','assigned_to', 'species_targeted', 'other','animal_name','no_of_adults', 'no_of_young_ones', 'body_conditions',
                     'deworming_date', 'drug_of_choice', 'parasites', 'withdrawal_period', 'side_effects',
-                    'nxt_deworming_date', 'farmer_name', 'village', 'contact','vet_name','vet_category', 'reg_no', 'vet_contact',
+                    'nxt_deworming_date', 'farmer_name', 'village', 'contact',
                     'signature']
 
 class ArtificialInseminationSerializer(serializers.ModelSerializer):
@@ -433,8 +433,8 @@ class ArtificialInseminationSerializer(serializers.ModelSerializer):
             'time_of_heat_sign', 'date_of_heat_sign', 'insemination_date', 'insemination_time', 'insemination_status', 
             'semen_type', 'breed_used', 'other_breed', 'bull_name', 'bull_reg_no', 'semen_source', 'other_source', 
             'heat_sign_mtr_date', 'repeat_heat_date', 'first_pd_date', 'expected_delivery_date', 'owners_name', 
-            'sub_county', 'ward', 'village', 'contact',  'vet_name', 'vet_category', 'vet_reg_no', 
-            'vet_contact', 'location','signature_stamp'
+            'sub_county', 'ward', 'village', 'contact',  
+             'location','signature_stamp'
         ]
         read_only_fields = ['assigned_by', 'heat_sign_mtr_date', 'repeat_heat_date', 'first_pd_date', 'expected_delivery_date']
 
@@ -446,7 +446,7 @@ class PregnancyDiagnosisSerializer(serializers.ModelSerializer):
         model = PregnancyDiagnosis
         fields = ['id','user','assigned_to', 'cow_name', 'reg_no', 'category', 'date_of_ai', 'pg_diag_date', 'pd_results',
                   'pd_method', 'positive_pd_months', 'negative_pd_comment', 'pd_nxt_date', 'expctd_delivery_date',
-                  'comment', 'owners_name', 'village', 'contact','vet_name','vet_category', 'vet_reg_no', 'vet_contact',
+                  'comment', 'owners_name', 'village', 'contact',
                   'signature']
 
 class FarmConsultationSerializer(serializers.ModelSerializer):
@@ -455,16 +455,15 @@ class FarmConsultationSerializer(serializers.ModelSerializer):
         model = FarmConsultation
         fields = ['id','user','assigned_to','visit_date','area_of_interest','other','recommendation', 
                    'manager',  'farmer_name', 'contact', 'village',
-                  'vet_name','vet_category', 'vet_reg_no', 'vet_contact', 'signature']
+                  'signature']
 
 class ReferralSerializer(serializers.ModelSerializer):
     assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
     class Meta:
         model = Referral
         fields = ['id','user','assigned_to', 'species', 'treatment_duration', 'previous_treatment_state', 'prognosis',
-                  'referral_date', 'referral_choice', 'r_vet_name', 'r_vet_contact',
-                  'farmer_name', 'village', 'contact','vet_name','vet_category', 'vet_reg_no', 'vet_contact', 'signature',
-                  'stamp', 'comment']
+                  'referral_date', 'referral_choice', 
+                  'farmer_name', 'village', 'contact']
         
 class SurgicalRecordSerializer(serializers.ModelSerializer):
     assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
@@ -522,10 +521,7 @@ class SampleCollectionSerializer(serializers.ModelSerializer):
             'owner_village',
             'owner_mobile_number',
            
-            'vet_in_charge_name',
-            'vet_category',
-            'vet_in_charge_registration_number',
-            'vet_in_charge_mobile_number',
+           
             'signature',
             
         ]
@@ -585,9 +581,7 @@ class LaboratoryRecordSerializer(serializers.ModelSerializer):
             'owner_name',
             'owner_village',
             'owner_mobile_number',
-            'vet_in_charge_name',
-            'vet_registration_number',
-            'vet_mobile_number',
+           
            'signature',
             'stamp'
         ]
@@ -652,7 +646,6 @@ class VaccinationRecordSerializer(serializers.ModelSerializer):
             'vaccination_type',
             'next_date_of_vaccination',
             'name_of_rash',
-            'village_vaccination_done',
             'nature_of_vaccination_program',
             'name_of_owner',
             'sub_county',
@@ -702,10 +695,7 @@ class PostMortemRecordSerializer(serializers.ModelSerializer):
             'owner_village',
             'owner_mobile_number',
             
-            'vet_in_charge_name',
-            'vet_category',
-            'vet_in_charge_registration_number',
-            'vet_in_charge_mobile_number',
+            
             'signature',
             
         ]
@@ -745,10 +735,6 @@ class ClinicalRecordSerializer(serializers.ModelSerializer):
             'owner_village',
             'owner_contact',
             
-            'vet_in_charge_name',
-            'vet_category',
-            'vet_registration_number',
-            'vet_contact',
             'vet_signature',
             
         ]
@@ -882,11 +868,6 @@ class InvoiceSerializer(serializers.ModelSerializer):
             'farmer_name',
             'village',
             'contact',
-           
-            'vet_in_charge_of_invoice',
-            'vet_category',
-            'vet_registration_number',
-            'vet_contact',
             'signature',
             
         ]
@@ -1015,9 +996,7 @@ class LivestockExaminationRecordSerializer(serializers.ModelSerializer):
             'recommendation',
             'owner_name',
             'owner_mobile_number',
-            'veterinary_officer_in_charge',
-            'registration_number',
-            'veterinary_officer_mobile_number',
+            
             'veterinary_officer_signature',
             'created_at',
         ]
@@ -1070,9 +1049,7 @@ class AssessmentRecordSerializer(serializers.ModelSerializer):
             'recommendation',
             'owner_of_animal',
             'owner_mobile_number',
-            'veterinary_practitioner_in_charge',
-            'practitioner_registration_number',
-            'practitioner_contact',
+            
             'signature_and_stamp',
         ]
         
@@ -1212,11 +1189,6 @@ class UterineIrrigationRecordSerializer(serializers.ModelSerializer):
             'owner_name',
             'village',
             'contact',
-    
-            'vet_in_charge',
-            'vet_category',
-            'registration_number_vet',
-            'contact_vet',
             'sign_and_stamp',
         ]
 
@@ -1253,9 +1225,7 @@ class EmergencyCareSerializer(serializers.ModelSerializer):
             'village',
             'contact',
     
-            'vet_category',
-            'vet_registration_number',
-            'vet_contact',
+            
             'signature_and_stamp',
         ]
 class PriceListSerializer(serializers.ModelSerializer):
@@ -1415,13 +1385,10 @@ class VetJudgmentSerializer(serializers.ModelSerializer):
             'prognosis',
             'practitioner_judgment',
             'prescription_details',
-            'vet_name', 
-            'kvb_no', 
-            'vet_category', 
-            'vet_contact', 
+             
             'referral_details',
         ]
-        read_only_fields = ['vet_name', 'kvb_no', 'vet_category', 'vet_contact']  # Prevent manual input
+        read_only_fields = []  # Prevent manual input
         
 class DailyCheckSerializer(serializers.ModelSerializer):
     #check_section_display = serializers.CharField(source='get_check_section_display', read_only=True)
@@ -1562,9 +1529,7 @@ class LivestockRegistrationSerializer(serializers.ModelSerializer):
             "sub_county",
             "village",
            
-            "practitioner_name",
-            "reg_number",
-            "contact",
+            
             "signature_and_stamp",
             "photo",
             
@@ -1576,50 +1541,41 @@ class VeterinaryEPrescriptionSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "user",
-            "pharmacy_name",
-            "location",
-            "vet_practitioner_incharge",
-            "kvb_no",
-            "licence_no",
-            "contact",
-            "sign",
-            "signed_on",
+            "date_of_prescription",
             "drug_category",
             "prescription_target",
-            "date_of_prescription",
-            "livestock_type",
+            "animal_species",
             "breed",
             "age",
             "drug_trade_name",
-            "manufacturing_company",
-            "batch_number",
-            "drug_dosage",
-            "route_of_administration",
+            "manufacturer",
+            "batch_no",
+            "quantity_purchased",
             "drug_volume",
+            "dosage",
             "clinical_use",
             "duration_of_treatment",
             "withdrawal_period",
-            "quantity_purchased",
             "storage_condition",
             "side_effect",
             "expiry_date",
-            "vets_comments",
-            "buyer_name",
-            "buyer_category",
+            "name_of_the_buyer",
             "buyer_kvb_no",
             "buyer_licence_no",
-            "buyer_signature",
+            "buyer_contact",
+            "vet_pharmacist_comment",
+            "signature_and_stamp",
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "created_at", "updated_at"]
-        
+        read_only_fields = ["created_at", "updated_at"]
 class RoutineManagementSerializer(serializers.ModelSerializer):
     class Meta:
         model = RoutineManagement
         fields = [
             "id",
             "user",
+            "assigned_to",
             "date_of_service",
             "livestock_category",
             "number_of_animals",
@@ -1630,16 +1586,12 @@ class RoutineManagementSerializer(serializers.ModelSerializer):
             "other_management_practice",
             "owner_name",
             "village",
-            "contact",
-            
-            "vet_practitioner_incharge",
-            "vet_category",
-            "vet_reg_no",
+            "contact", 
             "signature_and_stamp",
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "created_at", "updated_at"]
+        read_only_fields = ["created_at", "updated_at"]
         
 class AbortionRecordSerializer(serializers.ModelSerializer):
     class Meta:
@@ -1661,10 +1613,7 @@ class AbortionRecordSerializer(serializers.ModelSerializer):
             "contact",
             "village",
            
-            "vet_practitioner_name",
-            "vet_category",
-            "vet_reg_no",
-            "vet_contact",
+           
             "signature_and_stamp",
             "created_at",
             "updated_at",
@@ -1730,10 +1679,8 @@ class FieldQuotationSerializer(serializers.ModelSerializer):
             'name_of_farm',
             'owner_name',
             'owner_contact',
-            'services_provided_by',
-            'practitioner_name',
-            'kvb_registration_number',
-            'practitioner_contact',
+          
+            
             'signature_and_stamp',
         ]
         read_only_fields = ['user'] 

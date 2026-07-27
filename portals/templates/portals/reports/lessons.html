@@ -72,71 +72,139 @@
         <div class="row">
           <div class="col-md-12">
             <div class="card">
-              <div class="card-header">
+            <div class="card-header">
 
-                                <h2 class="title-1 m-b-25">Lessons </h2>
-                                {% if sections %}
-                                {% for section in sections %}
-                                    <div class="card">
-                                        <div class="card-header">
-                                          <h4>
+    <h2 class="title-1 m-b-25">Lessons</h2>
 
-                                        {{ section.lesson }}
-                                          </h4>
-                                        </div>
-                                        <div class="card-body">
-                                          <a href="{% url 'download_file' section_id=section.id %}">Download File</a>
+    {% if sections %}
+        {% for section in sections %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h4 class="text-success">
+                        {{ section.lesson }}
+                    </h4>
+                </div>
 
-                                            <p class="card-text">{{ section.content }}</p>
-                                        </div>
-                                    </div>
-                                {% endfor %}
-                            {% else %}
-                                <p>No sections available for this lesson.</p>
-                            {% endif %}
-                            {% if sections %}
-                                    {% with sections.0 as section %}
-                                        <div class="card mb-3">
-                                            <div class="card-header">
-                                                {% comment %} <h5 class="card-title">{{ section.title }}</h5> {% endcomment %}
-                                                <a href="{% url 'comment-list' section_id=section.id %}">Comments</a>
-                                            </div>
-                                            <div class="card-body">
-                                                <p class="card-text">You Can also leave a comment here</p>
-                                                
-                                                {% with section.comment_set.last as latest_comment %}
-                                                    {% if latest_comment %}
-                                                        <div class="card mt-3">
-                                                            <div class="card-header">Latest Comment</div>
-                                                            <div class="card-body">
-                                                                <p class="card-text">{{ latest_comment.content }}</p>
-                                                                <small class="text-muted">- {{ latest_comment.author }}</small>
-                                                            </div>
-                                                        </div>
-                                                    {% else %}
-                                                        <p>No comments yet for this section.</p>
-                                                    {% endif %}
-                                                {% endwith %}
-                                            </div>
-                                        </div>
-                                    {% endwith %}
-                                {% else %}
-                                    <p>No sections available.</p>
-                                {% endif %}
-                                {% if sections %}
-                                {% with sections.0 as section %}
-                                <div class="card">
-                                    <div class="card-header">
-                                      <a href="{% url 'questions-list' section_id=section.id %}">Take Exam</a>
-                                    </div>
+                <div class="card-body">
+                    <a href="{% url 'download_file' section_id=section.id %}">
+                        Download File
+                    </a>
+
+                    <div class="lesson-content card-text fw-bold">
+                        {{ section.content }}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No sections available for this lesson.</p>
+    {% endif %}
+
+    {% if sections %}
+        {% with sections.0 as section %}
+
+            <!-- COMMENTS -->
+            <div class="card mb-3">
+
+                <div class="card-header">
+                    <a href="{% url 'comment-list' section_id=section.id %}">
+                        <strong>Add Comment</strong>
+                    </a>
+                </div>
+
+                <div class="card-body">
+
+                    <div style="max-height:300px; overflow-y:auto; padding-right:10px;">
+
+                        {% if comments %}
+
+                            {% for comment in comments %}
+
+                                <div class="card mb-2 shadow-sm">
+
                                     <div class="card-body">
-                                      <h5 class="card-title">The pass mark for this exam is 80%.You can retake 2 times when you fail</h5>
-                                      
+
+                                        <p class="card-text mb-2">
+                                            {{ comment.content }}
+                                        </p>
+
+                                        <small class="text-muted">
+                                            <strong>{{ comment.author }}</strong><br>
+                                            {{ comment.created_at|date:"d M Y H:i" }}
+                                        </small>
+
                                     </div>
+
                                 </div>
-                                {% endwith %} 
-                                 {% endif %} 
-              </div>
+
+                            {% endfor %}
+
+                        {% else %}
+
+                            <div class="alert alert-info mb-0">
+                                No comments yet for this lesson.
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                    <div class="mt-3">
+                        <a href="{% url 'comment-list' section_id=section.id %}"
+                           class="btn btn-outline-primary btn-sm">
+                            View All Comments
+                        </a>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- EXAM -->
+            <div class="card">
+
+                <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+
+                    <div>
+
+                        <button id="exam-action-btn"
+                                class="btn btn-secondary"
+                                disabled>
+                            <i class="ti ti-lock me-1"></i>
+                            Checking Access...
+                        </button>
+
+                        <span id="exam-timer-text"
+                              class="text-danger ms-2 fw-semibold d-none">
+                            Unlocks in:
+                            <span id="countdown-clock">--:--:--</span>
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body">
+
+                    <h5 class="card-title">
+                        The pass mark for this exam is 80%.
+                        You can retake the exam 2 times if you fail.
+                    </h5>
+
+                </div>
+
+            </div>
+
+            <div id="exam-config"
+                 data-payment-date="{{ payment_date|date:'c' }}"
+                 data-contact-hours="{{ contact_hours }}"
+                 data-exam-url="{% url 'questions-list' section_id=section.id %}">
+            </div>
+
+        {% endwith %}
+    {% endif %}
+
+</div>
             </div>
           </div>
         </div>
@@ -153,6 +221,132 @@
             </div>
           </div>
         </footer><!-- End Footer -->
+
+        <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const configEl = document.getElementById("exam-config");
+    if (!configEl) return;
+
+    const rawPaymentDate = configEl.getAttribute("data-payment-date");
+    const contactHours = parseFloat(configEl.getAttribute("data-contact-hours")) || 0;
+    const examUrl = configEl.getAttribute("data-exam-url");
+    
+    const actionBtn = document.getElementById("exam-action-btn");
+    const timerText = document.getElementById("exam-timer-text");
+    const clock = document.getElementById("countdown-clock");
+
+    // Scenario 1: No payment/purchase record exists
+    if (!rawPaymentDate || rawPaymentDate === "None" || rawPaymentDate === "") {
+      actionBtn.className = "btn btn-danger";
+      actionBtn.innerHTML = '<i class="ti ti-alert-triangle me-1"></i> Exam Locked';
+      actionBtn.disabled = true;
+      timerText.classList.remove("d-none");
+      clock.textContent = "Payment Required";
+      return;
+    }
+
+    // Convert dynamic hours into milliseconds (hours * 60 minutes * 60 seconds * 1000 milliseconds)
+    const delayMilliseconds = contactHours * 60 * 60 * 1000;
+    const purchaseTime = new Date(rawPaymentDate).getTime();
+    const unlockTime = purchaseTime + delayMilliseconds;
+
+    function checkExamAccess() {
+      const now = new Date().getTime();
+      const timeLeft = unlockTime - now;
+
+      if (timeLeft <= 0) {
+        // Scenario 2: Allowed time elapsed - UNLOCK BUTTON
+        actionBtn.className = "btn btn-primary";
+        actionBtn.innerHTML = '<i class="ti ti-circle-check me-1"></i> Take Exam';
+        actionBtn.disabled = false;
+        
+        actionBtn.onclick = function() {
+          window.location.href = examUrl;
+        };
+
+        timerText.classList.add("d-none"); 
+        clearInterval(timerInterval);
+      } else {
+        // Scenario 3: Locked - countdown running
+        actionBtn.className = "btn btn-secondary";
+        actionBtn.innerHTML = '<i class="ti ti-lock me-1"></i> Exam Locked';
+        actionBtn.disabled = true;
+        timerText.classList.remove("d-none");
+
+        const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+        const displayH = hours.toString().padStart(2, '0');
+        const displayM = minutes.toString().padStart(2, '0');
+        const displayS = seconds.toString().padStart(2, '0');
+
+        clock.textContent = `${displayH}h ${displayM}m ${displayS}s`;
+      }
+    }
+
+    checkExamAccess();
+    const timerInterval = setInterval(checkExamAccess, 1000);
+  });
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    document.querySelectorAll(".lesson-content").forEach(function (element) {
+
+        let text = element.textContent.trim();
+
+        // Insert a newline before every numbered item (except the first one)
+        // Supports: 1. 2. 3. and 1.0. 2.0. etc.
+        text = text.replace(/\s+(\d+(?:\.\d+)?\.)\s+/g, "\n$1 ");
+
+        const lines = text.split("\n");
+
+        let html = "";
+        let inList = false;
+
+        lines.forEach(function(line) {
+
+            line = line.trim();
+
+            // Check if the line starts with a numbered item
+            if (/^\d+(?:\.\d+)?\.\s+/.test(line)) {
+
+                if (!inList) {
+                    html += '<ol style="margin-left:20px; padding-left:20px;">';
+                    inList = true;
+                }
+
+                html += "<li>" +
+                    line.replace(/^\d+(?:\.\d+)?\.\s+/, "") +
+                    "</li>";
+
+            } else {
+
+                if (inList) {
+                    html += "</ol>";
+                    inList = false;
+                }
+
+                if (line !== "") {
+                    html += '<p style="text-indent:20px; margin-bottom:10px;">' +
+                            line +
+                            "</p>";
+                }
+            }
+
+        });
+
+        if (inList) {
+            html += "</ol>";
+        }
+
+        element.innerHTML = html;
+
+    });
+
+});
+</script>
   <!--   Core JS Files   -->
   <script src="{% static 'portals/assets/js/core/jquery.min.js' %}"></script>
   <script src="{% static 'portals/assets/js/core/popper.min.js' %}"></script>

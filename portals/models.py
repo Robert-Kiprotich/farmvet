@@ -145,7 +145,6 @@ class VaccinationRecord(models.Model):
 	
 	next_date_of_vaccination = models.DateField()
 	name_of_rash = models.CharField(max_length=255, blank=True, null=True)
-	village_vaccination_done = models.CharField(max_length=255, blank=True, null=True)
 	nature_of_vaccination_program = models.CharField(max_length=10,choices=NATURE_OF_VACCINATION_PROGRAM_CHOICES)
 	name_of_owner = models.CharField(max_length=255)
 	sub_county=models.CharField(max_length=255)
@@ -305,10 +304,7 @@ class SampleCollection(models.Model):
 	owner_name = models.CharField(max_length=100)
 	owner_village = models.CharField(max_length=100)
 	owner_mobile_number = models.CharField(max_length=15)
-	vet_in_charge_name = models.CharField(max_length=100)
-	vet_category=models.CharField(max_length=30,choices=VET_CATEGORY)
-	vet_in_charge_registration_number = models.CharField(max_length=100)
-	vet_in_charge_mobile_number = models.CharField(max_length=15)
+	
 	signature = models.TextField(blank=True,null=True)
 	#stamp = models.TextField(blank=True,null=True)
 
@@ -436,9 +432,7 @@ class LaboratoryRecord(models.Model):
     owner_name = models.CharField(max_length=100)
     owner_village = models.CharField(max_length=100)
     owner_mobile_number = models.CharField(max_length=15)
-    vet_in_charge_name = models.CharField(max_length=100)
-    vet_registration_number = models.CharField(max_length=100)
-    vet_mobile_number = models.CharField(max_length=15)
+   
     signature = models.CharField(max_length=255)
     stamp = models.CharField(max_length=255, blank=True, null=True)
 
@@ -521,16 +515,12 @@ class Referral(models.Model):
 	farmer_name = models.CharField(max_length=255)
 	village = models.CharField(max_length=255)
 	contact = models.CharField(max_length=15) 
-	vet_name = models.CharField(max_length=255)
-	vet_category=models.CharField(max_length=30,choices=VET_CATEGORY)
-	vet_reg_no = models.CharField(max_length=255)  
-	vet_contact = models.CharField(max_length=15)  
 	signature = models.TextField(blank=True,null=True)
 	stamp = models.TextField(blank=True,null=True)
 	comment = models.TextField(blank=True, null=True)  
 
 	def __str__(self):
-		return f"Referral for {self.species} by {self.vet_name} on {self.referral_date}"
+		return f"Referral for {self.species}  on {self.referral_date}"
 
 class FarmConsultation(models.Model):
     DAIRY = 'Dairy'
@@ -565,14 +555,11 @@ class FarmConsultation(models.Model):
     farmer_name = models.CharField(max_length=255)
     contact = models.CharField(max_length=15)  
     village = models.CharField(max_length=255)
-    vet_name = models.CharField(max_length=255)
-    vet_category=models.CharField(max_length=30,choices=VET_CATEGORY)
-    vet_reg_no = models.CharField(max_length=255) 
-    vet_contact = models.CharField(max_length=15)  
+      
     signature = models.TextField(blank=True,null=True)
     
     def __str__(self):
-        return f"{self.farmer_name} - {self.area_of_interest} - {self.vet_name}"
+        return f"{self.farmer_name} - {self.area_of_interest}"
 
 class PregnancyDiagnosis(models.Model):
     ADULT = 'Adult'
@@ -608,10 +595,6 @@ class PregnancyDiagnosis(models.Model):
     owners_name = models.CharField(max_length=255)
     village = models.CharField(max_length=255)
     contact = models.CharField(max_length=15)
-    vet_name = models.CharField(max_length=255)
-    vet_category=models.CharField(max_length=30,choices=VET_CATEGORY)
-    vet_reg_no = models.CharField(max_length=255)  # Vet's registration number
-    vet_contact = models.CharField(max_length=15)  # Adjust max_length as necessary
     signature = models.TextField(blank=True,null=True)
     #stamp = models.TextField(blank=True,null=True)
 
@@ -672,10 +655,7 @@ class PostMortemRecord(models.Model):
     owner_name = models.CharField(max_length=100)
     owner_village = models.CharField(max_length=100)
     owner_mobile_number = models.CharField(max_length=15)
-    vet_in_charge_name = models.CharField(max_length=100)
-    vet_category=models.CharField(max_length=30,choices=VET_CATEGORY)
-    vet_in_charge_registration_number = models.CharField(max_length=100)
-    vet_in_charge_mobile_number = models.CharField(max_length=15)
+    
     signature = models.TextField(blank=True,null=True)
     stamp = models.TextField(blank=True,null=True)
 
@@ -800,10 +780,6 @@ class Deworming(models.Model):
 	farmer_name = models.CharField(max_length=255)
 	village = models.CharField(max_length=255)
 	contact = models.CharField(max_length=15) 
-	vet_name = models.CharField(max_length=255)
-	vet_category=models.CharField(max_length=30,choices=VET_CATEGORY)
-	reg_no = models.CharField(max_length=255)  # Vet registration number
-	vet_contact = models.CharField(max_length=15)  # Adjust max_length as necessary
 	signature = models.TextField(blank=True,null=True)
 	#stamp = models.TextField(blank=True,null=True)
 
@@ -954,10 +930,6 @@ class ArtificialInsemination(models.Model):
 	ward = models.CharField(max_length=25,default="")
 	village = models.CharField(max_length=255,default="")
 	contact = models.CharField(max_length=15,default="") 
-	vet_name = models.CharField(max_length=255,default="",blank=True,null=True)
-	vet_category=models.CharField(max_length=30,choices=VET_CATEGORY,default="")
-	vet_reg_no = models.CharField(max_length=254,default="",blank=True,null=True)
-	vet_contact = models.CharField(max_length=15,default="",blank=True,null=True)
 	location=models.CharField(max_length=100,default="",blank=True,null=True)  
 	signature_stamp = models.TextField(blank=True,null=True)
 
@@ -1784,10 +1756,7 @@ class ClinicalRecord(models.Model):
 	owner_name = models.CharField(max_length=100)
 	owner_village = models.CharField(max_length=100)
 	owner_contact = models.CharField(max_length=15)
-	vet_in_charge_name = models.CharField(max_length=100)
-	vet_category=models.CharField(max_length=30,choices=VET_CATEGORY)
-	vet_registration_number = models.CharField(max_length=100)
-	vet_contact = models.CharField(max_length=15)
+	
 	vet_signature = models.TextField(blank=True,null=True)
 	#rubber_stamp = models.CharField(max_length=100, blank=True, null=True)
 
@@ -1845,11 +1814,12 @@ class DiseaseReport(models.Model):
 	]
 
 	YES_NO_CHOICES = [
-		('yes', 'Yes'),
-		('no', 'No'),
+		('Yes', 'Yes'),
+		('No', 'No'),
 	]
 	user=models.ForeignKey(User, on_delete=models.CASCADE,default=1)
-	assigned_to_official = models.ForeignKey(User, on_delete=models.CASCADE, related_name='disease_report', limit_choices_to={'is_official': True})
+	assigned_to_official = models.ForeignKey(User, on_delete=models.CASCADE, related_name='disease_report', limit_choices_to={'is_official': True},null=True,                 
+		blank=True, )
 	date=models.DateField()
 	livestock_category = models.CharField(max_length=20, choices=LIVESTOCK_CATEGORY_CHOICES)
 	other_livestock_category = models.CharField(max_length=50, blank=True, null=True)
@@ -1987,10 +1957,7 @@ class Invoice(models.Model):
 	farmer_name = models.CharField(max_length=100)
 	village = models.CharField(max_length=100)
 	contact = models.CharField(max_length=15)
-	vet_in_charge_of_invoice = models.CharField(max_length=100)
-	vet_category=models.CharField(max_length=30,choices=VET_CATEGORY)
-	vet_registration_number = models.CharField(max_length=100)
-	vet_contact = models.CharField(max_length=15)
+	
 	signature = models.CharField(max_length=100, blank=True, null=True)
 	location = models.CharField(max_length=100, blank=True, null=True)
 
@@ -2221,22 +2188,10 @@ class VetJudgment(models.Model):
     other_livestock_category = models.CharField(max_length=255, blank=True, null=True)
     tentative_diagnosis = models.TextField()
     prognosis = models.CharField(max_length=10, choices=PROGNOSIS_CHOICES)
-    practitioner_judgment = models.CharField(max_length=25, choices=PRACTITIONER_JUDGMENT)
-    prescription_details = models.TextField(blank=True, null=True)
-    # Changed from ForeignKey to CharField
-    vet_name = models.CharField(max_length=100)  # Vet officer's name
-    kvb_no = models.CharField(max_length=100, blank=True, null=True)  # Vet officer's registration number
-    vet_category = models.CharField(max_length=100, blank=True, null=True)  # Vet officer's specialization
-    vet_contact = models.CharField(max_length=13, blank=True, null=True)  # Vet officer's phone number
+   
     referral_details = models.TextField(blank=True, null=True)
 
-    def save(self, *args, **kwargs):
-        if self.user:  # Ensure the vet officer exists before assigning values
-            self.vet_name = self.user.get_full_name()  # Get full name
-            self.kvb_no = self.user.registration_number
-            self.vet_category = self.user.vet_category
-            self.vet_contact = self.user.phone_number
-        super().save(*args, **kwargs)
+    
 
     def __str__(self):
         return f"Judgment for {self.user.username} on {self.date_of_judgment}"
@@ -2560,9 +2515,7 @@ class LivestockExaminationRecord(models.Model):
 	recommendation = models.TextField()
 	owner_name = models.CharField(max_length=100)
 	owner_mobile_number = models.CharField(max_length=15)
-	veterinary_officer_in_charge = models.CharField(max_length=100)
-	registration_number = models.CharField(max_length=50)
-	veterinary_officer_mobile_number = models.CharField(max_length=15)
+	
 	veterinary_officer_signature = models.TextField()
 
 	created_at = models.DateTimeField(auto_now_add=True)
@@ -2681,9 +2634,7 @@ class AssessmentRecord(models.Model):
 	recommendation = models.TextField(blank=True, null=True)
 	owner_of_animal = models.CharField(max_length=100)
 	owner_mobile_number = models.CharField(max_length=15)
-	veterinary_practitioner_in_charge = models.CharField(max_length=100)
-	practitioner_registration_number = models.CharField(max_length=50)
-	practitioner_contact = models.CharField(max_length=15)
+	
 	signature_and_stamp = models.TextField(blank=True, null=True)  # Assuming signature and stamp will be an image
 
 	def __str__(self):
@@ -2881,9 +2832,7 @@ class UterineIrrigationRecord(models.Model):
 	owner_name = models.CharField(max_length=100)
 	village = models.CharField(max_length=100)
 	contact = models.CharField(max_length=15)
-	vet_in_charge = models.CharField(max_length=100, blank=True, null=True)
-	vet_category=models.CharField(max_length=30,choices=VET_CATEGORY)
-	registration_number_vet = models.CharField(max_length=100, blank=True, null=True)
+
 	contact_vet = models.CharField(max_length=15, blank=True, null=True)
 	sign_and_stamp = models.TextField(blank=True, null=True)
 
@@ -3274,9 +3223,7 @@ class LivestockRegistration(models.Model):
 	county = models.CharField(max_length=100)
 	sub_county = models.CharField(max_length=100)
 	village = models.CharField(max_length=100)
-	practitioner_name = models.CharField(max_length=150)
-	reg_number = models.CharField(max_length=100)
-	contact = models.CharField(max_length=20)
+	
 	signature_and_stamp = models.CharField(max_length=255, blank=True, null=True)
 	photo = models.ImageField(upload_to="livestock_photos/", blank=True, null=True)
 
@@ -3285,71 +3232,69 @@ class LivestockRegistration(models.Model):
 		return f"{self.livestock_type} - {self.registration_number}"
 
 class VeterinaryEPrescription(models.Model):
-    # --- Choice constants ---
-	DRUG_CATEGORIES = [
-		('I', 'I'),
-		('II', 'II'),
-		('III', 'III'),
-		('IV', 'IV'),
-	]
+    # --- Choice constants from handwritten record ---
+    DRUG_CATEGORIES = [
+        ('I', 'I'),
+        ('II', 'II'),
+    ]
 
-	PRESCRIPTION_TARGETS = [
-		('vet practitioner', 'Vet Practitioner'),
-		('farmer', 'Farmer'),
-	]
+    PRESCRIPTION_TARGETS = [
+        ('vet_surgeon', 'Vet Surgeon'),
+        ('para_professional', 'Para-Professional'),
+    ]
 
-	LIVESTOCK_TYPES = [
-		('dairy cow', 'Dairy Cow'),
-		('beef', 'Beef'),
-		('sheep', 'Sheep'),
-		('goat', 'Goat'),
-	]
+    
 
-	user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-	pharmacy_name = models.CharField(max_length=150)
-	location = models.CharField(max_length=200, blank=True)
-	vet_practitioner_incharge = models.CharField(max_length=120)
-	kvb_no = models.CharField("K.V.B No", max_length=50, blank=True)
-	licence_no = models.CharField(max_length=50, blank=True)
-	contact = models.CharField(max_length=120, blank=True)
-	sign = models.CharField(max_length=120, blank=True)
-	signed_on = models.DateField(blank=True, null=True)
-	drug_category = models.CharField(max_length=3, choices=DRUG_CATEGORIES, blank=True)
-	prescription_target = models.CharField(max_length=20, choices=PRESCRIPTION_TARGETS, blank=True)
-	date_of_prescription = models.DateField()
-	livestock_type = models.CharField(max_length=20, choices=LIVESTOCK_TYPES)
-	breed = models.CharField(max_length=80, blank=True)
-	age = models.CharField(max_length=40, blank=True, help_text="e.g., 2 years, 8 months")
-	drug_trade_name = models.CharField(max_length=120)
-	manufacturing_company = models.CharField(max_length=150, blank=True)
-	batch_number = models.CharField(max_length=60, blank=True)
-	drug_dosage = models.CharField(max_length=120, blank=True, help_text="e.g., 10 mg/kg BID")
-	route_of_administration = models.CharField(max_length=80, blank=True, help_text="e.g., IM, IV, PO")
-	drug_volume = models.CharField(max_length=60, blank=True, help_text="e.g., 10 ml, 1 vial")
-	clinical_use = models.CharField(max_length=200, blank=True)
-	duration_of_treatment = models.CharField(max_length=80, blank=True)
-	withdrawal_period = models.CharField(max_length=80, blank=True)
-	quantity_purchased = models.CharField(max_length=60, blank=True)
-	storage_condition = models.CharField(max_length=150, blank=True)
-	side_effect = models.CharField(max_length=200, blank=True)
-	expiry_date = models.DateField(blank=True, null=True)
-	vets_comments = models.TextField(blank=True)
-	buyer_name = models.CharField(max_length=120, blank=True)
-	buyer_category = models.CharField(max_length=20, choices=PRESCRIPTION_TARGETS, blank=True)
-	buyer_kvb_no = models.CharField("Buyer K.V.B No", max_length=50, blank=True)
-	buyer_licence_no = models.CharField(max_length=50, blank=True)
-	buyer_signature = models.CharField(max_length=120, blank=True)
-	created_at = models.DateTimeField(auto_now_add=True)
-	updated_at = models.DateTimeField(auto_now=True)
+    # Meta / System fields
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
+    
+    # Core Prescription Information
+    date_of_prescription = models.DateField()
+    drug_category = models.CharField(max_length=3, choices=DRUG_CATEGORIES)
+    prescription_target = models.CharField(max_length=30, choices=PRESCRIPTION_TARGETS)
+    
+    # Animal Details
+    animal_species = models.CharField(max_length=100, help_text="e.g., Cattle, Goat, Sheep")
+    breed = models.CharField(max_length=100, blank=True)
+    age = models.CharField(max_length=50, blank=True)
+    
+    # Medication Details
+    drug_trade_name = models.CharField(max_length=150)
+    manufacturer = models.CharField(max_length=150, blank=True)
+    batch_no = models.CharField(max_length=100, blank=True)
+    quantity_purchased = models.CharField(max_length=100, blank=True)
+    drug_volume = models.CharField(max_length=50, blank=True)
+    dosage = models.CharField(max_length=150, blank=True)
+    
+    # Treatment Metrics
+    clinical_use = models.CharField(max_length=250, blank=True)
+    duration_of_treatment = models.CharField(max_length=100, blank=True)
+    withdrawal_period = models.CharField(max_length=100, blank=True)
+    storage_condition = models.CharField(max_length=150, blank=True)
+    side_effect = models.CharField(max_length=250, blank=True)
+    expiry_date = models.DateField(blank=True, null=True)
+    
+    # Buyer Credentials
+    name_of_the_buyer = models.CharField(max_length=150)
+    buyer_kvb_no = models.CharField("K.V.B No.", max_length=100, blank=True)
+    buyer_licence_no = models.CharField("Licence No.", max_length=100, blank=True)
+    buyer_contact = models.CharField("Contact", max_length=100, blank=True)
+    
+    # Comments & Verification
+    vet_pharmacist_comment = models.TextField(blank=True)
+    signature_and_stamp = models.CharField(max_length=200, blank=True, help_text="Verification string or signature link")
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
-	class Meta:
-		ordering = ["-date_of_prescription", "-id"]
-		verbose_name = "Veterinary e-Prescription"
-		verbose_name_plural = "Veterinary e-Prescriptions"
+    class Meta:
+        ordering = ["-date_of_prescription", "-id"]
+        verbose_name = "Veterinary e-Prescription"
+        verbose_name_plural = "Veterinary e-Prescriptions"
 
-	def __str__(self):
-		return f"{self.drug_trade_name} for {self.livestock_type} on {self.date_of_prescription:%Y-%m-%d}"
-
+    def __str__(self):
+        return f"{self.drug_trade_name} for {self.animal_species} on {self.date_of_prescription:%Y-%m-%d}" 
 class RoutineManagement(models.Model):
     LIVESTOCK_CATEGORIES = [
         ('dairy cow', 'Dairy Cow'),
@@ -3376,7 +3321,8 @@ class RoutineManagement(models.Model):
         ('technologist', 'Technologist'),
         ('technician', 'Technician'),
     ]
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, default=1, null=True, blank=True)
+    assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='routine_report', limit_choices_to={'is_farmer': True})
     date_of_service = models.DateField()
     livestock_category = models.CharField(max_length=20, choices=LIVESTOCK_CATEGORIES)
     number_of_animals = models.PositiveIntegerField()
@@ -3388,9 +3334,6 @@ class RoutineManagement(models.Model):
     owner_name = models.CharField(max_length=120)
     village = models.CharField(max_length=120, blank=True)
     contact = models.CharField(max_length=120, blank=True)
-    vet_practitioner_incharge = models.CharField(max_length=120, blank=True)
-    vet_category = models.CharField(max_length=20, choices=VET_CATEGORIES, blank=True)
-    vet_reg_no = models.CharField("Vet Reg No", max_length=50, blank=True)
     signature_and_stamp = models.CharField(max_length=150, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -3442,10 +3385,7 @@ class AbortionRecord(models.Model):
     owner_name = models.CharField(max_length=120)
     contact = models.CharField(max_length=120, blank=True)
     village = models.CharField(max_length=120, blank=True)
-    vet_practitioner_name = models.CharField(max_length=120, blank=True)
-    vet_category = models.CharField(max_length=20, choices=VET_CATEGORIES, blank=True)
-    vet_reg_no = models.CharField("Vet Reg No", max_length=50, blank=True)
-    vet_contact = models.CharField(max_length=120, blank=True)
+   
     signature_and_stamp = models.CharField(max_length=150, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -3575,12 +3515,8 @@ class FieldQuotation(models.Model):
 	owner_name = models.CharField(max_length=255, blank=True, null=True)
 	owner_contact = models.CharField(max_length=50, blank=True, null=True)
 
-	# --- Practitioner / Service Provider Details ---
-	services_provided_by = models.CharField(max_length=255, blank=True, null=True)
-	practitioner_name = models.CharField(max_length=255, blank=True, null=True)
-	kvb_registration_number = models.CharField(max_length=50, blank=True, null=True)
-	practitioner_contact = models.CharField(max_length=50, blank=True, null=True)
-
+	
+	
 	# --- Signature ---
 	signature_and_stamp = models.TextField( blank=True, null=True)
 

@@ -321,6 +321,74 @@ def farmer_login(request):
 
 	return render(request, 'user/farmerlogin.html', {'form': form})
 
+def universal_login(request):
+    # Define role mapping
+    ROLE_MAPPING = {
+        'is_farmer': {
+            'redirect': 'farmer-portal',
+            'name': 'Farmer',
+            'login_url': 'farmer-login'
+        },
+        'is_vet_officer': {
+            'redirect': 'vet-portal',
+            'name': 'Veterinary Officer',
+            'login_url': 'vet-login'
+        },
+        'is_official': {
+            'redirect': 'official-portal',
+            'name': 'Government Official',
+            'login_url': 'official-login'
+        },
+        'is_cooperative': {
+            'redirect': 'cooperative-portal',
+            'name': 'Cooperative',
+            'login_url': 'cooperative-login'
+        }
+    }
+    
+    # Redirect if user is already logged in
+    if request.user.is_authenticated:
+        return redirect_to_user_portal(request.user, request)
+    
+    form = AuthenticationForm()
+    
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        # Authenticate user
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            # Logout any existing session
+            if request.user.is_authenticated:
+                logout(request)
+            
+            # Login the user
+            login(request, user)
+            
+            # Redirect to appropriate portal
+            return redirect_to_user_portal(user, request)
+        else:
+            messages.error(request, 'Invalid username or password. Please try again.')
+    
+    return render(request, 'user/login.html', {'form': form})
+
+def redirect_to_user_portal(user, request):
+    """Helper function to redirect based on user role"""
+    # Check roles in priority order
+    if hasattr(user, 'is_farmer') and user.is_farmer:
+        return redirect('farmer-portal')
+    elif hasattr(user, 'is_vet_officer') and user.is_vet_officer:
+        return redirect('vet-portal')
+    elif hasattr(user, 'is_official') and user.is_official:
+        return redirect('official-portal')
+    elif hasattr(user, 'is_cooperative') and user.is_cooperative:
+        return redirect('cooperative-portal')
+    else:
+        messages.warning(request, 'Your account role is not configured. Please contact support.')
+        return redirect('index')
+
 def user_logout(request):
     logout(request)
     messages.success(request, 'Successfully logged out')

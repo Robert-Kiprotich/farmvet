@@ -86,6 +86,16 @@
             <form id="AiAddForm"  enctype="multipart/form-data">
               {% csrf_token %}
               <input type="hidden" id="id"  name="id" >
+               <div class="mb-3">
+              <label for="assigned_to" class="form-label">Assigned To Farmer(Optional) </label>
+              <select name="assigned_to" id="assigned_to" class="form-control">
+                <option value="" disabled selected>Select a farmer</option>
+                <option value="{{request.user.username}}">None</option>
+                {% for farmer in all_farmers %}
+                    <option value="{{ farmer.username }}">{{ farmer.username }}</option>
+                {% endfor %}
+            </select>
+          </div>
               <div class="mb-3">
                 <label for="date_of_service" class="form-label">Date of Service</label>
                 <input type="date" class="form-control" id="date_of_service" name="date_of_service" required>
@@ -156,23 +166,7 @@
                 <label for="contact" class="form-label">Contact</label>
                 <input type="text" class="form-control" id="contact" name="contact">
               </div>
-            
-              
-            
-              
-            
-              <div class="mb-3">
-                <label for="vet_category" class="form-label">Vet Category</label>
-                <select class="form-control" id="vet_category" name="vet_category">
-                  <option value="">-- Select --</option>
-                  <option value="surgeon">Surgeon</option>
-                  <option value="technologist">Technologist</option>
-                  <option value="technician">Technician</option>
-                </select>
-              </div>
-            
-             
-            
+          
               <div class="mb-3">
                 <label for="signature_and_stamp" class="form-label">Signature and Stamp</label>
                 <input type="text" class="form-control" id="signature_and_stamp" name="signature_and_stamp">
@@ -202,6 +196,16 @@
           <form id="AiEditForm" class="form-group"  enctype="multipart/form-data">
             {% csrf_token %}
             <input type="hidden" id="id" name="id">
+             <div class="mb-3">
+              <label for="assigned_to" class="form-label">Assigned To Farmer(Optional) </label>
+              <select name="assigned_to" id="assigned_to" class="form-control">
+                <option value="" disabled selected>Select a farmer</option>
+                <option value="{{request.user.username}}">None</option>
+                {% for farmer in all_farmers %}
+                    <option value="{{ farmer.username }}">{{ farmer.username }}</option>
+                {% endfor %}
+            </select>
+          </div>
             <div class="mb-3">
                 <label for="date_of_service" class="form-label">Date of Service</label>
                 <input type="date" class="form-control" id="date_of_service" name="date_of_service" required>
@@ -272,29 +276,7 @@
                 <label for="contact" class="form-label">Contact</label>
                 <input type="text" class="form-control" id="contact" name="contact">
               </div>
-            
-             
-            
-              <div class="mb-3">
-                <label for="vet_practitioner_incharge" class="form-label">Vet Practitioner Incharge</label>
-                <input type="text" class="form-control" id="vet_practitioner_incharge" name="vet_practitioner_incharge">
-              </div>
-            
-              <div class="mb-3">
-                <label for="vet_category" class="form-label">Vet Category</label>
-                <select class="form-control" id="vet_category" name="vet_category">
-                  <option value="">-- Select --</option>
-                  <option value="surgeon">Surgeon</option>
-                  <option value="technologist">Technologist</option>
-                  <option value="technician">Technician</option>
-                </select>
-              </div>
-            
-              <div class="mb-3">
-                <label for="vet_reg_no" class="form-label">Vet Reg No</label>
-                <input type="text" class="form-control" id="vet_reg_no" name="vet_reg_no">
-              </div>
-            
+           
               <div class="mb-3">
                 <label for="signature_and_stamp" class="form-label">Signature and Stamp</label>
                 <input type="text" class="form-control" id="signature_and_stamp" name="signature_and_stamp">
@@ -315,6 +297,7 @@
     <div class="modal fade" id="dsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" id="invoice">
+              <h4 class="text-center text-uppercase">{{ request.user.business_name }}</h4>
          <h4 class="text-center text-uppercase">Name:{{ request.user.first_name }}</h4>
           <h4 class="text-center text-uppercase">Contact:{{ request.user.phone_number }}</h4>
           <h4 class="text-center text-uppercase">KVB No{{ request.user.kvb_number }}</h4>
@@ -702,6 +685,7 @@ $('#submitAi').on('click', function (e) {
             valign: 'middle'
           },
           { field: 'state', checkbox: true, align: 'center', valign: 'middle' },
+          { field: 'assigned_to', title: 'Farmer Name', sortable: true, align: 'center' },
   { field: 'date_of_service', title: 'Date of Service', sortable: true, align: 'center' },
   { field: 'livestock_category', title: 'Livestock Category', sortable: true, align: 'center' },
   { field: 'number_of_animals', title: 'Number of Animals', sortable: true, align: 'center' },

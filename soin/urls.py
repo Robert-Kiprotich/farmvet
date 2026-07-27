@@ -18,6 +18,7 @@ urlpatterns = [
     path('', include('vet.urls')),
     path('accounts/', include('allauth.urls')),
     path('admin/', admin.site.urls, name='admin-vet'),
+     path('login/', user_views.universal_login, name='login'),
     #users sign up
     path('user/signup/vet_officer/', user_views.vet0fficer_signup_view, name='vet-register'),
     path('user/signup/cooperative/', user_views.cooperative_signup_view, name='cooperative-register'),

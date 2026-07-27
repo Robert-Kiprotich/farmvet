@@ -1905,6 +1905,8 @@ def generate_vaccination_certificate(record) -> bytes:
     Returns raw PDF bytes.
     """
     MRG = 18
+    TOP_PAD = 24      # <<< CHANGE ME: extra blank space above the business name. Increase to push title down.
+    BOTTOM_PAD = 26   # <<< CHANGE ME: extra blank space below content, controls how close the footer sits to the bottom border. Increase to push footer further up; decrease to move it closer to the bottom edge.
     ROW = 18
     TBL = 18
     TBL_H = 16
@@ -1915,6 +1917,7 @@ def generate_vaccination_certificate(record) -> bytes:
     page_w = A4[0]
 
     content_h = 0
+    content_h += TOP_PAD        # <<< added: top margin above business name
     content_h += 20
     content_h += 16
     content_h += 28
@@ -1938,7 +1941,7 @@ def generate_vaccination_certificate(record) -> bytes:
     content_h += ROW
     content_h += ROW
     content_h += 2
-    content_h += 6
+    content_h += BOTTOM_PAD     # <<< added: bottom margin/space before footer
 
     page_h = content_h + 2 * MRG
 
@@ -1952,7 +1955,7 @@ def generate_vaccination_certificate(record) -> bytes:
     _logo_circle(c, MRG + 28, page_h - MRG - 28)
     _gold_seal(c,  page_w - MRG - 32, page_h - MRG - 30)
 
-    ty = page_h - MRG - 20
+    ty = page_h - MRG - TOP_PAD - 20   # <<< changed: subtract TOP_PAD so business name starts lower
     business_name = (record.user.business_name or "VETERINARY PROFESSIONAL SERVICES").upper()
     c.setFillColor(NAVY)
     c.setFont("Helvetica-Bold", 17)
@@ -1988,7 +1991,7 @@ def generate_vaccination_certificate(record) -> bytes:
     sh(y, "Owner Details:")
     y -= ROW
     half = (IR - IL) / 2
-    lv(IL,        y, "Name:",        record.name_of_animal, lw=48)
+    lv(IL,        y, "Name:",        record.name_of_owner, lw=48)
     lv(IL + half, y, "Location:",    record.location,      lw=62)
     y -= ROW
     lv(IL,        y, "Village:",     record.village,       lw=48)
@@ -2014,7 +2017,7 @@ def generate_vaccination_certificate(record) -> bytes:
     ], row_h=TBL)
     y -= TBL + 16
 
-    lv(IL, y, "Name:", record.name_of_rash or "", lw=48)
+    lv(IL, y, "Name:", record.name_of_animal or "", lw=48)
     c.setFont(*LBL); c.drawString(IL + 230, y, "Other Description:")
     c.setFont(*VAL); c.drawString(IL + 340, y, str(record.other_description or ""))
 
@@ -2038,14 +2041,14 @@ def generate_vaccination_certificate(record) -> bytes:
     # Row 1: Dates
     lv(IL,       y, "Date of Vaccination:",      str(record.date_of_vaccination),      lw=130)
     lv(IL + 255, y, "Next Date of Vaccination:", str(record.next_date_of_vaccination), lw=150)
-    
+
     # Row 2: Expiry Left, Details Left
     y -= ROW
     lv(IL,       y, "Expiry Date of Vaccine:",   str(record.expiry_date),              lw=130)
-    
+
     y -= ROW
     lv(IL,       y, "Vaccination Details:",      str(record.vaccination_type),         lw=130)
-    
+
     y -= ROW
     lv(IL,       y, "Vaccination Status:",       str(record.nature_of_vaccination_program), lw=130)
 
@@ -2053,8 +2056,11 @@ def generate_vaccination_certificate(record) -> bytes:
     y -= (ROW * 2.5) # <--- Drop down significantly to leave blank space for physical ink stamp placement
     lv(IL + 255, y, "Signature and Stamp:",      str(record.signature),                lw=150)
 
-    y -= ROW
-    footer_y = y - 2
+    # >>> CHANGED: footer is now anchored near the bottom margin instead of
+    # following directly after the signature row. Adjust FOOTER_GAP below
+    # to move it closer to / further from the bottom border.
+    FOOTER_GAP = 10   # <<< CHANGE ME: distance between bottom inner border and footer text
+    footer_y = MRG + FOOTER_GAP
     c.setFont("Helvetica-Oblique", 8); c.setFillColor(colors.grey)
     c.drawCentredString(page_w / 2, footer_y,
                         f"This certificate is issued by {business_name}")
@@ -2766,28 +2772,45 @@ class SectionList(View):
         
         # Handle AJAX requests
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            # Note: Ensure you import Response / Serializers if using DRF inside a Django View
+            from rest_framework.response import Response
             serializer = SectionSerializer(sections, many=True)
             return Response(serializer.data)
         
-        # 2. Try to find the payment/purchase date for the logged-in user
+        # 2. Find the payment/purchase date for the logged-in user
         payment_date = None
         if request.user.is_authenticated:
             try:
                 purchase = LessonPurchase.objects.get(
                     user=request.user, 
-                    lesson_id=lesson_id # Matches the unique_together constraint
+                    lesson_id=lesson_id
                 )
                 payment_date = purchase.purchased_at
             except LessonPurchase.DoesNotExist:
-                # If they haven't purchased it, keep payment_date as None
                 pass
 
-        # 3. Add 'payment_date' to your context
+        # 3. Get the Tutorial to find dynamic contact_hours
+        tutorial = get_object_or_404(Tutorial, id=lesson_id)
+        
+        # Extract digits from "6 hours" or "6" into a clean float value
+        try:
+            raw_hours = re.findall(r"[-+]?\d*\.\d+|\d+", str(tutorial.contact_hours))
+            contact_hours_value = float(raw_hours[0]) if raw_hours else 0.0
+        except Exception:
+            contact_hours_value = 0.0
+
+        # 4. Add both parameters to context
+
+        
+        comments = Comment.objects.filter(section__in=sections).select_related("author").order_by("-created_at")[:5]
         context = {
             'sections': sections,
             'lesson_id': lesson_id,
-            'payment_date': payment_date  # Available in your HTML template now
-        }
+            'payment_date': payment_date,
+            'contact_hours': contact_hours_value,  # Passes numeric hours e.g., 6.0
+            'comments': comments
+        }                       
+        
         return render(request, 'portals/reports/lessons.html', context)
     
 def download_file(request, section_id):
